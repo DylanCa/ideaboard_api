@@ -47,3 +47,6 @@ group :development, :test do
 end
 
 
+gem "dotenv", "3.1.7"
+gem 'rspec-rails'
+gem "rswag"
