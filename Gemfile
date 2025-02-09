@@ -48,5 +48,5 @@ end
 
 
 gem "dotenv", "3.1.7"
-gem 'rspec-rails'
+gem "rspec-rails"
 gem "rswag"
