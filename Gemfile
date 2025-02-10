@@ -50,3 +50,7 @@ end
 gem "dotenv", "3.1.7"
 gem "rspec-rails"
 gem "rswag"
+gem "octokit"
+gem "faraday-retry"
+gem "openssl"
+gem "jwt"

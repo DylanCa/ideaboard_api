@@ -10,4 +10,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  get "api/auth/github/callback" => "auth/github#callback"
+  get "api/profile" => "users#profile"
 end

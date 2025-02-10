@@ -10,13 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_09_175456) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_10_143027) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
     t.string "github_username", null: false
-    t.string "oauth_access_token", null: false
-    t.string "oauth_refresh_token", null: false
     t.string "avatar_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -135,8 +133,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_175456) do
     t.index ["user_id"], name: "index_user_stats_on_user_id", unique: true
   end
 
+  create_table "user_tokens", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "access_token", null: false
+    t.string "refresh_token", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["refresh_token"], name: "index_user_tokens_on_refresh_token", unique: true
+    t.index ["user_id"], name: "index_user_tokens_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
-    t.string "username", null: false
     t.string "email", null: false
     t.integer "account_status", null: false
     t.datetime "created_at", null: false
@@ -155,4 +163,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_175456) do
   add_foreign_key "projects", "users"
   add_foreign_key "pull_requests", "github_repositories"
   add_foreign_key "user_stats", "users"
+  add_foreign_key "user_tokens", "users"
 end
