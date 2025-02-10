@@ -1,6 +1,6 @@
 class JwtService
-  SECRET_KEY = ENV['JWT_SECRET_KEY']
-  EXPIRATION = ENV['JWT_EXPIRATION'].to_i
+  SECRET_KEY = ENV["JWT_SECRET_KEY"]
+  EXPIRATION = ENV["JWT_EXPIRATION"].to_i
 
   def self.encode(payload)
     payload[:exp] = Time.now.to_i + EXPIRATION
@@ -10,8 +10,8 @@ class JwtService
   def self.decode(token)
     JWT.decode(token, SECRET_KEY, true).first
   rescue JWT::ExpiredSignature
-    raise 'Token expired'
+    raise "Token expired"
   rescue JWT::DecodeError
-    raise 'Invalid token'
+    raise "Invalid token"
   end
 end

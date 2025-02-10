@@ -19,8 +19,8 @@ module Github
         client = Octokit::Client.new
         result = client.exchange_code_for_token(
           code,
-          ENV['GITHUB_APP_CLIENT_ID'],
-          ENV['GITHUB_APP_SECRET_KEY']
+          ENV["GITHUB_APP_CLIENT_ID"],
+          ENV["GITHUB_APP_SECRET_KEY"]
         )
 
         {
@@ -48,11 +48,11 @@ module Github
               github_username: client.user.login,
               avatar_url: client.user.avatar_url
             },
-            user_tokens_attributes: [{
+            user_tokens_attributes: [ {
                                        access_token: tokens[:access_token],
                                        refresh_token: tokens[:refresh_token],
                                        expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
-                                     }],
+                                     } ],
             user_stat_attributes: { reputation_points: 0 }
           )
         end

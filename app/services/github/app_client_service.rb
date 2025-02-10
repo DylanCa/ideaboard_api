@@ -23,14 +23,14 @@ module Github
       end
 
       def jwt
-        private_key = OpenSSL::PKey::RSA.new(ENV['GITHUB_APP_PRIVATE_KEY'])
+        private_key = OpenSSL::PKey::RSA.new(ENV["GITHUB_APP_PRIVATE_KEY"])
         payload = {
           iat: Time.now.to_i - 60,
           exp: Time.now.to_i + (10 * 60),
-          iss: ENV['GITHUB_APP_CLIENT_ID']
+          iss: ENV["GITHUB_APP_CLIENT_ID"]
         }
 
-        JWT.encode(payload, private_key, 'RS256')
+        JWT.encode(payload, private_key, "RS256")
       end
 
       def token_expired?
