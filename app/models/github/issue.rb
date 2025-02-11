@@ -31,7 +31,7 @@ module Github
     end
 
     def open?
-      state == 'open'
+      state == "open"
     end
 
     def closed?

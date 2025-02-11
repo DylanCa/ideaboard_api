@@ -49,11 +49,11 @@ module Github
     end
 
     def open?
-      state == 'open'
+      state == "open"
     end
 
     def closed?
-      state == 'closed'
+      state == "closed"
     end
 
     def merged?
