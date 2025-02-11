@@ -54,3 +54,6 @@ gem "octokit"
 gem "faraday-retry"
 gem "openssl"
 gem "jwt"
+gem "sorbet"
+gem "sorbet-runtime"
+gem "tapioca", group: :development
