@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_10_143027) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_11_145743) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -63,10 +63,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_10_143027) do
     t.datetime "github_updated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "closed_by_pull_request_id"
+    t.integer "reaction_count", default: 0, null: false
+    t.index ["closed_by_pull_request_id"], name: "index_issues_on_closed_by_pull_request_id"
     t.index ["difficulty"], name: "index_issues_on_difficulty"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
     t.index ["github_username"], name: "index_issues_on_github_username"
+    t.index ["reaction_count"], name: "index_issues_on_reaction_count"
     t.index ["state"], name: "index_issues_on_state"
   end
 
@@ -110,6 +114,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_10_143027) do
     t.datetime "github_updated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "has__received_rfc", default: false, null: false
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
     t.index ["github_username"], name: "index_pull_requests_on_github_username"
@@ -122,6 +127,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_10_143027) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
+  create_table "user_repository_stats", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "github_repository_id", null: false
+    t.integer "opened_prs_count", default: 0, null: false
+    t.integer "merged_prs_count", default: 0, null: false
+    t.integer "issues_opened_count", default: 0, null: false
+    t.integer "issues_closed_count", default: 0, null: false
+    t.integer "issues_with_pr_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["github_repository_id"], name: "index_user_repository_stats_on_github_repository_id"
+    t.index ["user_id", "github_repository_id"], name: "idx_on_user_id_github_repository_id_b7aa4510b5", unique: true
+    t.index ["user_id"], name: "index_user_repository_stats_on_user_id"
   end
 
   create_table "user_stats", force: :cascade do |t|
@@ -162,6 +182,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_10_143027) do
   add_foreign_key "project_stats", "projects"
   add_foreign_key "projects", "users"
   add_foreign_key "pull_requests", "github_repositories"
+  add_foreign_key "user_repository_stats", "github_repositories"
+  add_foreign_key "user_repository_stats", "users"
   add_foreign_key "user_stats", "users"
   add_foreign_key "user_tokens", "users"
 end
