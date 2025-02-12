@@ -5,7 +5,7 @@ module Github
     const :url, String
     const :number, Integer
     const :state, String
-    const :repository_id, Integer
+    const :github_repository_id, Integer
     const :author_username, T.nilable(String)
     const :merged_at, T.nilable(String)
     const :closed_at, T.nilable(String)
@@ -27,7 +27,7 @@ module Github
         url: data.url,
         number: data.number,
         state: data.state,
-        repository_id: repo_id || data.repository.database_id,
+        github_repository_id: repo_id,
         author_username: data.author&.login,
         merged_at: data.merged_at,
         closed_at: data.closed_at,

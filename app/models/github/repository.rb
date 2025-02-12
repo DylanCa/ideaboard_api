@@ -1,6 +1,6 @@
 module Github
   class Repository < T::Struct
-    const :github_id, Integer
+    const :github_id, String
     const :name, String
     const :name_with_owner, String
     const :pull_requests, T.nilable(T::Array[PullRequest])
@@ -19,7 +19,7 @@ module Github
 
     def self.from_github(data)
       new(
-        github_id: data.database_id,
+        github_id: data.id,
         name: data.name,
         name_with_owner: data.name_with_owner,
         pull_requests: Helpers.extract_pull_requests(data),
