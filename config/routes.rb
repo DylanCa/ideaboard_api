@@ -13,8 +13,8 @@ Rails.application.routes.draw do
 
   get "api/auth/github/callback" => "auth/github#callback"
   get "api/profile" => "users#profile"
-  get "api/repo_prs" => "users#repo_prs"
-  get "api/repos" => "users#repos"
-  get "api/issues" => "users#issues"
-  get "api/prs" => "users#prs"
+  get "api/user" => "users#current_user"
+  get "api/user/repos" => "users#user_repos"
+  get "api/user/prs" => "users#user_prs"
+  get "api/user/issues" => "users#user_issues"
 end
