@@ -11,5 +11,4 @@ class Issue < ApplicationRecord
   validates :reaction_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
   enum :state, { closed: 0, open: 1 }
-  enum :difficulty, { easy: 0, medium: 1, hard: 2 }
 end

@@ -1,6 +1,6 @@
 class GithubRepository < ApplicationRecord
   belongs_to :project, optional: true
-  belongs_to :language
+  belongs_to :language, optional: true
 
   has_many :issues
   has_many :pull_requests
