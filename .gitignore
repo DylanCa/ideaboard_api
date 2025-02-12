@@ -75,3 +75,5 @@ yarn-debug.log*
 
 # Ignore GraphQL schema dump
 /app/graphql/schema.*
+
+testing.graphql
