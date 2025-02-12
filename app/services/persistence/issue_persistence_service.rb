@@ -7,9 +7,11 @@ module Services
       def self.persist_many(issues, github_repository_id)
         validate_bulk_input!(issues, github_repository_id)
 
+        issues = issues.map { |issue| Github::Issue.from_github(issue, github_repository_id) }
+
         attributes_list = issues.map do |issue|
           {
-            github_repository_id: github_repository_id,
+            github_repository_id: issue.github_repository_id,
             full_database_id: issue.full_database_id,
             title: issue.title,
             url: issue.url,

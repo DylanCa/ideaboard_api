@@ -3,9 +3,11 @@ module Services
     class PullRequestPersistenceService
       extend T::Sig
 
-      sig { params(pull_requests: T::Array[Github::PullRequest]).void }
-      def self.persist_many(pull_requests)
+      sig { params(pull_requests: T::Array[Github::PullRequest], github_repository_id: Integer).void }
+      def self.persist_many(pull_requests, github_repository_id)
         validate_bulk_input!(pull_requests)
+
+        pull_requests = pull_requests.map { |pr| Github::PullRequest.from_github(pr, github_repository_id) }
 
         attributes_list = pull_requests.map do |pr|
           # Convert GitHub's string state to our enum values
@@ -18,8 +20,8 @@ module Services
                         end
 
           {
-            github_repository_id: pr.repository_id,
             full_database_id: pr.full_database_id,
+            github_repository_id: pr.github_repository_id,
             title: pr.title,
             url: pr.url,
             number: pr.number,
