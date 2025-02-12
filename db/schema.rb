@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_11_145743) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_12_161933) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -24,22 +24,32 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_11_145743) do
   end
 
   create_table "github_repositories", force: :cascade do |t|
-    t.integer "project_id", null: false
-    t.integer "language_id", null: false
+    t.integer "language_id"
     t.integer "repo_id", limit: 8, null: false
     t.string "full_name", null: false
     t.integer "stars_count", default: 0, null: false
     t.integer "forks_count", default: 0, null: false
-    t.integer "open_issues_count", default: 0, null: false
-    t.boolean "has_license", default: false, null: false
     t.boolean "has_contributing", default: false, null: false
     t.datetime "github_created_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "is_fork", default: false, null: false
+    t.boolean "archived", default: false, null: false
+    t.boolean "disabled", default: false, null: false
+    t.string "license_key"
+    t.boolean "visible", default: true, null: false
+    t.datetime "github_updated_at", null: false
+    t.integer "total_commits_count", default: 0
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
+    t.index ["github_updated_at"], name: "index_github_repositories_on_github_updated_at"
     t.index ["language_id"], name: "index_github_repositories_on_language_id"
-    t.index ["project_id"], name: "index_github_repositories_on_project_id", unique: true
     t.index ["repo_id"], name: "index_github_repositories_on_repo_id", unique: true
+    t.index ["stars_count", "visible", "archived", "disabled"], name: "idx_on_stars_count_visible_archived_disabled_2b4ce69e99"
+    t.index ["user_id"], name: "index_github_repositories_on_user_id"
+    t.index ["visible", "archived", "disabled"], name: "index_github_repositories_on_visible_and_archived_and_disabled"
   end
 
   create_table "github_repository_tags", force: :cascade do |t|
@@ -89,17 +99,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_11_145743) do
     t.datetime "updated_at", null: false
     t.index ["project_id"], name: "index_project_stats_on_project_id", unique: true
     t.index ["rank_score"], name: "index_project_stats_on_rank_score"
-  end
-
-  create_table "projects", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.string "name", null: false
-    t.text "description"
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_projects_on_active"
-    t.index ["user_id"], name: "index_projects_on_user_id"
   end
 
   create_table "pull_requests", force: :cascade do |t|
@@ -175,12 +174,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_11_145743) do
 
   add_foreign_key "github_accounts", "users"
   add_foreign_key "github_repositories", "languages"
-  add_foreign_key "github_repositories", "projects"
+  add_foreign_key "github_repositories", "users"
   add_foreign_key "github_repository_tags", "github_repositories"
   add_foreign_key "github_repository_tags", "tags"
   add_foreign_key "issues", "github_repositories"
   add_foreign_key "project_stats", "projects"
-  add_foreign_key "projects", "users"
   add_foreign_key "pull_requests", "github_repositories"
   add_foreign_key "user_repository_stats", "github_repositories"
   add_foreign_key "user_repository_stats", "users"
