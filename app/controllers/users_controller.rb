@@ -21,6 +21,11 @@ class UsersController < ApplicationController
     render json: { data: result }
   end
 
+  def user_contributions
+    result = Github::GraphqlService.fetch_current_user_contributions(@current_user)
+    render json: { data: result }
+  end
+
   # GET /users
   def profile
     render json: { user: @current_user,
