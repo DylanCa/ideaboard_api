@@ -1,25 +1,17 @@
 module Github
   class AppClientService
     class << self
-      def client
-        # Return cached client if installation token is still valid
-        return @client if @client && !token_expired?
-
-        # Otherwise create new client with fresh token
-        @client = Octokit::Client.new(access_token: installation_token)
-      end
-
-      private
-
       def installation_token
+        return @token unless token_expired?
+
         # Get a new installation token
         jwt_client = Octokit::Client.new(bearer_token: jwt)
         installation = jwt_client.find_app_installations.first
         token_response = jwt_client.create_app_installation_access_token(installation.id)
 
-        # Cache token and its expiration
-        @token_expires_at = Time.parse(token_response[:expires_at])
-        token_response[:token]
+        # The expires_at might already be a Time object
+        @token_expires_at = token_response[:expires_at]
+        @token = token_response[:token]
       end
 
       def jwt
