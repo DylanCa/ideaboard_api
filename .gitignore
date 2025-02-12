@@ -72,3 +72,6 @@ yarn-debug.log*
 /public/uploads
 
 .idea/
+
+# Ignore GraphQL schema dump
+/app/graphql/schema.*
