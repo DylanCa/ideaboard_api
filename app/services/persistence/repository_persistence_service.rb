@@ -1,4 +1,4 @@
-require_relative '../../models/github/repository'
+require_relative "../../models/github/repository"
 
 module Services
   module Persistence
@@ -10,7 +10,7 @@ module Services
         validate_bulk_input!(repositories, user_id)
 
         # Pre-load or create all languages at once
-        language_names = repositories.map{|r| r.primary_language&.downcase}.compact.uniq
+        language_names = repositories.map { |r| r.primary_language&.downcase }.compact.uniq
         languages_by_name = bulk_find_or_create_languages(language_names)
 
         # Prepare attributes for all repositories
@@ -49,7 +49,7 @@ module Services
         repository = Github::Repository.from_github(repository)
 
         # Pre-load or create all languages at once
-        languages_by_name = bulk_find_or_create_languages([repository.primary_language&.downcase].compact.uniq)
+        languages_by_name = bulk_find_or_create_languages([ repository.primary_language&.downcase ].compact.uniq)
         language_id = languages_by_name[repository.primary_language&.downcase]&.id
 
         # Prepare attributes for all repositories

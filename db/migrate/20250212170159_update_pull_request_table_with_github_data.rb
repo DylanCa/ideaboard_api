@@ -21,8 +21,8 @@ class UpdatePullRequestTableWithGithubData < ActiveRecord::Migration[8.0]
       t.change :state, :string, null: false
     end
 
-    add_index :pull_requests, [:github_repository_id, :number]
-    add_index :pull_requests, [:github_repository_id, :state]
+    add_index :pull_requests, [ :github_repository_id, :number ]
+    add_index :pull_requests, [ :github_repository_id, :state ]
     add_index :pull_requests, :merged_at
   end
 end

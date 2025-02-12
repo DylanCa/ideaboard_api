@@ -23,8 +23,8 @@ class UpdateGithubRepositoriesStructure < ActiveRecord::Migration[8.0]
     end
 
     # Add new indexes
-    add_index :github_repositories, [:stars_count, :visible, :archived, :disabled]
+    add_index :github_repositories, [ :stars_count, :visible, :archived, :disabled ]
     add_index :github_repositories, :github_updated_at
-    add_index :github_repositories, [:visible, :archived, :disabled]
+    add_index :github_repositories, [ :visible, :archived, :disabled ]
   end
 end

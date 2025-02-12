@@ -16,11 +16,11 @@ class PullRequest < ApplicationRecord
   def set_state_from_github
     # Convert GitHub's string state to our enum
     self.state = if merged_at.present?
-                   'merged'
-                 elsif state == 'closed'
-                   'closed'
-                 else
-                   'open'
-                 end
+                   "merged"
+    elsif state == "closed"
+                   "closed"
+    else
+                   "open"
+    end
   end
 end

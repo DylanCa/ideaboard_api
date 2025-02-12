@@ -20,7 +20,7 @@ module Services
         # Split repository IDs into chunks to avoid hitting GitHub's node limit
         repository_ids.each_slice(REPOSITORIES_PER_QUERY) do |repo_ids_chunk|
           fetch_and_persist_chunk(repo_ids_chunk)
-          puts 'sleeping before next chunk ...'
+          puts "sleeping before next chunk ..."
           sleep 5
         end
       end
@@ -54,7 +54,6 @@ module Services
             fetch_and_persist_all_pull_requests(repo_data.id, repository.id)
             # Fetch and persist all issues with pagination
             fetch_and_persist_all_issues(repo_data.id, repository.id)
-
           end
         end
       end
@@ -67,7 +66,7 @@ module Services
           response = ::Github::Client.query(
             ::Github::Queries::UserQueries::RepositoriesData,
             variables: {
-              repositoryIds: [repo_node_id],
+              repositoryIds: [ repo_node_id ],
               issuesCursor: issues_cursor,
               prsCursor: nil
             },
@@ -94,7 +93,7 @@ module Services
           response = ::Github::Client.query(
             ::Github::Queries::UserQueries::RepositoriesData,
             variables: {
-              repositoryIds: [repo_node_id],
+              repositoryIds: [ repo_node_id ],
               issuesCursor: nil,
               prsCursor: prs_cursor
             },

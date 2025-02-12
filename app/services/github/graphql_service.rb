@@ -1,9 +1,9 @@
-require_relative '../persistence/repository_persistence_service'
-require_relative '../persistence/repository_discovery_service'
-require_relative '../persistence/repository_data_service'
-require_relative '../persistence/pull_request_persistence_service'
-require_relative '../persistence/issue_persistence_service'
-require_relative '../../graphql/queries/user_queries'
+require_relative "../persistence/repository_persistence_service"
+require_relative "../persistence/repository_discovery_service"
+require_relative "../persistence/repository_data_service"
+require_relative "../persistence/pull_request_persistence_service"
+require_relative "../persistence/issue_persistence_service"
+require_relative "../../graphql/queries/user_queries"
 
 module Github
   class GraphqlService

@@ -1,4 +1,4 @@
-require_relative '../../graphql/queries/user_queries'
+require_relative "../../graphql/queries/user_queries"
 
 module Services
   module Persistence
@@ -36,7 +36,7 @@ module Services
           response = ::Github::Client.query(
             ::Github::Queries::UserQueries::UserRepositories,
             variables: { cursor: cursor },
-            context: { token: access_token}
+            context: { token: access_token }
           )
 
           response.data.viewer.repositories.nodes.each do |repo|
@@ -58,7 +58,7 @@ module Services
           response = ::Github::Client.query(
             ::Github::Queries::UserQueries::UserPullRequests,
             variables: { cursor: cursor },
-            context: { token: access_token}
+            context: { token: access_token }
           )
 
           response.data.viewer.pull_requests.nodes.each do |pr|
@@ -80,7 +80,7 @@ module Services
           response = ::Github::Client.query(
             ::Github::Queries::UserQueries::UserIssues,
             variables: { cursor: cursor },
-            context: { token: access_token}
+            context: { token: access_token }
           )
 
           response.data.viewer.issues.nodes.each do |issue|

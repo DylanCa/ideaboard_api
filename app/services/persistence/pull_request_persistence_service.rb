@@ -13,11 +13,11 @@ module Services
           # Convert GitHub's string state to our enum values
           state_value = if pr.merged_at.present?
                           PullRequest.states[:merged]
-                        elsif pr.state == 'closed'
+          elsif pr.state == "closed"
                           PullRequest.states[:closed]
-                        else
+          else
                           PullRequest.states[:open]
-                        end
+          end
 
           {
             full_database_id: pr.full_database_id,

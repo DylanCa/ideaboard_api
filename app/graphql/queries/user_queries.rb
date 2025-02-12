@@ -234,7 +234,7 @@ module Github
                     updatedAt
                 }
             }
-            
+      #{'      '}
             pullRequests(first: 100, after: $prsCursor) {
               pageInfo {
                 hasNextPage

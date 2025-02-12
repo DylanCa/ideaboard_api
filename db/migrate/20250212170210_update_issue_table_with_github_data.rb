@@ -16,7 +16,7 @@ class UpdateIssueTableWithGithubData < ActiveRecord::Migration[8.0]
       t.change :state, :string, null: false
     end
 
-    add_index :issues, [:github_repository_id, :number]
-    add_index :issues, [:github_repository_id, :state]
+    add_index :issues, [ :github_repository_id, :number ]
+    add_index :issues, [ :github_repository_id, :state ]
   end
 end
