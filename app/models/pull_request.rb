@@ -1,8 +1,7 @@
 class PullRequest < ApplicationRecord
   belongs_to :github_repository
-  has_one :issue, foreign_key: :closed_by_pull_request_id
 
-  validates :full_database_id, presence: true, uniqueness: true
+  validates :github_id, presence: true, uniqueness: true
   validates :author_username, presence: true
   validates :title, presence: true
   validates :state, presence: true
