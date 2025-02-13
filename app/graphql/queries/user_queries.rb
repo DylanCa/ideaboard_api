@@ -12,121 +12,63 @@ module Github
         }
       GRAPHQL
 
-      UserPRsData = Client.parse <<~GRAPHQL
-        query {
-          viewer {
-            pullRequests(first: 100) {
-              totalCount
-              nodes {
-                fullDatabaseId
-                title
-                url
-              number
-              state
-              repository {
-                databaseId
-              }
-              author {
-                login
-              }
-              mergedAt
-              closedAt
-              createdAt
-              updatedAt
-              isDraft
-              mergeable
-              canBeRebased
-              totalCommentsCount
-              commits {
-                totalCount
-              }
-              additions
-              deletions
-              changedFiles
-              }
-            }
-          }
-        }
-      GRAPHQL
-
-      UserIssuesData = Client.parse <<~GRAPHQL
-        query {
-          viewer {
-            issues(first: 100) {
-                totalCount
-                nodes {
-                    fullDatabaseId
-                    title
-                    url
-                    number
-                    state
-                    repository {
-                      databaseId
-                    }
-                    author {
-                        login
-                    }
-                    reactions {
-                        totalCount
-                    }
-                    comments {
-                        totalCount
-                    }
-                    closedAt
-                    createdAt
-                    updatedAt
-                }
-            }
-          }
-        }
-      GRAPHQL
-
-      UserRepositoriesData = Client.parse <<~GRAPHQL
-        query {
-            viewer {
-                repositories(first: 100) {
-                    nodes {
-                        id
-                        name
-                        nameWithOwner
-                        description
-                        primaryLanguage {
-                            name
-                        }
-                        isFork
-                        stargazerCount
-                        forkCount
-                        isArchived
-                        isDisabled
-                        licenseInfo {
-                            key
-                        }
-                        createdAt
-                        updatedAt
-                        defaultBranchRef {
-                            target {
-                                ... on Commit {
-                                    history(first: 0) {
-                                        totalCount
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-      GRAPHQL
-
-      ### PAGINATION SECTION
-
       UserRepositories = Client.parse <<~GRAPHQL
-      query($cursor: String) {
-        viewer {
-          repositories(
-            affiliations: [OWNER, COLLABORATOR, ORGANIZATION_MEMBER],
-            privacy: PUBLIC,
-            first: 100,
+        query($cursor: String) {
+          viewer {
+            repositories(
+              privacy: PUBLIC,
+              first: 100,
+              after: $cursor
+            ) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                  id
+                  nameWithOwner
+                  description
+                  owner {
+                    login
+                  }
+                  primaryLanguage {
+                      name
+                  }
+                  isFork
+                  stargazerCount
+                  forkCount
+                  isArchived
+                  isDisabled
+                  licenseInfo {
+                      key
+                  }
+                  createdAt
+                  updatedAt
+                  defaultBranchRef {
+                      target {
+                          ... on Commit {
+                              history(first: 0) {
+                                  totalCount
+                              }
+                          }
+                      }
+                  }
+              }
+            }
+          }
+        }
+      GRAPHQL
+
+      RepositoryData = ::Github::Client.parse <<~GRAPHQL
+        query($query: String!, $cursor: String) {
+          rateLimit {
+            remaining
+            resetAt
+          }
+          search(
+            query: $query
+            type: REPOSITORY
+            first: 100
             after: $cursor
           ) {
             pageInfo {
@@ -134,105 +76,96 @@ module Github
               endCursor
             }
             nodes {
-              id
+              ... on Repository {
+                  id
+                  nameWithOwner
+                  description
+                  owner {
+                    login
+                  }
+                  primaryLanguage {
+                      name
+                  }
+                  isFork
+                  stargazerCount
+                  forkCount
+                  isArchived
+                  isDisabled
+                  licenseInfo {
+                      key
+                  }
+                  createdAt
+                  updatedAt
+                  defaultBranchRef {
+                      target {
+                          ... on Commit {
+                              history(first: 0) {
+                                  totalCount
+                              }
+                          }
+                      }
+                  }
+              }
             }
           }
         }
-      }
-    GRAPHQL
+      GRAPHQL
 
-      UserPullRequests = Client.parse <<~GRAPHQL
-      query($cursor: String) {
-        viewer {
-          pullRequests(first: 100, after: $cursor) {
+      RepositoriesItems = ::Github::Client.parse <<~GRAPHQL
+        query($query: String!, $cursor: String) {
+          rateLimit {
+            remaining
+            resetAt
+          }
+          search(
+            query: $query
+            type: ISSUE
+            first: 100
+            after: $cursor
+          ) {
             pageInfo {
               hasNextPage
               endCursor
             }
             nodes {
-              repository {
+              ... on PullRequest {
                 id
-              }
-            }
-          }
-        }
-      }
-    GRAPHQL
-
-      UserIssues = Client.parse <<~GRAPHQL
-      query($cursor: String) {
-        viewer {
-          issues(first: 100, after: $cursor) {
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            nodes {
-              repository {
-                id
-              }
-            }
-          }
-        }
-      }
-    GRAPHQL
-
-
-      RepositoriesData = ::Github::Client.parse <<~GRAPHQL
-      query($query: String!, $cursor: String) {
-        rateLimit {
-          remaining
-          resetAt
-        }
-        search(
-          query: $query
-          type: ISSUE
-          first: 100
-          after: $cursor
-        ) {
-          pageInfo {
-            hasNextPage
-            endCursor
-          }
-          nodes {
-            ... on PullRequest {
-              id
-              title
-              url
-              number
-              state
-              author {
-                login
-              }
-              mergedAt
-              closedAt
-              createdAt
-              updatedAt
-              isDraft
-              totalCommentsCount
-              commits {
-                totalCount
-              }
-            }
-            ... on Issue {
-              id
-              title
-              url
-              number
-              state
-              author {
-                login
-              }
-              createdAt
-              updatedAt
-              closedAt
-              comments {
+                title
+                url
+                number
+                state
+                author {
+                  login
+                }
+                mergedAt
+                closedAt
+                createdAt
+                updatedAt
+                isDraft
+                totalCommentsCount
+                commits {
                   totalCount
+                }
+              }
+              ... on Issue {
+                id
+                title
+                url
+                number
+                state
+                author {
+                  login
+                }
+                createdAt
+                updatedAt
+                closedAt
+                comments {
+                    totalCount
+                }
               }
             }
           }
         }
-      }
       GRAPHQL
     end
   end
