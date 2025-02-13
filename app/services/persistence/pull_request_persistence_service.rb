@@ -3,49 +3,17 @@ module Services
     class PullRequestPersistenceService
       extend T::Sig
 
-      sig { params(pull_requests: T::Array[Github::PullRequest], github_repository_id: Integer).void }
-      def self.persist_many(pull_requests, github_repository_id)
+      sig { params(pull_requests: T::Array[Github::PullRequest], repo: GithubRepository).void }
+      def self.persist_many(pull_requests, repo)
         validate_bulk_input!(pull_requests)
 
-        pull_requests = pull_requests.map { |pr| Github::PullRequest.from_github(pr, github_repository_id) }
+        pull_requests = pull_requests.map { |pr| Github::PullRequest.from_github(pr, repo.id) }
+        attributes_list = pull_requests.map(&:stringify_keys)
 
-        attributes_list = pull_requests.map do |pr|
-          # Convert GitHub's string state to our enum values
-          state_value = if pr.merged_at.present?
-                          PullRequest.states[:merged]
-          elsif pr.state == "closed"
-                          PullRequest.states[:closed]
-          else
-                          PullRequest.states[:open]
-          end
-
-          {
-            full_database_id: pr.full_database_id,
-            github_repository_id: pr.github_repository_id,
-            title: pr.title,
-            url: pr.url,
-            number: pr.number,
-            state: state_value, # Using the converted enum value
-            author_username: pr.author_username,
-            merged_at: pr.merged_at,
-            closed_at: pr.closed_at,
-            github_created_at: pr.created_at,
-            github_updated_at: pr.updated_at,
-            is_draft: pr.is_draft,
-            mergeable: pr.mergeable,
-            can_be_rebased: pr.can_be_rebased,
-            total_comments_count: pr.total_comments_count,
-            commits: pr.commits,
-            additions: pr.additions,
-            deletions: pr.deletions,
-            changed_files: pr.changed_files,
-            points_awarded: 0  # Default value
-          }
-        end
-
-        PullRequest.upsert_all(
+        repo.pull_requests.upsert_all(
           attributes_list,
-          unique_by: :full_database_id,
+          unique_by: :github_id,
+          returning: false
         )
       end
 
