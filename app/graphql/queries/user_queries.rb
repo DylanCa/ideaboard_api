@@ -179,76 +179,28 @@ module Github
 
 
       RepositoriesData = ::Github::Client.parse <<~GRAPHQL
-      query($repositoryIds: [ID!]!, $issuesCursor: String, $prsCursor: String) {
-        nodes(ids: $repositoryIds) {
-          ... on Repository {
-            isPrivate
-            id
-            name
-            nameWithOwner
-            description
-            primaryLanguage {
-                name
-            }
-            isFork
-            stargazerCount
-            forkCount
-            isArchived
-            isDisabled
-            licenseInfo {
-                key
-            }
-            createdAt
-            updatedAt
-            defaultBranchRef {
-                target {
-                    ... on Commit {
-                        history(first: 0) {
-                            totalCount
-                        }
-                    }
-                }
-            }
-            issues(first: 100, after: $issuesCursor) {
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
-              nodes  {
-                    fullDatabaseId
-                    title
-                    url
-                    number
-                    state
-                    author {
-                        login
-                    }
-                    reactions {
-                        totalCount
-                    }
-                    comments {
-                        totalCount
-                    }
-                    closedAt
-                    createdAt
-                    updatedAt
-                }
-            }
-      #{'      '}
-            pullRequests(first: 100, after: $prsCursor) {
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
-              nodes {
-                fullDatabaseId
-                title
-                url
+      query($query: String!, $cursor: String) {
+        rateLimit {
+          remaining
+          resetAt
+        }
+        search(
+          query: $query
+          type: ISSUE
+          first: 100
+          after: $cursor
+        ) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            ... on PullRequest {
+              id
+              title
+              url
               number
               state
-              repository {
-                databaseId
-              }
               author {
                 login
               }
@@ -257,21 +209,31 @@ module Github
               createdAt
               updatedAt
               isDraft
-              mergeable
-              canBeRebased
               totalCommentsCount
               commits {
                 totalCount
               }
-              additions
-              deletions
-              changedFiles
+            }
+            ... on Issue {
+              id
+              title
+              url
+              number
+              state
+              author {
+                login
+              }
+              createdAt
+              updatedAt
+              closedAt
+              comments {
+                  totalCount
               }
             }
           }
         }
       }
-    GRAPHQL
+      GRAPHQL
     end
   end
 end
