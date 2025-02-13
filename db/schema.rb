@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_12_193613) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -64,27 +64,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_12_193613) do
 
   create_table "issues", force: :cascade do |t|
     t.integer "github_repository_id", null: false
-    t.integer "full_database_id", limit: 8, null: false
+    t.string "github_id"
     t.string "title", null: false
     t.string "state", null: false
     t.datetime "github_created_at", null: false
     t.datetime "github_updated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "closed_by_pull_request_id"
-    t.integer "reaction_count", default: 0, null: false
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
-    t.integer "comments_count", default: 0, null: false
-    t.integer "reactions_count", default: 0, null: false
-    t.datetime "closed_at"
-    t.index ["closed_by_pull_request_id"], name: "index_issues_on_closed_by_pull_request_id"
-    t.index ["full_database_id"], name: "index_issues_on_full_database_id", unique: true
+    t.integer "closed_at"
+    t.integer "comments_count"
+    t.bigint "gihub_id"
+    t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id", "number"], name: "index_issues_on_github_repository_id_and_number"
     t.index ["github_repository_id", "state"], name: "index_issues_on_github_repository_id_and_state"
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
-    t.index ["reaction_count"], name: "index_issues_on_reaction_count"
     t.index ["state"], name: "index_issues_on_state"
   end
 
@@ -107,11 +103,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_12_193613) do
 
   create_table "pull_requests", force: :cascade do |t|
     t.integer "github_repository_id", null: false
-    t.integer "full_database_id", limit: 8, null: false
+    t.string "github_id"
     t.string "title", null: false
     t.string "state", null: false
     t.datetime "merged_at"
-    t.integer "points_awarded", default: 0, null: false
     t.datetime "github_created_at", null: false
     t.datetime "github_updated_at", null: false
     t.datetime "created_at", null: false
@@ -120,16 +115,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_12_193613) do
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
-    t.datetime "closed_at"
     t.boolean "is_draft", default: false, null: false
-    t.string "mergeable"
-    t.boolean "can_be_rebased"
-    t.integer "total_comments_count", default: 0, null: false
-    t.integer "commits", default: 0, null: false
-    t.integer "additions", default: 0, null: false
-    t.integer "deletions", default: 0, null: false
-    t.integer "changed_files", default: 0, null: false
-    t.index ["full_database_id"], name: "index_pull_requests_on_full_database_id", unique: true
+    t.integer "commits"
+    t.integer "total_comments_count"
+    t.string "closed_at"
+    t.bigint "gihub_id"
+    t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
     t.index ["github_repository_id", "state"], name: "index_pull_requests_on_github_repository_id_and_state"
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
