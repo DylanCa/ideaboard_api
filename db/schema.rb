@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -24,7 +24,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
   end
 
   create_table "github_repositories", force: :cascade do |t|
-    t.integer "language_id"
     t.string "full_name", null: false
     t.integer "stars_count", default: 0, null: false
     t.integer "forks_count", default: 0, null: false
@@ -32,23 +31,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
     t.datetime "github_created_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "user_id", null: false
-    t.string "name", null: false
     t.text "description"
     t.boolean "is_fork", default: false, null: false
     t.boolean "archived", default: false, null: false
     t.boolean "disabled", default: false, null: false
-    t.string "license_key"
+    t.string "license"
     t.boolean "visible", default: true, null: false
     t.datetime "github_updated_at", null: false
     t.integer "total_commits_count", default: 0
     t.string "github_id"
+    t.datetime "last_synced_at"
+    t.string "author_username"
+    t.string "language"
+    t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
     t.index ["github_id"], name: "index_github_repositories_on_github_id", unique: true
     t.index ["github_updated_at"], name: "index_github_repositories_on_github_updated_at"
-    t.index ["language_id"], name: "index_github_repositories_on_language_id"
     t.index ["stars_count", "visible", "archived", "disabled"], name: "idx_on_stars_count_visible_archived_disabled_2b4ce69e99"
-    t.index ["user_id"], name: "index_github_repositories_on_user_id"
     t.index ["visible", "archived", "disabled"], name: "index_github_repositories_on_visible_and_archived_and_disabled"
   end
 
@@ -76,29 +75,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
     t.string "author_username"
     t.integer "closed_at"
     t.integer "comments_count"
-    t.bigint "gihub_id"
+    t.index ["author_username"], name: "index_issues_on_author_username"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id", "number"], name: "index_issues_on_github_repository_id_and_number"
     t.index ["github_repository_id", "state"], name: "index_issues_on_github_repository_id_and_state"
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
     t.index ["state"], name: "index_issues_on_state"
-  end
-
-  create_table "languages", force: :cascade do |t|
-    t.string "name", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_languages_on_name", unique: true
-  end
-
-  create_table "project_stats", force: :cascade do |t|
-    t.integer "project_id", null: false
-    t.float "rank_score", default: 0.0, null: false
-    t.datetime "last_activity_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["project_id"], name: "index_project_stats_on_project_id", unique: true
-    t.index ["rank_score"], name: "index_project_stats_on_rank_score"
   end
 
   create_table "pull_requests", force: :cascade do |t|
@@ -111,7 +93,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
     t.datetime "github_updated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "has__received_rfc", default: false, null: false
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
@@ -119,7 +100,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
     t.integer "commits"
     t.integer "total_comments_count"
     t.string "closed_at"
-    t.bigint "gihub_id"
+    t.index ["author_username"], name: "index_pull_requests_on_author_username"
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
     t.index ["github_repository_id", "state"], name: "index_pull_requests_on_github_repository_id_and_state"
@@ -180,12 +161,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_141907) do
   end
 
   add_foreign_key "github_accounts", "users"
-  add_foreign_key "github_repositories", "languages"
-  add_foreign_key "github_repositories", "users"
   add_foreign_key "github_repository_tags", "github_repositories"
   add_foreign_key "github_repository_tags", "tags"
   add_foreign_key "issues", "github_repositories"
-  add_foreign_key "project_stats", "projects"
   add_foreign_key "pull_requests", "github_repositories"
   add_foreign_key "user_repository_stats", "github_repositories"
   add_foreign_key "user_repository_stats", "users"

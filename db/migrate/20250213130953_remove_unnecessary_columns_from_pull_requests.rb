@@ -7,6 +7,7 @@ class RemoveUnnecessaryColumnsFromPullRequests < ActiveRecord::Migration[8.0]
       remove_column :pull_requests, :additions, :integer
       remove_column :pull_requests, :deletions, :integer
       remove_column :pull_requests, :changed_files, :integer
+      remove_column :pull_requests, :has__received_rfc, :boolean
 
       rename_column :pull_requests, :full_database_id, :github_id
   end
