@@ -47,22 +47,5 @@ module Github
         closed_at: closed_at
       }
     end
-
-    def open?
-      state == "open"
-    end
-
-    def closed?
-      !open?
-    end
-
-    private
-
-    def self.parse_reactions(reactions)
-      return 0 unless reactions
-      %i[plus1 minus1 laugh hooray confused heart rocket eyes].sum do |type|
-        reactions[type].to_i
-      end
-    end
   end
 end

@@ -1,18 +1,17 @@
 module Github
   class Repository < T::Struct
     const :github_id, String
-    const :name, String
-    const :name_with_owner, String
-    const :pull_requests, T.nilable(T::Array[PullRequest])
-    const :issues, T.nilable(T::Array[Issue])
+    const :author_username, T.nilable(String)
+    const :full_name, String
     const :description, T.nilable(String)
-    const :primary_language, T.nilable(String)
+    const :language, T.nilable(String)
     const :is_fork, T::Boolean
     const :stars_count, Integer
     const :forks_count, Integer
     const :total_commits_count, Integer
     const :archived, T::Boolean
     const :disabled, T::Boolean
+    const :visible, T::Boolean
     const :license, T.nilable(String)
     const :github_created_at, String
     const :github_updated_at, String
@@ -20,17 +19,16 @@ module Github
     def self.from_github(data)
       new(
         github_id: data.id,
-        name: data.name,
-        name_with_owner: data.name_with_owner,
-        pull_requests: Helpers.extract_pull_requests(data),
-        issues: Helpers.extract_issues(data),
+        author_username: data.owner.login,
+        full_name: data.name_with_owner,
         description: data.description,
-        primary_language: data.primary_language&.name,
+        language: data.primary_language&.name&.downcase,
         is_fork: data.is_fork,
         stars_count: data.stargazer_count,
         forks_count: data.fork_count,
         archived: data.is_archived,
         disabled: data.is_disabled,
+        visible: true,
         license: data.license_info&.key,
         github_created_at: data.created_at,
         github_updated_at: data.updated_at,
@@ -38,12 +36,24 @@ module Github
       )
     end
 
-    def license?
-      !license.nil?
-    end
-
-    def active?
-      !archived && !disabled
+    def stringify_keys
+      {
+        github_id: github_id,
+        author_username: author_username,
+        full_name: full_name,
+        description: description,
+        language: language,
+        is_fork: is_fork,
+        stars_count: stars_count,
+        forks_count: forks_count,
+        archived: archived,
+        disabled: disabled,
+        license: license,
+        visible: visible,
+        github_created_at: github_created_at,
+        github_updated_at:github_updated_at,
+        total_commits_count: total_commits_count,
+      }
     end
   end
 end

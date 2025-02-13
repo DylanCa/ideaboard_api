@@ -56,25 +56,5 @@ module Github
         commits: commits
       }
     end
-
-    def open?
-      state == "open"
-    end
-
-    def closed?
-      state == "closed"
-    end
-
-    def merged?
-      !merged_at.nil?
-    end
-
-    def draft?
-      draft == true
-    end
-
-    def ready?
-      !draft?
-    end
   end
 end
