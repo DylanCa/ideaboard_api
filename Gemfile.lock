@@ -193,10 +193,6 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.2-aarch64-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.18.2-arm-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.18.2-arm-linux-musl)
-      racc (~> 1.4)
     nokogiri (1.18.2-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.18.2-x86_64-linux-gnu)
@@ -370,8 +366,6 @@ GEM
       thor (>= 0.19.2)
     sqlite3 (2.5.0-aarch64-linux-gnu)
     sqlite3 (2.5.0-aarch64-linux-musl)
-    sqlite3 (2.5.0-arm-linux-gnu)
-    sqlite3 (2.5.0-arm-linux-musl)
     sqlite3 (2.5.0-arm64-darwin)
     sqlite3 (2.5.0-x86_64-linux-gnu)
     sqlite3 (2.5.0-x86_64-linux-musl)
@@ -383,7 +377,7 @@ GEM
       net-ssh (>= 2.8.0)
       ostruct
     stringio (3.1.2)
-    tapioca (0.16.9)
+    tapioca (0.16.10)
       benchmark
       bundler (>= 2.2.25)
       netrc (>= 0.11.0)
@@ -420,8 +414,6 @@ PLATFORMS
   aarch64-linux
   aarch64-linux-gnu
   aarch64-linux-musl
-  arm-linux-gnu
-  arm-linux-musl
   arm64-darwin-23
   x86_64-linux
   x86_64-linux-gnu
