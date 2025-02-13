@@ -15,7 +15,6 @@ Rails.application.routes.draw do
   get "api/profile" => "users#profile"
   get "api/user" => "users#current_user"
   get "api/user/repos" => "users#user_repos"
-  get "api/user/prs" => "users#user_prs"
-  get "api/user/issues" => "users#user_issues"
-  get "api/user/contributions" => "users#user_contributions"
+  get "api/data/refresh" => "users#update_repositories_data"
+  get "api/data/add" => "users#add_repository"
 end
