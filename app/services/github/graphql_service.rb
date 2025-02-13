@@ -1,9 +1,8 @@
-require_relative '../persistence/repository_persistence_service'
-require_relative '../persistence/repository_discovery_service'
-require_relative '../persistence/repository_data_service'
-require_relative '../persistence/pull_request_persistence_service'
-require_relative '../persistence/issue_persistence_service'
-require_relative '../../graphql/queries/user_queries'
+require_relative "../persistence/repository_persistence_service"
+require_relative "../data/repository_processor_service"
+require_relative "../persistence/pull_request_persistence_service"
+require_relative "../persistence/issue_persistence_service"
+require_relative "../../graphql/queries/user_queries"
 
 module Github
   class GraphqlService
@@ -14,38 +13,19 @@ module Github
       end
 
       def fetch_current_user_repositories(user)
-        query = Queries::UserQueries::UserRepositoriesData
+        query = Queries::UserQueries::UserRepositories
         data = execute_query(query, user.access_token)
-        repos = data.repositories.nodes.map { |repo| Github::Repository.from_github(repo) }
-        Services::Persistence::RepositoryPersistenceService.persist_many(repos, user.id)
-
-        repos
+        repos = data.repositories.nodes
+        Services::Persistence::RepositoryPersistenceService.persist_many(repos)
       end
 
-      def fetch_current_user_prs(user)
-        query = Queries::UserQueries::UserPRsData
-        data = execute_query(query, user.access_token)
-        prs = data.pull_requests.nodes.map { |pr| Github::PullRequest.from_github(pr) }
-        Services::Persistence::PullRequestPersistenceService.persist_many(prs)
-
-        prs
+      def update_repositories_data
+        repos = GithubRepository.all
+        Services::Data::RepositoryProcessor.update_repositories(repos)
       end
 
-      def fetch_current_user_issues(user)
-        query = Queries::UserQueries::UserIssuesData
-        data = execute_query(query, user.access_token)
-        issues = data.issues.nodes.map { |issue| Github::Issue.from_github(issue) }
-        Services::Persistence::IssuePersistenceService.persist_many(issues, user.id)
-
-        issues
-      end
-
-      def fetch_current_user_contributions(user)
-        service = Services::Persistence::RepositoryDiscoveryService.new(user.access_token)
-        repository_ids = service.fetch_current_user_contributions_repository_ids
-
-        service = Services::Persistence::RepositoryDataService.new(user.id, user.access_token)
-        service.fetch_and_persist_repositories_data(repository_ids)
+      def fetch_repo_by_name(repo_name)
+        Services::Data::RepositoryProcessor.fetch_repo_by_name(repo_name)
       end
 
       private

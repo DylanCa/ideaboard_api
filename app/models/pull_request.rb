@@ -1,8 +1,7 @@
 class PullRequest < ApplicationRecord
   belongs_to :github_repository
-  has_one :issue, foreign_key: :closed_by_pull_request_id
 
-  validates :full_database_id, presence: true, uniqueness: true
+  validates :github_id, presence: true, uniqueness: true
   validates :author_username, presence: true
   validates :title, presence: true
   validates :state, presence: true
@@ -16,11 +15,11 @@ class PullRequest < ApplicationRecord
   def set_state_from_github
     # Convert GitHub's string state to our enum
     self.state = if merged_at.present?
-                   'merged'
-                 elsif state == 'closed'
-                   'closed'
-                 else
-                   'open'
-                 end
+                   "merged"
+    elsif state == "closed"
+                   "closed"
+    else
+                   "open"
+    end
   end
 end

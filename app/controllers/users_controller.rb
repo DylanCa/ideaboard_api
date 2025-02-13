@@ -11,18 +11,14 @@ class UsersController < ApplicationController
     render json: { data: result }
   end
 
-  def user_prs
-    result = Github::GraphqlService.fetch_current_user_prs(@current_user)
+  def update_repositories_data
+    result = Github::GraphqlService.update_repositories_data
     render json: { data: result }
   end
 
-  def user_issues
-    result = Github::GraphqlService.fetch_current_user_issues(@current_user)
-    render json: { data: result }
-  end
-
-  def user_contributions
-    result = Github::GraphqlService.fetch_current_user_contributions(@current_user)
+  def add_repository
+    repo_name = params[:repo_name]
+    result = Github::GraphqlService.fetch_repo_by_name(repo_name)
     render json: { data: result }
   end
 
