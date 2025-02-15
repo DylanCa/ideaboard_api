@@ -1,6 +1,6 @@
 class GithubRepository < ApplicationRecord
   # Enums
-  enum update_method: { polling: 0, webhook: 1 }
+  enum :update_method, { polling: 0, webhook: 1 }
 
   # Associations
   belongs_to :owner, class_name: 'User', optional: true

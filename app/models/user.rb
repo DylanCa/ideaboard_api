@@ -1,7 +1,4 @@
 class User < ApplicationRecord
-  # Enums
-  enum account_status: { active: 0, disabled: 1, banned: 2 }
-
   # Associations
   has_one :github_account, dependent: :destroy
   has_one :user_stat, dependent: :destroy
