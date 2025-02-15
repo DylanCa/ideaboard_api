@@ -8,12 +8,12 @@ module Github
   class GraphqlService
     class << self
       def fetch_current_user_data(user)
-        query = Github::Queries::UserQueries.user_data
+        query = Queries::UserQueries.user_data
         execute_query(query, user.access_token)
       end
 
       def fetch_current_user_repositories(user)
-        query = Github::Queries::UserQueries.user_repositories
+        query = Queries::UserQueries.user_repositories
         data = execute_query(query, user.access_token)
         repos = data.repositories.nodes
         Services::Persistence::RepositoryPersistenceService.persist_many(repos)

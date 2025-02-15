@@ -25,7 +25,7 @@ module Services
           name: name,
         }
 
-        response = Github::Helper.query_with_logs(::Github::Queries::UserQueries.repository_data, variables)
+        response = Github::Helper.query_with_logs(Queries::UserQueries.repository_data, variables)
         response.data.repository
       end
 
@@ -60,7 +60,7 @@ module Services
             pr_cursor: pr_cursor,
           }
 
-          response = Github::Helper.query_with_logs(::Github::Queries::UserQueries.repository_prs, variables)
+          response = Github::Helper.query_with_logs(Queries::UserQueries.repository_prs, variables)
           response.data.repository.pull_requests.nodes.each {|pr| items << pr}
 
           pr_page_info = response.data.repository.pull_requests.page_info
@@ -85,7 +85,7 @@ module Services
             issue_cursor: issue_cursor,
           }
 
-          response = Github::Helper.query_with_logs(::Github::Queries::UserQueries.repository_issues, variables)
+          response = Github::Helper.query_with_logs(Queries::UserQueries.repository_issues, variables)
           response.data.repository.issues.nodes.each {|i| items << i}
 
           issue_page_info = response.data.repository.issues.page_info

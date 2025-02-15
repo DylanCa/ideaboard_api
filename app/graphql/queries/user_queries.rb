@@ -1,4 +1,3 @@
-module Github
   module Queries
     module UserQueries
       # We'll define our queries in a nested module to keep them organized and maintain proper scoping
@@ -189,4 +188,3 @@ module Github
       end
     end
   end
-end
