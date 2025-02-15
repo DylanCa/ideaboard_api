@@ -8,7 +8,6 @@ module Github
     const :is_fork, T::Boolean
     const :stars_count, Integer
     const :forks_count, Integer
-    const :total_commits_count, Integer
     const :archived, T::Boolean
     const :disabled, T::Boolean
     const :visible, T::Boolean
@@ -32,7 +31,6 @@ module Github
         license: data.license_info&.key,
         github_created_at: data.created_at,
         github_updated_at: data.updated_at,
-        total_commits_count: data.default_branch_ref&.target&.history&.total_count || 0,
       )
     end
 
@@ -52,7 +50,6 @@ module Github
         visible: visible,
         github_created_at: github_created_at,
         github_updated_at:github_updated_at,
-        total_commits_count: total_commits_count,
       }
     end
   end

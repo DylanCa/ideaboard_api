@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_15_091427) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -29,8 +29,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
     t.integer "forks_count", default: 0, null: false
     t.boolean "has_contributing", default: false, null: false
     t.datetime "github_created_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.text "description"
     t.boolean "is_fork", default: false, null: false
     t.boolean "archived", default: false, null: false
@@ -38,16 +36,25 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
     t.string "license"
     t.boolean "visible", default: true, null: false
     t.datetime "github_updated_at", null: false
-    t.integer "total_commits_count", default: 0
     t.string "github_id"
-    t.datetime "last_synced_at"
     t.string "author_username"
     t.string "language"
+    t.integer "update_method", default: 0, null: false
+    t.datetime "last_polled_at"
+    t.string "webhook_secret"
+    t.boolean "app_installed", default: false, null: false
+    t.boolean "webhook_installed", default: false, null: false
+    t.integer "owner_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
     t.index ["github_id"], name: "index_github_repositories_on_github_id", unique: true
     t.index ["github_updated_at"], name: "index_github_repositories_on_github_updated_at"
+    t.index ["last_polled_at"], name: "index_github_repositories_on_last_polled_at"
+    t.index ["owner_id"], name: "index_github_repositories_on_owner_id"
     t.index ["stars_count", "visible", "archived", "disabled"], name: "idx_on_stars_count_visible_archived_disabled_2b4ce69e99"
+    t.index ["update_method"], name: "index_github_repositories_on_update_method"
     t.index ["visible", "archived", "disabled"], name: "index_github_repositories_on_visible_and_archived_and_disabled"
   end
 
@@ -61,52 +68,93 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
     t.index ["tag_id"], name: "index_github_repository_tags_on_tag_id"
   end
 
+  create_table "issue_labels", force: :cascade do |t|
+    t.integer "issue_id", null: false
+    t.integer "label_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["issue_id", "label_id"], name: "index_issue_labels_on_issue_id_and_label_id", unique: true
+    t.index ["issue_id"], name: "index_issue_labels_on_issue_id"
+    t.index ["label_id"], name: "index_issue_labels_on_label_id"
+  end
+
   create_table "issues", force: :cascade do |t|
     t.integer "github_repository_id", null: false
     t.string "github_id"
     t.string "title", null: false
-    t.string "state", null: false
     t.datetime "github_created_at", null: false
     t.datetime "github_updated_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
-    t.integer "closed_at"
+    t.datetime "closed_at"
     t.integer "comments_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["author_username"], name: "index_issues_on_author_username"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
+    t.index ["github_repository_id", "author_username"], name: "index_issues_on_github_repository_id_and_author_username"
     t.index ["github_repository_id", "number"], name: "index_issues_on_github_repository_id_and_number"
-    t.index ["github_repository_id", "state"], name: "index_issues_on_github_repository_id_and_state"
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
-    t.index ["state"], name: "index_issues_on_state"
+  end
+
+  create_table "labels", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "color"
+    t.text "description"
+    t.boolean "is_bug", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_labels_on_name", unique: true
+  end
+
+  create_table "pull_request_labels", force: :cascade do |t|
+    t.integer "pull_request_id", null: false
+    t.integer "label_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["label_id"], name: "index_pull_request_labels_on_label_id"
+    t.index ["pull_request_id", "label_id"], name: "index_pull_request_labels_on_pull_request_id_and_label_id", unique: true
+    t.index ["pull_request_id"], name: "index_pull_request_labels_on_pull_request_id"
   end
 
   create_table "pull_requests", force: :cascade do |t|
     t.integer "github_repository_id", null: false
     t.string "github_id"
     t.string "title", null: false
-    t.string "state", null: false
     t.datetime "merged_at"
     t.datetime "github_created_at", null: false
     t.datetime "github_updated_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
     t.boolean "is_draft", default: false, null: false
     t.integer "commits"
     t.integer "total_comments_count"
-    t.string "closed_at"
+    t.datetime "closed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_username", "merged_at"], name: "index_pull_requests_on_author_username_and_merged_at"
     t.index ["author_username"], name: "index_pull_requests_on_author_username"
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
+    t.index ["github_repository_id", "author_username"], name: "idx_on_github_repository_id_author_username_558298bf1e"
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
-    t.index ["github_repository_id", "state"], name: "index_pull_requests_on_github_repository_id_and_state"
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
     t.index ["merged_at"], name: "index_pull_requests_on_merged_at"
-    t.index ["state"], name: "index_pull_requests_on_state"
+  end
+
+  create_table "rate_limit_logs", force: :cascade do |t|
+    t.string "token_owner_type", null: false
+    t.bigint "token_owner_id", null: false
+    t.string "query_name", null: false
+    t.integer "cost", null: false
+    t.integer "remaining_points", null: false
+    t.datetime "reset_at", null: false
+    t.datetime "executed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["executed_at"], name: "index_rate_limit_logs_on_executed_at"
+    t.index ["token_owner_type", "token_owner_id"], name: "index_rate_limit_logs_on_token_owner_type_and_token_owner_id"
   end
 
   create_table "tags", force: :cascade do |t|
@@ -154,6 +202,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
   create_table "users", force: :cascade do |t|
     t.string "email", null: false
     t.integer "account_status", null: false
+    t.boolean "allow_token_usage", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_status"], name: "index_users_on_account_status"
@@ -161,9 +210,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_13_163846) do
   end
 
   add_foreign_key "github_accounts", "users"
+  add_foreign_key "github_repositories", "users", column: "owner_id"
   add_foreign_key "github_repository_tags", "github_repositories"
   add_foreign_key "github_repository_tags", "tags"
+  add_foreign_key "issue_labels", "issues"
+  add_foreign_key "issue_labels", "labels"
   add_foreign_key "issues", "github_repositories"
+  add_foreign_key "pull_request_labels", "labels"
+  add_foreign_key "pull_request_labels", "pull_requests"
   add_foreign_key "pull_requests", "github_repositories"
   add_foreign_key "user_repository_stats", "github_repositories"
   add_foreign_key "user_repository_stats", "users"

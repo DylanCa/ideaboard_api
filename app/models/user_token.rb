@@ -1,14 +1,23 @@
 class UserToken < ApplicationRecord
+  # Associations
   belongs_to :user
 
-  validates :access_token, presence: true
-  validates :refresh_token, presence: true, uniqueness: true
-  validates :expires_at, presence: true
+  # Validations
+  validates :user_id, presence: true
+  validates :access_token, :refresh_token, :expires_at, presence: true
+  validates :refresh_token, uniqueness: true
 
-  scope :active, -> { where("expires_at > ?", Time.current) }
-  scope :expired, -> { where("expires_at <= ?", Time.current) }
+  # Scopes
+  scope :active, -> { where('expires_at > ?', Time.current) }
+  scope :expired, -> { where('expires_at <= ?', Time.current) }
+  scope :recent, -> { order(created_at: :desc) }
 
+  # Methods
   def expired?
     expires_at <= Time.current
+  end
+
+  def active?
+    !expired?
   end
 end

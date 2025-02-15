@@ -3,7 +3,6 @@ module Services
     class IssuePersistenceService
       extend T::Sig
 
-      sig { params(issues: T::Array[Github::Issue], repo: GithubRepository).void }
       def self.persist_many(issues, repo)
         validate_bulk_input!(issues, repo)
 
@@ -19,7 +18,6 @@ module Services
 
       private
 
-      sig { params(issues: T::Array[Github::Issue], repo: GithubRepository).void }
       def self.validate_bulk_input!(issues, repo)
         raise ArgumentError, "Issues cannot be nil" if issues.nil?
         raise ArgumentError, "GitHub Repository cannot be nil" if repo.nil?

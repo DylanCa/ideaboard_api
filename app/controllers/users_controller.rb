@@ -18,7 +18,7 @@ class UsersController < ApplicationController
 
   def add_repository
     repo_name = params[:repo_name]
-    result = Github::GraphqlService.fetch_repo_by_name(repo_name)
+    result = Github::GraphqlService.add_repo_by_name(repo_name)
     render json: { data: result }
   end
 

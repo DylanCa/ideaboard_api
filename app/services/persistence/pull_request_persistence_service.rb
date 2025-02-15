@@ -3,7 +3,6 @@ module Services
     class PullRequestPersistenceService
       extend T::Sig
 
-      sig { params(pull_requests: T::Array[Github::PullRequest], repo: GithubRepository).void }
       def self.persist_many(pull_requests, repo)
         validate_bulk_input!(pull_requests)
 
@@ -19,7 +18,6 @@ module Services
 
       private
 
-      sig { params(pull_requests: T::Array[Github::PullRequest]).void }
       def self.validate_bulk_input!(pull_requests)
         raise ArgumentError, "Pull Requests cannot be nil" if pull_requests.nil?
       end
