@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_15_091427) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -29,8 +29,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
     t.integer "forks_count", default: 0, null: false
     t.boolean "has_contributing", default: false, null: false
     t.datetime "github_created_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.text "description"
     t.boolean "is_fork", default: false, null: false
     t.boolean "archived", default: false, null: false
@@ -47,6 +45,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
     t.boolean "app_installed", default: false, null: false
     t.boolean "webhook_installed", default: false, null: false
     t.integer "owner_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
     t.index ["github_id"], name: "index_github_repositories_on_github_id", unique: true
@@ -84,19 +84,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
     t.string "title", null: false
     t.datetime "github_created_at", null: false
     t.datetime "github_updated_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
     t.datetime "closed_at"
     t.integer "comments_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["author_username"], name: "index_issues_on_author_username"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "index_issues_on_github_repository_id_and_author_username"
     t.index ["github_repository_id", "number"], name: "index_issues_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
-    t.index ["github_repository_id"], name: "index_issues_on_github_repository_id_and_state"
   end
 
   create_table "labels", force: :cascade do |t|
@@ -126,8 +125,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
     t.datetime "merged_at"
     t.datetime "github_created_at", null: false
     t.datetime "github_updated_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.string "url", null: false
     t.integer "number", null: false
     t.string "author_username"
@@ -135,13 +132,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
     t.integer "commits"
     t.integer "total_comments_count"
     t.datetime "closed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["author_username", "merged_at"], name: "index_pull_requests_on_author_username_and_merged_at"
     t.index ["author_username"], name: "index_pull_requests_on_author_username"
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "idx_on_github_repository_id_author_username_558298bf1e"
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
-    t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id_and_state"
     t.index ["merged_at"], name: "index_pull_requests_on_merged_at"
   end
 
@@ -204,9 +202,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_085935) do
   create_table "users", force: :cascade do |t|
     t.string "email", null: false
     t.integer "account_status", null: false
+    t.boolean "allow_token_usage", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "allow_token_usage", default: false, null: false
     t.index ["account_status"], name: "index_users_on_account_status"
     t.index ["email"], name: "index_users_on_email", unique: true
   end

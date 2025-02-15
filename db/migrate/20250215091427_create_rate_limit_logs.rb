@@ -8,7 +8,6 @@ class CreateRateLimitLogs < ActiveRecord::Migration[8.0]
       t.integer :remaining_points, null: false
       t.datetime :reset_at, null: false
       t.datetime :executed_at, null: false
-
       t.timestamps
     end
 

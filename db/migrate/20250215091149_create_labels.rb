@@ -5,7 +5,6 @@ class CreateLabels < ActiveRecord::Migration[8.0]
       t.string :color
       t.text :description
       t.boolean :is_bug, default: false
-
       t.timestamps
     end
 
