@@ -1,5 +1,5 @@
   module Processing
-    class RepositoryProcessor
+    class RepositoryProcessorService
       def self.update_repositories(repos, last_polled_at_date = nil)
         repos.each do |repo|
           prs = fetch_prs(repo.full_name, last_polled_at_date)

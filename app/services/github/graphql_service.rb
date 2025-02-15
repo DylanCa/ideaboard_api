@@ -21,11 +21,11 @@ module Github
 
       def update_repositories_data
         repos = GithubRepository.all
-        Processing::RepositoryProcessor.update_repositories(repos)
+        Processing::RepositoryProcessorService.update_repositories(repos)
       end
 
       def add_repo_by_name(repo_name)
-        Processing::RepositoryProcessor.add_repo_by_name(repo_name)
+        Processing::RepositoryProcessorService.add_repo_by_name(repo_name)
       end
 
       private
