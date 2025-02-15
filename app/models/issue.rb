@@ -6,5 +6,8 @@ class Issue < ApplicationRecord
   validates :title, presence: true
   validates :state, presence: true
 
-  enum :state, { closed: 0, open: 1 }
+  def state
+    return 'closed' if closed_at.present?
+    'open'
+  end
 end

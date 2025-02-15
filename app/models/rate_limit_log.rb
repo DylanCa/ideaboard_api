@@ -1,0 +1,2 @@
+class RateLimitLog < ApplicationRecord
+end

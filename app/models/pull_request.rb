@@ -4,22 +4,16 @@ class PullRequest < ApplicationRecord
   validates :github_id, presence: true, uniqueness: true
   validates :author_username, presence: true
   validates :title, presence: true
-  validates :state, presence: true
 
-  enum :state, { open: 0, closed: 1, merged: 2 }, prefix: true
-
-  before_save :set_state_from_github
+  enum :state, { draft: 0, open: 1, closed: 2, merged: 3 }, prefix: true
 
   private
 
-  def set_state_from_github
+  def state
     # Convert GitHub's string state to our enum
-    self.state = if merged_at.present?
-                   "merged"
-    elsif state == "closed"
-                   "closed"
-    else
-                   "open"
-    end
+    return state[:merged] if merged_at.present?
+    return state[:closed] if closed_at.present?
+    return state[:draft] if is_draft
+    state[:open]
   end
 end
