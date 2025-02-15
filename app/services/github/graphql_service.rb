@@ -1,5 +1,5 @@
 require_relative "../persistence/repository_persistence_service"
-require_relative "../data/repository_processor_service"
+require_relative "../processing/repository_processor_service"
 require_relative "../persistence/pull_request_persistence_service"
 require_relative "../persistence/issue_persistence_service"
 require_relative "../../graphql/queries/user_queries"
@@ -16,16 +16,16 @@ module Github
         query = Queries::UserQueries.user_repositories
         data = execute_query(query, user.access_token)
         repos = data.repositories.nodes
-        Services::Persistence::RepositoryPersistenceService.persist_many(repos)
+        Persistence::RepositoryPersistenceService.persist_many(repos)
       end
 
       def update_repositories_data
         repos = GithubRepository.all
-        Services::Data::RepositoryProcessor.update_repositories(repos)
+        Processing::RepositoryProcessor.update_repositories(repos)
       end
 
       def add_repo_by_name(repo_name)
-        Services::Data::RepositoryProcessor.add_repo_by_name(repo_name)
+        Processing::RepositoryProcessor.add_repo_by_name(repo_name)
       end
 
       private

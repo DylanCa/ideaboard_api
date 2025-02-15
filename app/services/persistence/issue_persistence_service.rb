@@ -1,4 +1,3 @@
-module Services
   module Persistence
     class IssuePersistenceService
       extend T::Sig
@@ -23,5 +22,4 @@ module Services
         raise ArgumentError, "GitHub Repository cannot be nil" if repo.nil?
       end
     end
-  end
 end

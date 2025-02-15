@@ -1,6 +1,5 @@
 require_relative "../../models/github/repository"
 
-module Services
   module Persistence
     class RepositoryPersistenceService
       extend T::Sig
@@ -24,4 +23,3 @@ module Services
       end
     end
   end
-end

@@ -1,5 +1,4 @@
-module Services
-  module Data
+  module Processing
     class RepositoryProcessor
       def self.update_repositories(repos, last_polled_at_date = nil)
         repos.each do |repo|
@@ -13,7 +12,7 @@ module Services
         repo = fetch_repository(repo_name)
         return if repo.nil?
 
-        Services::Persistence::RepositoryPersistenceService.persist_many([repo])
+        Persistence::RepositoryPersistenceService.persist_many([repo])
       end
 
       private
@@ -38,13 +37,13 @@ module Services
       def self.update_pull_requests(repo, prs)
         return if prs.empty?
 
-        Services::Persistence::PullRequestPersistenceService.persist_many(prs, repo)
+        Persistence::PullRequestPersistenceService.persist_many(prs, repo)
       end
 
       def self.update_issues(repo, issues)
         return if issues.empty?
 
-        Services::Persistence::IssuePersistenceService.persist_many(issues, repo)
+        Persistence::IssuePersistenceService.persist_many(issues, repo)
       end
 
       def self.fetch_prs(repo_full_name, last_polled_at, only_repo = false)
@@ -98,4 +97,3 @@ module Services
       end
     end
   end
-end
