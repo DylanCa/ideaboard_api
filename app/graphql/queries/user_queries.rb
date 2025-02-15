@@ -20,6 +20,10 @@ module Github
               first: 100,
               after: $cursor
             ) {
+                rateLimit {
+                  remaining
+                  resetAt
+                }
               pageInfo {
                 hasNextPage
                 endCursor
@@ -44,15 +48,6 @@ module Github
                   }
                   createdAt
                   updatedAt
-                  defaultBranchRef {
-                      target {
-                          ... on Commit {
-                              history(first: 0) {
-                                  totalCount
-                              }
-                          }
-                      }
-                  }
               }
             }
           }
@@ -60,75 +55,49 @@ module Github
       GRAPHQL
 
       RepositoryData = ::Github::Client.parse <<~GRAPHQL
-        query($query: String!, $cursor: String) {
-          rateLimit {
-            remaining
-            resetAt
-          }
-          search(
-            query: $query
-            type: REPOSITORY
-            first: 100
-            after: $cursor
-          ) {
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            nodes {
-              ... on Repository {
-                  id
-                  nameWithOwner
-                  description
-                  owner {
-                    login
-                  }
-                  primaryLanguage {
-                      name
-                  }
-                  isFork
-                  stargazerCount
-                  forkCount
-                  isArchived
-                  isDisabled
-                  licenseInfo {
-                      key
-                  }
-                  createdAt
-                  updatedAt
-                  defaultBranchRef {
-                      target {
-                          ... on Commit {
-                              history(first: 0) {
-                                  totalCount
-                              }
-                          }
-                      }
-                  }
+             query ($owner: String!, $name: String!) {
+                rateLimit {
+                  remaining
+                  resetAt
+                }
+        repository(owner: $owner, name: $name) {
+                        id
+                        nameWithOwner
+                        description
+                        owner {
+                          login
+                        }
+                        primaryLanguage {
+                            name
+                        }
+                        isFork
+                        stargazerCount
+                        forkCount
+                        isArchived
+                        isDisabled
+                        licenseInfo {
+                            key
+                        }
+                        createdAt
+                        updatedAt
+
+                }
               }
-            }
-          }
-        }
       GRAPHQL
 
-      RepositoriesItems = ::Github::Client.parse <<~GRAPHQL
-        query($query: String!, $cursor: String) {
+      RepositoryPrs = ::Github::Client.parse <<~GRAPHQL
+                      query ($owner: String!, $name: String!, $pr_cursor: String) {
           rateLimit {
             remaining
             resetAt
           }
-          search(
-            query: $query
-            type: ISSUE
-            first: 100
-            after: $cursor
-          ) {
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            nodes {
-              ... on PullRequest {
+          repository(owner: $owner, name: $name) {
+            pullRequests(first: 100, states: OPEN, after: $pr_cursor) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
                 id
                 title
                 url
@@ -147,7 +116,24 @@ module Github
                   totalCount
                 }
               }
-              ... on Issue {
+            }
+          }
+        }
+      GRAPHQL
+
+      RepositoryIssues = ::Github::Client.parse <<~GRAPHQL
+                      query ($owner: String!, $name: String!, $issue_cursor: String) {
+          rateLimit {
+            remaining
+            resetAt
+          }
+          repository(owner: $owner, name: $name) {
+            issues(first: 100, states: OPEN, after: $issue_cursor) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
                 id
                 title
                 url
@@ -160,7 +146,7 @@ module Github
                 updatedAt
                 closedAt
                 comments {
-                    totalCount
+                  totalCount
                 }
               }
             }
