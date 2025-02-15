@@ -25,7 +25,7 @@ module Services
           name: name,
         }
 
-        response = Github::Helper.query_with_logs(::Github::Queries::UserQueries::RepositoryData, variables)
+        response = Github::Helper.query_with_logs(::Github::Queries::UserQueries.repository_data, variables)
         response.data.repository
       end
 
@@ -60,7 +60,7 @@ module Services
             pr_cursor: pr_cursor,
           }
 
-          response = Github::Helper.query_with_logs(::Github::Queries::UserQueries::RepositoryPrs, variables)
+          response = Github::Helper.query_with_logs(::Github::Queries::UserQueries.repository_prs, variables)
           response.data.repository.pull_requests.nodes.each {|pr| items << pr}
 
           pr_page_info = response.data.repository.pull_requests.page_info
@@ -85,7 +85,7 @@ module Services
             issue_cursor: issue_cursor,
           }
 
-          response = Github::Helper.query_with_logs(::Github::Queries::UserQueries::RepositoryIssues, variables)
+          response = Github::Helper.query_with_logs(::Github::Queries::UserQueries.repository_issues, variables)
           response.data.repository.issues.nodes.each {|i| items << i}
 
           issue_page_info = response.data.repository.issues.page_info
@@ -95,41 +95,6 @@ module Services
         end
 
         items
-      end
-
-      private
-
-      def self.build_search_query(repo_full_name, last_polled_at, only_repo)
-
-        query = "owner"
-
-        if only_repo
-          query += " is:PUBLIC"
-        else
-          query += " state:open"
-        end
-
-        if last_polled_at
-          # Convert to ISO8601 format that GitHub expects
-          query += " updated:>#{last_polled_at}"
-        end
-
-        query
-      end
-
-      def self.execute_query(variables, only_repo)
-
-        if only_repo
-          query = ::Github::Queries::UserQueries::RepositoryData
-          Rails.logger.info "GraphQL Query: #{query} - Variables: #{variables}"
-
-          ::Github::Client.query(query, variables: variables)
-        else
-          query = ::Github::Queries::UserQueries::RepositoriesItems
-          Rails.logger.info "GraphQL Query: #{query} - Variables: #{variables}"
-
-          ::Github::Client.query(query, variables: variables)
-        end
       end
     end
   end

@@ -8,12 +8,12 @@ module Github
   class GraphqlService
     class << self
       def fetch_current_user_data(user)
-        query = Queries::UserQueries::UserData
+        query = Queries::UserQueries.user_data
         execute_query(query, user.access_token)
       end
 
       def fetch_current_user_repositories(user)
-        query = Queries::UserQueries::UserRepositories
+        query = Queries::UserQueries.user_repositories
         data = execute_query(query, user.access_token)
         repos = data.repositories.nodes
         Services::Persistence::RepositoryPersistenceService.persist_many(repos)
@@ -31,9 +31,7 @@ module Github
       private
 
       def execute_query(query, access_token = nil)
-        response = Client.query(query, context: { token: access_token })
-        Rails.logger.info "GraphQL Response: #{response.inspect}"
-
+        response = Github::Helper.query_with_logs(query, nil , {token: access_token})
         response.data.viewer if response.data
       rescue StandardError => e
         Rails.logger.error "GraphQL Error: #{e.full_message}"
