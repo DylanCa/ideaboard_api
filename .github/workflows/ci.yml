@@ -40,6 +40,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      RAILS_ENV: test
+      GITHUB_APP_ID: ${{ secrets.APP_ID }}
+      GITHUB_APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      GITHUB_APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+      GITHUB_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+
     # services:
     #  redis:
     #    image: redis
