@@ -3,6 +3,11 @@ module Github
     module UserQueries
       UserData = Client.parse <<~GRAPHQL
         query {
+
+          rateLimit {
+            remaining
+            resetAt
+          }
             viewer {
                 databaseId
                 email
@@ -14,16 +19,17 @@ module Github
 
       UserRepositories = Client.parse <<~GRAPHQL
         query($cursor: String) {
+          rateLimit {
+            remaining
+            resetAt
+          }
           viewer {
             repositories(
               privacy: PUBLIC,
               first: 100,
               after: $cursor
             ) {
-                rateLimit {
-                  remaining
-                  resetAt
-                }
+                
               pageInfo {
                 hasNextPage
                 endCursor
