@@ -11,10 +11,10 @@ class UserRepositoryStat < ApplicationRecord
 
   # Scopes
   scope :with_contributions, -> {
-    where('opened_prs_count > 0 OR issues_opened_count > 0')
+    where("opened_prs_count > 0 OR issues_opened_count > 0")
   }
-  scope :with_merged_prs, -> { where('merged_prs_count > 0') }
+  scope :with_merged_prs, -> { where("merged_prs_count > 0") }
   scope :by_contribution_count, -> {
-    order('merged_prs_count + issues_closed_count DESC')
+    order("merged_prs_count + issues_closed_count DESC")
   }
 end

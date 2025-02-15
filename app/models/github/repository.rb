@@ -49,7 +49,7 @@ module Github
         license: license,
         visible: visible,
         github_created_at: github_created_at,
-        github_updated_at:github_updated_at,
+        github_updated_at: github_updated_at
       }
     end
   end

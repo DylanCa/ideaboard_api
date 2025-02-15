@@ -11,6 +11,6 @@ class RateLimitLog < ApplicationRecord
   scope :recent, -> { order(executed_at: :desc) }
   scope :by_owner, ->(owner) { where(token_owner: owner) }
   scope :by_query, ->(query_name) { where(query_name: query_name) }
-  scope :costly, -> { where('cost > ?', 10) }
-  scope :low_points_remaining, -> { where('remaining_points < ?', 1000) }
+  scope :costly, -> { where("cost > ?", 10) }
+  scope :low_points_remaining, -> { where("remaining_points < ?", 1000) }
 end

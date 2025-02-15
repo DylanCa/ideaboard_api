@@ -31,7 +31,7 @@ module Github
       private
 
       def execute_query(query, access_token = nil)
-        response = Github::Helper.query_with_logs(query, nil , {token: access_token})
+        response = Github::Helper.query_with_logs(query, nil, { token: access_token })
         response.data.viewer if response.data
       rescue StandardError => e
         Rails.logger.error "GraphQL Error: #{e.full_message}"

@@ -22,4 +22,4 @@
         raise ArgumentError, "GitHub Repository cannot be nil" if repo.nil?
       end
     end
-end
+  end

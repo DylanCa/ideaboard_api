@@ -3,7 +3,7 @@ class GithubRepository < ApplicationRecord
   enum :update_method, { polling: 0, webhook: 1 }
 
   # Associations
-  belongs_to :owner, class_name: 'User', optional: true
+  belongs_to :owner, class_name: "User", optional: true
   has_many :github_repository_tags, dependent: :destroy
   has_many :tags, through: :github_repository_tags
   has_many :issues, dependent: :destroy
@@ -16,7 +16,7 @@ class GithubRepository < ApplicationRecord
   validates :stars_count, :forks_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :github_created_at, :github_updated_at, presence: true
   validates :is_fork, :archived, :disabled, :visible, :has_contributing,
-            :app_installed, :webhook_installed, inclusion: { in: [true, false] }
+            :app_installed, :webhook_installed, inclusion: { in: [ true, false ] }
 
   # Scopes
   scope :visible, -> { where(visible: true, archived: false, disabled: false) }
@@ -24,7 +24,7 @@ class GithubRepository < ApplicationRecord
   scope :active, -> { where(archived: false, disabled: false) }
   scope :with_language, ->(language) { where(language: language) }
   scope :recently_updated, -> { order(github_updated_at: :desc) }
-  scope :needs_polling, -> { where(update_method: :polling).where('last_polled_at < ?', 1.hour.ago) }
+  scope :needs_polling, -> { where(update_method: :polling).where("last_polled_at < ?", 1.hour.ago) }
 
   def last_polled_at_date
     return nil unless last_polled_at

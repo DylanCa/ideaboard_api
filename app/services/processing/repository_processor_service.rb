@@ -12,16 +12,16 @@
         repo = fetch_repository(repo_name)
         return if repo.nil?
 
-        Persistence::RepositoryPersistenceService.persist_many([repo])
+        Persistence::RepositoryPersistenceService.persist_many([ repo ])
       end
 
       private
 
       def self.fetch_repository(repo_name)
-        owner, name = repo_name.split('/')
+        owner, name = repo_name.split("/")
         variables = {
           owner: owner,
-          name: name,
+          name: name
         }
 
         response = Github::Helper.query_with_logs(Queries::UserQueries.repository_data, variables)
@@ -47,7 +47,7 @@
       end
 
       def self.fetch_prs(repo_full_name, last_polled_at, only_repo = false)
-        owner, name = repo_full_name.split('/')
+        owner, name = repo_full_name.split("/")
         pr_cursor = nil
         items = []
 
@@ -56,11 +56,11 @@
           variables = {
             owner: owner,
             name: name,
-            pr_cursor: pr_cursor,
+            pr_cursor: pr_cursor
           }
 
           response = Github::Helper.query_with_logs(Queries::UserQueries.repository_prs, variables)
-          response.data.repository.pull_requests.nodes.each {|pr| items << pr}
+          response.data.repository.pull_requests.nodes.each { |pr| items << pr }
 
           pr_page_info = response.data.repository.pull_requests.page_info
           break unless pr_page_info.has_next_page
@@ -72,7 +72,7 @@
       end
 
       def self.fetch_issues(repo_full_name, last_polled_at, only_repo = false)
-        owner, name = repo_full_name.split('/')
+        owner, name = repo_full_name.split("/")
         issue_cursor = nil
         items = []
 
@@ -81,11 +81,11 @@
           variables = {
             owner: owner,
             name: name,
-            issue_cursor: issue_cursor,
+            issue_cursor: issue_cursor
           }
 
           response = Github::Helper.query_with_logs(Queries::UserQueries.repository_issues, variables)
-          response.data.repository.issues.nodes.each {|i| items << i}
+          response.data.repository.issues.nodes.each { |i| items << i }
 
           issue_page_info = response.data.repository.issues.page_info
           break unless issue_page_info.has_next_page

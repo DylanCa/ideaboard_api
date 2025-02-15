@@ -8,7 +8,7 @@ class CreateIssueLabels < ActiveRecord::Migration[8.0]
 
     add_index :issue_labels, :issue_id
     add_index :issue_labels, :label_id
-    add_index :issue_labels, [:issue_id, :label_id], unique: true
+    add_index :issue_labels, [ :issue_id, :label_id ], unique: true
 
     add_foreign_key :issue_labels, :issues
     add_foreign_key :issue_labels, :labels

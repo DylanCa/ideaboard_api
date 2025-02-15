@@ -13,7 +13,7 @@ class CreateUserRepositoryStats < ActiveRecord::Migration[8.0]
 
     add_index :user_repository_stats, :user_id
     add_index :user_repository_stats, :github_repository_id
-    add_index :user_repository_stats, [:user_id, :github_repository_id],
+    add_index :user_repository_stats, [ :user_id, :github_repository_id ],
               unique: true,
               name: 'idx_on_user_id_github_repository_id_b7aa4510b5'
 

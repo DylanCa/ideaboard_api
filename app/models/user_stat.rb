@@ -8,5 +8,5 @@ class UserStat < ApplicationRecord
 
   # Scopes
   scope :top_contributors, -> { order(reputation_points: :desc) }
-  scope :active_contributors, -> { where('reputation_points > 0') }
+  scope :active_contributors, -> { where("reputation_points > 0") }
 end

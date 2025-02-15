@@ -8,7 +8,7 @@ class CreatePullRequestLabels < ActiveRecord::Migration[8.0]
 
     add_index :pull_request_labels, :pull_request_id
     add_index :pull_request_labels, :label_id
-    add_index :pull_request_labels, [:pull_request_id, :label_id], unique: true
+    add_index :pull_request_labels, [ :pull_request_id, :label_id ], unique: true
 
     add_foreign_key :pull_request_labels, :pull_requests
     add_foreign_key :pull_request_labels, :labels

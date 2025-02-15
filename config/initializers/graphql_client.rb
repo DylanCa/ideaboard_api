@@ -3,13 +3,12 @@ require "graphql/client"
 require "graphql/client/http"
 
 module Github
-  # First, define the Helper class since we need it for token management
   class Helper
     class << self
       def query_with_logs(query, variables = nil, context = nil)
         args = {
           variables: variables,
-          context: context,
+          context: context
         }.compact
 
         Rails.logger.info "GraphQL Query: #{query} - Args: #{args}"
@@ -58,7 +57,6 @@ module Github
   end
 
   class << self
-    # Lazy-loaded HTTP client
     def http
       @http ||= GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
         def headers(context)
@@ -72,20 +70,18 @@ module Github
       end
     end
 
-    # Lazy-loaded schema
     def schema
       @schema ||= if File.exist?(Rails.root.join("app/graphql/schema.json"))
                     GraphQL::Client.load_schema("app/graphql/schema.json")
-                  else
+      else
                     new_schema = GraphQL::Client.load_schema(http)
                     schema_path = Rails.root.join("app/graphql/schema.json")
                     FileUtils.mkdir_p(File.dirname(schema_path))
                     File.write(schema_path, JSON.pretty_generate(GraphQL::Client.dump_schema(new_schema)))
                     new_schema
-                  end
+      end
     end
 
-    # Lazy-loaded client
     def client
       @client ||= GraphQL::Client.new(schema: schema, execute: http)
     end

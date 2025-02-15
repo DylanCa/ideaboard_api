@@ -32,8 +32,8 @@ class CreateGithubRepositories < ActiveRecord::Migration[8.0]
     add_index :github_repositories, :owner_id
     add_index :github_repositories, :update_method
     add_index :github_repositories, :author_username
-    add_index :github_repositories, [:visible, :archived, :disabled]
-    add_index :github_repositories, [:stars_count, :visible, :archived, :disabled],
+    add_index :github_repositories, [ :visible, :archived, :disabled ]
+    add_index :github_repositories, [ :stars_count, :visible, :archived, :disabled ],
               name: 'idx_on_stars_count_visible_archived_disabled_2b4ce69e99'
 
     add_foreign_key :github_repositories, :users, column: :owner_id
