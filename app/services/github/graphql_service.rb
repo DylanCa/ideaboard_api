@@ -24,8 +24,8 @@ module Github
         Services::Data::RepositoryProcessor.update_repositories(repos)
       end
 
-      def fetch_repo_by_name(repo_name)
-        Services::Data::RepositoryProcessor.fetch_repo_by_name(repo_name)
+      def add_repo_by_name(repo_name)
+        Services::Data::RepositoryProcessor.add_repo_by_name(repo_name)
       end
 
       private
