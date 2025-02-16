@@ -77,3 +77,8 @@ yarn-debug.log*
 /app/graphql/schema.*
 
 testing.graphql
+
+# Sorbet
+/sorbet/rbi/hidden-definitions/
+/sorbet/rbi/todo.rbi
+/sorbet/rbi/gems/
