@@ -7,7 +7,7 @@ class Label < ApplicationRecord
 
   # Validations
   validates :name, presence: true, uniqueness: true
-  validates :is_bug, inclusion: { in: [true, false] }
+  validates :is_bug, inclusion: { in: [ true, false ] }
 
   # Scopes
   scope :bugs, -> { where(is_bug: true) }
@@ -15,6 +15,6 @@ class Label < ApplicationRecord
   scope :popular, -> {
     left_joins(:issue_labels, :pull_request_labels)
       .group(:id)
-      .order('COUNT(issue_labels.id) + COUNT(pull_request_labels.id) DESC')
+      .order("COUNT(issue_labels.id) + COUNT(pull_request_labels.id) DESC")
   }
 end

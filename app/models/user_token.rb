@@ -8,8 +8,8 @@ class UserToken < ApplicationRecord
   validates :refresh_token, uniqueness: true
 
   # Scopes
-  scope :active, -> { where('expires_at > ?', Time.current) }
-  scope :expired, -> { where('expires_at <= ?', Time.current) }
+  scope :active, -> { where("expires_at > ?", Time.current) }
+  scope :expired, -> { where("expires_at <= ?", Time.current) }
   scope :recent, -> { order(created_at: :desc) }
 
   # Methods

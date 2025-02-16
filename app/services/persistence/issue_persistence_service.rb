@@ -1,4 +1,3 @@
-module Services
   module Persistence
     class IssuePersistenceService
       extend T::Sig
@@ -24,4 +23,3 @@ module Services
       end
     end
   end
-end

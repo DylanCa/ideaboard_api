@@ -8,7 +8,7 @@ class CreateGithubRepositoryTags < ActiveRecord::Migration[8.0]
 
     add_index :github_repository_tags, :github_repository_id
     add_index :github_repository_tags, :tag_id
-    add_index :github_repository_tags, [:github_repository_id, :tag_id],
+    add_index :github_repository_tags, [ :github_repository_id, :tag_id ],
               unique: true,
               name: 'index_repository_tags_uniqueness'
 

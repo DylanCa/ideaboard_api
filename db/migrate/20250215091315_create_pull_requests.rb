@@ -21,9 +21,9 @@ class CreatePullRequests < ActiveRecord::Migration[8.0]
     add_index :pull_requests, :github_repository_id
     add_index :pull_requests, :author_username
     add_index :pull_requests, :merged_at
-    add_index :pull_requests, [:github_repository_id, :number]
-    add_index :pull_requests, [:author_username, :merged_at]
-    add_index :pull_requests, [:github_repository_id, :author_username],
+    add_index :pull_requests, [ :github_repository_id, :number ]
+    add_index :pull_requests, [ :author_username, :merged_at ]
+    add_index :pull_requests, [ :github_repository_id, :author_username ],
               name: 'idx_on_github_repository_id_author_username_558298bf1e'
 
     add_foreign_key :pull_requests, :github_repositories

@@ -3,14 +3,14 @@ class User < ApplicationRecord
   has_one :github_account, dependent: :destroy
   has_one :user_stat, dependent: :destroy
   has_many :user_tokens, dependent: :destroy
-  has_many :owned_repositories, class_name: 'GithubRepository', foreign_key: 'owner_id', dependent: :nullify
+  has_many :owned_repositories, class_name: "GithubRepository", foreign_key: "owner_id", dependent: :nullify
   has_many :user_repository_stats, dependent: :destroy
   has_many :rate_limit_logs, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true
   validates :account_status, presence: true
-  validates :allow_token_usage, inclusion: { in: [true, false] }
+  validates :allow_token_usage, inclusion: { in: [ true, false ] }
 
   accepts_nested_attributes_for :github_account
   accepts_nested_attributes_for :user_tokens

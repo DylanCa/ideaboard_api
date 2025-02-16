@@ -11,7 +11,7 @@ class CreateRateLimitLogs < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :rate_limit_logs, [:token_owner_type, :token_owner_id]
+    add_index :rate_limit_logs, [ :token_owner_type, :token_owner_id ]
     add_index :rate_limit_logs, :executed_at
   end
 end

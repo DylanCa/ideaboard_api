@@ -17,8 +17,8 @@ class CreateIssues < ActiveRecord::Migration[8.0]
     add_index :issues, :github_id, unique: true
     add_index :issues, :github_repository_id
     add_index :issues, :author_username
-    add_index :issues, [:github_repository_id, :number]
-    add_index :issues, [:github_repository_id, :author_username]
+    add_index :issues, [ :github_repository_id, :number ]
+    add_index :issues, [ :github_repository_id, :author_username ]
 
     add_foreign_key :issues, :github_repositories
   end

@@ -10,6 +10,6 @@ class Tag < ApplicationRecord
   scope :popular, -> {
     joins(:github_repository_tags)
       .group(:id)
-      .order('COUNT(github_repository_tags.id) DESC')
+      .order("COUNT(github_repository_tags.id) DESC")
   }
 end

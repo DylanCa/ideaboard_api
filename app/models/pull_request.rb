@@ -9,7 +9,7 @@ class PullRequest < ApplicationRecord
   validates :github_id, uniqueness: true, allow_nil: true
   validates :github_created_at, :github_updated_at, presence: true
   validates :number, uniqueness: { scope: :github_repository_id }
-  validates :is_draft, inclusion: { in: [true, false] }
+  validates :is_draft, inclusion: { in: [ true, false ] }
 
   # Scopes
   scope :open, -> { where(closed_at: nil) }

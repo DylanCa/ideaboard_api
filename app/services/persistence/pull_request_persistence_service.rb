@@ -1,4 +1,3 @@
-module Services
   module Persistence
     class PullRequestPersistenceService
       extend T::Sig
@@ -23,4 +22,3 @@ module Services
       end
     end
   end
-end
