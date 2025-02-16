@@ -94,13 +94,13 @@
 
         # Repository Pull Requests query - fetches paginated list of open PRs for a repository
         RepositoryPrs = Github.client.parse <<~GRAPHQL
-          query ($owner: String!, $name: String!, $pr_cursor: String) {
+          query ($owner: String!, $name: String!, $cursor: String) {
             rateLimit {
               remaining
               resetAt
             }
             repository(owner: $owner, name: $name) {
-              pullRequests(first: 100, states: OPEN, after: $pr_cursor) {
+              pullRequests(first: 100, states: OPEN, after: $cursor) {
                 pageInfo {
                   hasNextPage
                   endCursor
@@ -131,13 +131,13 @@
 
         # Repository Issues query - fetches paginated list of open issues for a repository
         RepositoryIssues = Github.client.parse <<~GRAPHQL
-          query ($owner: String!, $name: String!, $issue_cursor: String) {
+          query ($owner: String!, $name: String!, $cursor: String) {
             rateLimit {
               remaining
               resetAt
             }
             repository(owner: $owner, name: $name) {
-              issues(first: 100, states: OPEN, after: $issue_cursor) {
+              issues(first: 100, states: OPEN, after: $cursor) {
                 pageInfo {
                   hasNextPage
                   endCursor

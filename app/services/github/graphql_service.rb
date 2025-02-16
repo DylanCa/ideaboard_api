@@ -32,10 +32,22 @@ module Github
 
       def execute_query(query, access_token = nil)
         response = Github::Helper.query_with_logs(query, nil, { token: access_token })
-        response.data.viewer if response.data
+
+        if response.errors.any?
+          return nil
+        end
+
+        response.data.viewer
       rescue StandardError => e
-        Rails.logger.error "GraphQL Error: #{e.full_message}"
-        Rails.logger.error "GraphQL Error Backtrace: #{e.backtrace.join("\n")}"
+        Rails.logger.error do
+          {
+            message: "Unhandled GraphQL Error",
+            error: e.full_message,
+            backtrace: e.backtrace.first(10),
+            query: query.to_s
+          }.to_json
+        end
+
         nil
       end
     end
