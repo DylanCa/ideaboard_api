@@ -12,7 +12,7 @@ module Processing
       repo = fetch_repository(repo_name)
       return if repo.nil?
 
-      Persistence::RepositoryPersistenceService.persist_many([repo])
+      Persistence::RepositoryPersistenceService.persist_many([ repo ])
     end
 
     private

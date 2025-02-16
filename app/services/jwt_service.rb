@@ -3,7 +3,7 @@ class JwtService
 
   def self.encode(payload, expiration: nil)
     payload[:exp] = (expiration || Time.now.to_i + default_expiration)
-    JWT.encode(payload, SECRET_KEY, 'HS256')
+    JWT.encode(payload, SECRET_KEY, "HS256")
   end
 
   def self.decode(token)
@@ -11,7 +11,7 @@ class JwtService
       token,
       SECRET_KEY,
       true,
-      { algorithm: 'HS256' }
+      { algorithm: "HS256" }
     ).first
 
     validate_token(decoded_token)
@@ -26,11 +26,11 @@ class JwtService
   private
 
   def self.default_expiration
-    ENV.fetch('JWT_EXPIRATION', 1.week).to_i
+    ENV.fetch("JWT_EXPIRATION", 1.week).to_i
   end
 
   def self.validate_token(decoded_token)
-    raise AuthenticationError, "Missing user ID" unless decoded_token['user_id']
+    raise AuthenticationError, "Missing user ID" unless decoded_token["user_id"]
   end
 end
 
