@@ -35,29 +35,36 @@ module Github
         github_user = client.user
         user = User.with_github_id(github_user.id).first
 
-        if user.present?
-          user.user_tokens.create(access_token: tokens[:access_token],
-                                  refresh_token: tokens[:refresh_token],
-                                  expires_at: Time.now + tokens[:refresh_token_expires_in])
-        else
-          user = User.create(
-            email: client.user.email,
-            account_status: :active,
-            github_account_attributes: {
-              github_id: client.user.id,
-              github_username: client.user.login,
-              avatar_url: client.user.avatar_url
-            },
-            user_tokens_attributes: [ {
-                                       access_token: tokens[:access_token],
-                                       refresh_token: tokens[:refresh_token],
-                                       expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
-                                     } ],
-            user_stat_attributes: { reputation_points: 0 }
-          )
+        ActiveRecord::Base.transaction do
+          user ||= create_new_user(client, tokens)
+          update_user_tokens(user, tokens)
+          user
         end
+      rescue ActiveRecord::RecordNotUnique => e
+        raise e
+      end
 
-        user
+      private
+
+      def create_new_user(client, tokens)
+        User.create!(
+          email: client.user.email,
+          account_status: :active,
+          github_account_attributes: {
+            github_id: client.user.id,
+            github_username: client.user.login,
+            avatar_url: client.user.avatar_url
+          },
+          user_stat_attributes: { reputation_points: 0 }
+        )
+      end
+
+      def update_user_tokens(user, tokens)
+        user.user_tokens.create!(
+          access_token: tokens[:access_token],
+          refresh_token: tokens[:refresh_token],
+          expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
+        )
       end
     end
   end
