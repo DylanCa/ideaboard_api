@@ -113,9 +113,9 @@ module Processing
     def self.process_response(response, items)
       response.data.search.nodes.each do |node|
         case node.__typename
-        when 'PullRequest'
+        when "PullRequest"
           items[:prs] << node
-        when 'Issue'
+        when "Issue"
           items[:issues] << node
         end
       end
