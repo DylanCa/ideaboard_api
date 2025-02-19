@@ -162,6 +162,64 @@
             }
           }
         GRAPHQL
+
+        FetchRepositoryUpdates = Github.client.parse <<~GRAPHQL
+          query ($query: String!, $cursor: String){
+            rateLimit {
+              remaining
+              resetAt
+            }
+            search(
+              query: $query
+              type: ISSUE
+              first: 100
+              after: $cursor
+            ) {
+              issueCount
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                ... on PullRequest {
+                  id
+                  title
+                  url
+                  number
+                  state
+                  author {
+                    login
+                  }
+                  mergedAt
+                  closedAt
+                  createdAt
+                  updatedAt
+                  isDraft
+                  totalCommentsCount
+                  commits {
+                    totalCount
+                  }
+                }
+                ... on Issue {
+                  id
+                  title
+                  url
+                  number
+                  state
+                  author {
+                    login
+                  }
+                  createdAt
+                  updatedAt
+                  closedAt
+                  comments {
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+        GRAPHQL
       end
 
       # Class methods to provide a clean interface for accessing the queries
@@ -184,6 +242,10 @@
 
         def repository_issues
           Definitions::RepositoryIssues
+        end
+
+        def fetch_repository_updates
+          Definitions::FetchRepositoryUpdates
         end
       end
     end
