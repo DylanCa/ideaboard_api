@@ -11,7 +11,6 @@ module Github
           context: context
         }.compact
 
-        Rails.logger.info "GraphQL Query: #{query} - Args: #{args}"
 
         if args.empty?
           response = Github.client.query(query)
@@ -19,6 +18,8 @@ module Github
           response = Github.client.query(query, **args)
         end
 
+        Rails.logger.info "GraphQL Query: #{query} - Args: #{args}"
+        Rails.logger.info "GraphQL Query Response: #{response.data.to_json}"
         Rails.logger.info "GraphQL RateLimit: remaining #{response.data.rate_limit.remaining} - reset_at #{response.data.rate_limit.reset_at}"
 
         response
