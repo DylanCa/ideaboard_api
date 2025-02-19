@@ -1,6 +1,6 @@
 module Processing
   class RepositoryProcessorService
-    def self.update_repositories(repos, last_polled_at_date = nil)
+    def self.update_repositories(repos)
       repos.each do |repo|
         prs = fetch_items(repo.full_name, item_type: :prs)
         issues = fetch_items(repo.full_name, item_type: :issues)
@@ -13,6 +13,11 @@ module Processing
       return if repo.nil?
 
       Persistence::RepositoryPersistenceService.persist_many([ repo ])
+    end
+
+    def self.fetch_repository_update(repo)
+      items = fetch_updates(repo.full_name, repo.last_polled_at_date)
+      update_repository_items(repo, items[:prs], items[:issues])
     end
 
     private
@@ -35,13 +40,13 @@ module Processing
     end
 
     def self.update_pull_requests(repo, prs)
-      return if prs.empty?
+      return unless prs.present?
 
       Persistence::PullRequestPersistenceService.persist_many(prs, repo)
     end
 
     def self.update_issues(repo, issues)
-      return if issues.empty?
+      return unless issues.present?
 
       Persistence::IssuePersistenceService.persist_many(issues, repo)
     end
@@ -81,6 +86,39 @@ module Processing
       end
 
       items
+    end
+
+    def self.fetch_updates(repo_full_name, last_synced_at)
+      raise ArgumentError, "repo_full_name cannot be nil" if repo_full_name.nil?
+      raise ArgumentError, "last_synced_at cannot be nil" if last_synced_at.nil?
+
+      items = { prs: [], issues: [] }
+
+      query = Queries::UserQueries.fetch_repository_updates
+      variables = { query: "repo:#{repo_full_name} updated:>#{last_synced_at}", cursor: nil }
+
+      loop do
+        response = Github::Helper.query_with_logs(query, variables)
+        process_response(response, items)
+
+        page_info = response.data.search.page_info
+        break unless page_info.has_next_page
+
+        variables[:cursor] = page_info.end_cursor
+      end
+
+      items
+    end
+
+    def self.process_response(response, items)
+      response.data.search.nodes.each do |node|
+        case node.__typename
+        when 'PullRequest'
+          items[:prs] << node
+        when 'Issue'
+          items[:issues] << node
+        end
+      end
     end
   end
 end
