@@ -28,6 +28,13 @@ module Github
         Processing::RepositoryProcessorService.add_repo_by_name(repo_name)
       end
 
+      def fetch_repository_update(repo_name)
+        repo = GithubRepository.find_by_full_name(repo_name)
+        return nil if repo.nil?
+
+        Processing::RepositoryProcessorService.fetch_repository_update(repo)
+      end
+
       private
 
       def execute_query(query, access_token = nil)

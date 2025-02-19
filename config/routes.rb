@@ -17,4 +17,5 @@ Rails.application.routes.draw do
   get "api/user/repos" => "users#user_repos"
   get "api/data/refresh" => "users#update_repositories_data"
   get "api/data/add" => "users#add_repository"
+  get "api/data/updates" => "users#fetch_repo_updates"
 end
