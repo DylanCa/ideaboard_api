@@ -178,66 +178,74 @@ module Queries
                 }
       GRAPHQL
 
-      FetchRepositoryUpdates = Github.client.parse <<~GRAPHQL
-                query ($query: String!, $cursor: String){
-                  rateLimit {
-          cost
-          remaining
-          resetAt
-          limit
-          used
+      SearchQuery = Github.client.parse <<~GRAPHQL
+  query($query: String!, $cursor: String) {
+    rateLimit {
+      cost
+      remaining
+      resetAt
+      limit
+      used
+    }
+    search(
+      query: $query
+      type: ISSUE
+      first: 100
+      after: $cursor
+    ) {
+      issueCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        ... on PullRequest {
+          id
+          title
+          url
+          number
+          state
+          author {
+            login
+          }
+          mergedAt
+          closedAt
+          createdAt
+          updatedAt
+          isDraft
+          totalCommentsCount
+          commits {
+            totalCount
+          }
+          repository {
+            id
+            nameWithOwner
+          }
         }
-                  search(
-                    query: $query
-                    type: ISSUE
-                    first: 100
-                    after: $cursor
-                  ) {
-                    issueCount
-                    pageInfo {
-                      hasNextPage
-                      endCursor
-                    }
-                    nodes {
-                      ... on PullRequest {
-                        id
-                        title
-                        url
-                        number
-                        state
-                        author {
-                          login
-                        }
-                        mergedAt
-                        closedAt
-                        createdAt
-                        updatedAt
-                        isDraft
-                        totalCommentsCount
-                        commits {
-                          totalCount
-                        }
-                      }
-                      ... on Issue {
-                        id
-                        title
-                        url
-                        number
-                        state
-                        author {
-                          login
-                        }
-                        createdAt
-                        updatedAt
-                        closedAt
-                        comments {
-                          totalCount
-                        }
-                      }
-                    }
-                  }
-                }
-      GRAPHQL
+        ... on Issue {
+          id
+          title
+          url
+          number
+          state
+          author {
+            login
+          }
+          createdAt
+          updatedAt
+          closedAt
+          comments {
+            totalCount
+          }
+          repository {
+            id
+            nameWithOwner
+          }
+        }
+      }
+    }
+  }
+GRAPHQL
     end
 
     # Class methods to provide a clean interface for accessing the queries
@@ -262,8 +270,8 @@ module Queries
         Definitions::RepositoryIssues
       end
 
-      def fetch_repository_updates
-        Definitions::FetchRepositoryUpdates
+      def search_query
+        Definitions::SearchQuery
       end
     end
   end
