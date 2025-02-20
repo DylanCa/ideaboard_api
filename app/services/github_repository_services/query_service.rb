@@ -5,7 +5,7 @@ module GithubRepositoryServices
         owner, name = repo_name.split("/")
         variables = { owner: owner, name: name }
 
-        response = Github::Helper.query_with_logs(Queries::RepositoryQueries.repository_data, variables, nil, repo_name)
+        response = Github::Helper.query_with_logs(Queries::RepositoryQueries.repository_data, variables, nil, repo_name, owner)
         response.data.repository
       end
 
@@ -19,7 +19,7 @@ module GithubRepositoryServices
         variables = { owner: owner, name: name, cursor: nil }
 
         loop do
-          response = Github::Helper.query_with_logs(query, variables, nil, repo_full_name)
+          response = Github::Helper.query_with_logs(query, variables, nil, repo_full_name, owner)
           collection = item_type == :prs ?
                          response.data.repository.pull_requests :
                          response.data.repository.issues
@@ -43,7 +43,7 @@ module GithubRepositoryServices
         search_query = "repo:#{repo_full_name}"
         search_query += " updated:>=#{last_synced_at}" if last_synced_at
 
-        paginate_query(Queries::GlobalQueries.search_query, { query: search_query }) do |response|
+        paginate_query(Queries::GlobalQueries.search_query, { query: search_query }, repo_full_name, nil) do |response|
           ProcessingService.process_search_response(response.data.search.nodes, items)
         end
 
@@ -52,20 +52,21 @@ module GithubRepositoryServices
 
       def fetch_user_contribution_type(user, items, contrib_type)
         query = Queries::GlobalQueries.search_query
-        search_query = build_user_search_query(user.github_account.github_username, contrib_type)
+        username = user.github_account.github_username
+        search_query = build_user_search_query(username, contrib_type)
 
-        paginate_query(query, { query: search_query }) do |response|
+        paginate_query(query, { query: search_query }, nil, username) do |response|
           ProcessingService.process_search_response(response.data.search.nodes, items)
         end
       end
 
       private
 
-      def paginate_query(query, initial_variables, context = {})
+      def paginate_query(query, initial_variables, context = {}, repo_name, username)
         variables = initial_variables.merge(cursor: nil)
 
         loop do
-          response = Github::Helper.query_with_logs(query, variables, context)
+          response = Github::Helper.query_with_logs(query, variables, context, repo_name, username)
           break unless response&.data&.search
 
           yield(response)

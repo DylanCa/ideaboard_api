@@ -1,15 +1,18 @@
 module Github
   class Helper
     class << self
-      def query_with_logs(query, variables = nil, context = nil, repo_name = nil)
+      def query_with_logs(query, variables = nil, context = nil, repo_name = nil, username = nil)
         context ||= {}
         repo = GithubRepository.find_by_full_name(repo_name)
 
         if context[:token].nil?
-          user_id, context[:token], usage_type = select_token_for_repository(repo)
+          user_id, context[:token], usage_type = select_token(repo, username)
         else
-          user_id = UserToken.find_by_access_token(context[:token]).user_id
+          user_token = UserToken.find_by_access_token(context[:token])
+          user_id = user_token.user_id
           usage_type = :personal
+
+          context[:token] = user_token.refresh!.user_token if user_token.needs_refresh?
         end
 
 
@@ -17,11 +20,10 @@ module Github
         response = execute_query(query, variables, context)
         execution_time = calculate_execution_time(start_time)
 
-        log_token_usage(user_id, repo, usage_type, query, variables, response)
-        log_query_execution(query, variables, response, execution_time)
+        log_query_execution(query, variables, response, execution_time, user_id, repo, usage_type)
         response
       rescue => e
-        log_query_error(query, variables, e)
+        log_query_error(query, variables, response, e)
         raise e
       end
 
@@ -39,6 +41,21 @@ module Github
 
       private
 
+      def select_token(repo, username)
+        if username
+          owner = User.joins(:github_account)
+                      .where(github_accounts: { github_username: username })
+                      .first
+
+          unless owner.nil?
+            owner.user_token.refresh!
+            return [owner.id, owner.access_token, :personal]
+          end
+        end
+
+        select_token_for_repository(repo)
+      end
+
       def select_token_for_repository(repo)
         return [nil, installation_token, :personal] if repo.nil?
 
@@ -46,7 +63,7 @@ module Github
         owner = User.joins(:github_account)
                     .where(github_accounts: { github_username: repo.author_username })
                     .first
-        return [owner.id, owner.access_token, :personal] if owner&.token_active?
+        return [owner.id, owner.access_token, :personal] unless owner.nil?
 
         # Second try: Contributors tokens
         if (contributor_tokens = find_contributor_tokens(repo)).any?
@@ -81,17 +98,15 @@ module Github
             .map { |id, token| [id, token] }
       end
 
-      def log_token_usage(user_id, repo, usage_type, query, variables, response)
-        rate_limit = format_rate_limit_info(response.data.rate_limit)
-
+      def log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
         TokenUsageLog.create!(
           user_id: user_id,
           github_repository: repo,
           query: query,
           variables: variables,
           usage_type: User.token_usage_levels[usage_type],
-          points_used: rate_limit[:cost],
-          points_remaining: rate_limit[:remaining]
+          points_used: rate_limit_info[:cost],
+          points_remaining: rate_limit_info[:remaining]
         )
       end
 
@@ -131,8 +146,10 @@ module Github
         }
       end
 
-      def log_query_execution(query, variables, response, execution_time)
+      def log_query_execution(query, variables, response, execution_time, user_id, repo, usage_type)
         rate_limit_info = format_rate_limit_info(response.data.rate_limit)
+
+        log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
 
         Rails.logger.info do
           <<~LOG
@@ -147,13 +164,15 @@ module Github
         end
       end
 
-      def log_query_error(query, variables, error)
+      def log_query_error(query, variables, response, error)
+        query_error = response.errors&.to_h
         Rails.logger.error do
           <<~ERROR
       \e[31m[GraphQL Error]\e[0m
       Query: #{query.definition_name}
       Variables: #{variables.inspect}
       Error: #{error.message}
+      Query Error: #{query_error}
       #{error.backtrace.first(5).join("\n")}
     ERROR
         end

@@ -11,6 +11,15 @@ module IdeaboardApi
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 
+    config.action_dispatch.default_headers = {
+      'X-Frame-Options' => 'DENY',
+      'X-XSS-Protection' => '1; mode=block',
+      'X-Content-Type-Options' => 'nosniff',
+      'X-Download-Options' => 'noopen',
+      'X-Permitted-Cross-Domain-Policies' => 'none',
+      'Referrer-Policy' => 'strict-origin-when-cross-origin'
+    }
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.

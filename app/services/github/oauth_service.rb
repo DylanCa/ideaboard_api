@@ -13,6 +13,11 @@ module Github
         }
       end
 
+      def refresh_token(refresh_token)
+        client =  Octokit::Client.new(client_id: ENV["GITHUB_APP_CLIENT_ID"], client_secret: ENV["GITHUB_APP_SECRET_KEY"])
+        client.refresh_access_token(refresh_token)
+      end
+
       private
 
       def get_tokens(code)
@@ -25,9 +30,8 @@ module Github
 
         {
           access_token: result.access_token,
-          access_token_expires_in: result.expires_in,
+          expires_in: result.expires_in,
           refresh_token: result.refresh_token,
-          refresh_token_expires_in: result.refresh_token_expires_in
         }
       end
 
@@ -43,8 +47,6 @@ module Github
       rescue ActiveRecord::RecordNotUnique => e
         raise e
       end
-
-      private
 
       def create_new_user(client)
         User.create!(
@@ -65,7 +67,7 @@ module Github
             user_id: user.id,
             access_token: tokens[:access_token],
             refresh_token: tokens[:refresh_token],
-            expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
+            expires_at: Time.now.utc + tokens[:expires_in]
           },
           unique_by: :user_id
         )
