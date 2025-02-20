@@ -1,0 +1,2 @@
+class TokenUsageLog < ApplicationRecord
+end
