@@ -20,7 +20,74 @@ module Processing
       update_repository_items(repo, items[:prs], items[:issues])
     end
 
+    def self.fetch_user_contributions(user)
+      items = { repositories: Set.new, prs: [], issues: [] }
+      execute_user_contribs(user, items, :prs)
+      execute_user_contribs(user, items, :issues)
+      process_contributions(items)
+    end
+
+    def self.execute_user_contribs(user, items, contrib_type = :prs)
+      query = Queries::UserQueries.search_query
+      type = contrib_type == :prs ? 'pr' : 'issue'
+      variables = {
+        query: "author:#{user.github_account.github_username} is:public is:#{type}",
+        cursor: nil
+      }
+
+      loop do
+        response = Github::Helper.query_with_logs(query, variables, { token: user.access_token })
+        break unless response.data.search
+
+        process_search_response(response.data.search.nodes, items)
+
+        page_info = response.data.search.page_info
+        break unless page_info.has_next_page
+
+        variables[:cursor] = page_info.end_cursor
+      end
+    end
+
     private
+
+    def self.process_search_response(nodes, items)
+      nodes.each do |node|
+        items[:repositories] << node.repository
+
+        case node.__typename
+        when "PullRequest"
+          items[:prs] << node
+        when "Issue"
+          items[:issues] << node
+        end
+      end
+    end
+
+    def self.process_contributions(items)
+      db_repositories = GithubRepository.where(
+        full_name: items[:repositories].map(&:name_with_owner)
+      ).index_by(&:full_name)
+
+      items[:repositories].each do |repo|
+        next if db_repositories.key?(repo.name_with_owner)
+        Processing::RepositoryProcessorService.add_repo_by_name(repo.name_with_owner)
+      end
+
+      db_repositories = GithubRepository.where(
+        full_name: items[:repositories].map(&:name_with_owner)
+      ).index_by(&:full_name)
+
+      items[:repositories].each do |repo|
+        db_repo = db_repositories[repo.name_with_owner]
+        next unless db_repo
+
+        Processing::RepositoryProcessorService.update_repository_items(
+          db_repo,
+          items[:prs].select { |pr| pr.repository.name_with_owner == repo.name_with_owner },
+          items[:issues].select { |issue| issue.repository.name_with_owner == repo.name_with_owner }
+        )
+      end
+    end
 
     def self.fetch_repository(repo_name)
       owner, name = repo_name.split("/")
@@ -94,8 +161,8 @@ module Processing
 
       items = { prs: [], issues: [] }
 
-      query = Queries::UserQueries.fetch_repository_updates
-      variables = { query: "repo:#{repo_full_name} updated:>#{last_synced_at}", cursor: nil }
+      query = Queries::UserQueries.search_query
+      variables = { query: "repo:#{repo_full_name} updated:>=#{last_synced_at}", cursor: nil }
 
       loop do
         response = Github::Helper.query_with_logs(query, variables)
