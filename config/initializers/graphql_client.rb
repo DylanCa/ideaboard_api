@@ -59,7 +59,7 @@ module Github
 
   class << self
     def http
-      @http ||= GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
+      GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
         def headers(context)
           token = context[:token]
           token ||= Github::Helper.installation_token
@@ -84,7 +84,7 @@ module Github
     end
 
     def client
-      @client ||= GraphQL::Client.new(schema: schema, execute: http)
+      GraphQL::Client.new(schema: schema, execute: http)
     end
   end
 end
