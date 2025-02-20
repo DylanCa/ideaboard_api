@@ -1,11 +1,23 @@
 module Github
   class Helper
     class << self
-      def query_with_logs(query, variables = nil, context = nil)
+      def query_with_logs(query, variables = nil, context = nil, repo_name = nil)
+        context ||= {}
+        repo = GithubRepository.find_by_full_name(repo_name)
+
+        if context[:token].nil?
+          user_id, context[:token], usage_type = select_token_for_repository(repo)
+        else
+          user_id = UserToken.find_by_access_token(context[:token]).user_id
+          usage_type = :personal
+        end
+
+
         start_time = Time.current
         response = execute_query(query, variables, context)
         execution_time = calculate_execution_time(start_time)
 
+        log_token_usage(user_id, repo, usage_type, query, variables, response)
         log_query_execution(query, variables, response, execution_time)
         response
       rescue => e
@@ -26,6 +38,62 @@ module Github
       end
 
       private
+
+      def select_token_for_repository(repo)
+        return [nil, installation_token, :personal] if repo.nil?
+
+        # First try: Repository owner's token
+        owner = User.joins(:github_account)
+                    .where(github_accounts: { github_username: repo.author_username })
+                    .first
+        return [owner.id, owner.access_token, :personal] if owner&.token_active?
+
+        # Second try: Contributors tokens
+        if (contributor_tokens = find_contributor_tokens(repo)).any?
+          user_id, token = contributor_tokens.sample
+          return [user_id, token, :contributed]
+        end
+
+        # Last try: Global pool
+        if (global_tokens = find_global_pool_tokens).any?
+          user_id, token = global_tokens.sample
+          return [user_id, token, :global_pool]
+        end
+
+        # Fallback to app token
+        [nil, installation_token, :personal]
+      end
+
+      def find_contributor_tokens(repo)
+        User.where(token_usage_level: :contributed)
+            .joins(:user_token, :user_repository_stats)
+            .where('user_token.expires_at > ?', Time.current)
+            .where(user_repository_stats: { github_repository_id: repo.id })
+            .pluck(:id, 'user_token.access_token')
+            .map { |id, token| [id, token] }
+      end
+
+      def find_global_pool_tokens
+        User.where(token_usage_level: :global_pool)
+            .joins(:user_token)
+            .where('user_token.expires_at > ?', Time.current)
+            .pluck(:id, 'user_token.access_token')
+            .map { |id, token| [id, token] }
+      end
+
+      def log_token_usage(user_id, repo, usage_type, query, variables, response)
+        rate_limit = format_rate_limit_info(response.data.rate_limit)
+
+        TokenUsageLog.create!(
+          user_id: user_id,
+          github_repository: repo,
+          query: query,
+          variables: variables,
+          usage_type: User.token_usage_levels[usage_type],
+          points_used: rate_limit[:cost],
+          points_remaining: rate_limit[:remaining]
+        )
+      end
 
       def execute_query(query, variables, context)
         args = { variables: variables, context: context }.compact

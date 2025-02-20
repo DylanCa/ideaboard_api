@@ -5,7 +5,7 @@ module GithubRepositoryServices
         owner, name = repo_name.split("/")
         variables = { owner: owner, name: name }
 
-        response = Github::Helper.query_with_logs(Queries::RepositoryQueries.repository_data, variables)
+        response = Github::Helper.query_with_logs(Queries::RepositoryQueries.repository_data, variables, nil, repo_name)
         response.data.repository
       end
 
@@ -19,7 +19,7 @@ module GithubRepositoryServices
         variables = { owner: owner, name: name, cursor: nil }
 
         loop do
-          response = Github::Helper.query_with_logs(query, variables)
+          response = Github::Helper.query_with_logs(query, variables, nil, repo_full_name)
           collection = item_type == :prs ?
                          response.data.repository.pull_requests :
                          response.data.repository.issues

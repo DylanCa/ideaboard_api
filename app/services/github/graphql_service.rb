@@ -41,8 +41,8 @@ module Github
 
       private
 
-      def execute_query(query, access_token = nil)
-        response = Github::Helper.query_with_logs(query, nil, { token: access_token })
+      def execute_query(query, access_token = nil, repo_name = nil)
+        response = Github::Helper.query_with_logs(query, nil, { token: access_token }, repo_name)
 
         if response.errors.any?
           return nil
