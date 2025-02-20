@@ -49,7 +49,7 @@ module Github
       def create_new_user(client, tokens)
         User.create!(
           email: client.user.email,
-          account_status: :active,
+          account_status: :enabled,
           github_account_attributes: {
             github_id: client.user.id,
             github_username: client.user.login,
