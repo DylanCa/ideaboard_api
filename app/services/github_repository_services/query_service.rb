@@ -5,15 +5,15 @@ module GithubRepositoryServices
         owner, name = repo_name.split("/")
         variables = { owner: owner, name: name }
 
-        response = Github::Helper.query_with_logs(Queries::UserQueries.repository_data, variables)
+        response = Github::Helper.query_with_logs(Queries::RepositoryQueries.repository_data, variables)
         response.data.repository
       end
 
       def fetch_items(repo_full_name, item_type: :prs)
         owner, name = repo_full_name.split("/")
         query = item_type == :prs ?
-                  Queries::UserQueries.repository_prs :
-                  Queries::UserQueries.repository_issues
+                  Queries::RepositoryQueries.repository_prs :
+                  Queries::RepositoryQueries.repository_issues
 
         items = []
         variables = { owner: owner, name: name, cursor: nil }
@@ -43,7 +43,7 @@ module GithubRepositoryServices
         search_query = "repo:#{repo_full_name}"
         search_query += " updated:>=#{last_synced_at}" if last_synced_at
 
-        paginate_query(Queries::UserQueries.search_query, { query: search_query }) do |response|
+        paginate_query(Queries::GlobalQueries.search_query, { query: search_query }) do |response|
           ProcessingService.process_search_response(response.data.search.nodes, items)
         end
 
@@ -51,7 +51,7 @@ module GithubRepositoryServices
       end
 
       def fetch_user_contribution_type(user, items, contrib_type)
-        query = Queries::UserQueries.search_query
+        query = Queries::GlobalQueries.search_query
         search_query = build_user_search_query(user.github_account.github_username, contrib_type)
 
         paginate_query(query, { query: search_query }) do |response|
