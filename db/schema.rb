@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_20_135022) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -165,18 +165,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_135022) do
   end
 
   create_table "token_usage_logs", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "github_repository_id", null: false
-    t.datetime "used_at", null: false
+    t.integer "user_id"
+    t.integer "github_repository_id"
+    t.string "query", null: false
+    t.string "variables"
     t.integer "usage_type", null: false
     t.integer "points_used", null: false
     t.integer "points_remaining", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["github_repository_id"], name: "index_token_usage_logs_on_github_repository_id"
+    t.index ["query"], name: "index_token_usage_logs_on_query"
     t.index ["usage_type"], name: "index_token_usage_logs_on_usage_type"
-    t.index ["used_at"], name: "index_token_usage_logs_on_used_at"
-    t.index ["user_id", "github_repository_id", "used_at"], name: "idx_on_user_id_github_repository_id_used_at_565a615727"
+    t.index ["user_id", "github_repository_id"], name: "index_token_usage_logs_on_user_id_and_github_repository_id"
     t.index ["user_id"], name: "index_token_usage_logs_on_user_id"
   end
 
@@ -212,7 +213,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_135022) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["refresh_token"], name: "index_user_tokens_on_refresh_token", unique: true
-    t.index ["user_id"], name: "index_user_tokens_on_user_id"
+    t.index ["user_id"], name: "index_user_tokens_on_user_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
