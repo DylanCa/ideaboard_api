@@ -49,7 +49,7 @@ module Github
 
           unless owner.nil?
             owner.user_token.refresh!
-            return [owner.id, owner.access_token, :personal]
+            return [ owner.id, owner.access_token, :personal ]
           end
         end
 
@@ -57,45 +57,45 @@ module Github
       end
 
       def select_token_for_repository(repo)
-        return [nil, installation_token, :personal] if repo.nil?
+        return [ nil, installation_token, :personal ] if repo.nil?
 
         # First try: Repository owner's token
         owner = User.joins(:github_account)
                     .where(github_accounts: { github_username: repo.author_username })
                     .first
-        return [owner.id, owner.access_token, :personal] unless owner.nil?
+        return [ owner.id, owner.access_token, :personal ] unless owner.nil?
 
         # Second try: Contributors tokens
         if (contributor_tokens = find_contributor_tokens(repo)).any?
           user_id, token = contributor_tokens.sample
-          return [user_id, token, :contributed]
+          return [ user_id, token, :contributed ]
         end
 
         # Last try: Global pool
         if (global_tokens = find_global_pool_tokens).any?
           user_id, token = global_tokens.sample
-          return [user_id, token, :global_pool]
+          return [ user_id, token, :global_pool ]
         end
 
         # Fallback to app token
-        [nil, installation_token, :personal]
+        [ nil, installation_token, :personal ]
       end
 
       def find_contributor_tokens(repo)
         User.where(token_usage_level: :contributed)
             .joins(:user_token, :user_repository_stats)
-            .where('user_token.expires_at > ?', Time.current)
+            .where("user_token.expires_at > ?", Time.current)
             .where(user_repository_stats: { github_repository_id: repo.id })
-            .pluck(:id, 'user_token.access_token')
-            .map { |id, token| [id, token] }
+            .pluck(:id, "user_token.access_token")
+            .map { |id, token| [ id, token ] }
       end
 
       def find_global_pool_tokens
         User.where(token_usage_level: :global_pool)
             .joins(:user_token)
-            .where('user_token.expires_at > ?', Time.current)
-            .pluck(:id, 'user_token.access_token')
-            .map { |id, token| [id, token] }
+            .where("user_token.expires_at > ?", Time.current)
+            .pluck(:id, "user_token.access_token")
+            .map { |id, token| [ id, token ] }
       end
 
       def log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)

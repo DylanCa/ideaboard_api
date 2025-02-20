@@ -31,7 +31,7 @@ module Github
         {
           access_token: result.access_token,
           expires_in: result.expires_in,
-          refresh_token: result.refresh_token,
+          refresh_token: result.refresh_token
         }
       end
 

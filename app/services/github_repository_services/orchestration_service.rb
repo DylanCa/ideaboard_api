@@ -14,7 +14,7 @@ module GithubRepositoryServices
         repo = QueryService.fetch_repository(repo_name)
         return if repo.nil?
 
-        Persistence::RepositoryPersistenceService.persist_many([repo])
+        Persistence::RepositoryPersistenceService.persist_many([ repo ])
       end
 
       def fetch_repository_update(repo)
@@ -25,7 +25,7 @@ module GithubRepositoryServices
       def fetch_user_contributions(user)
         items = { repositories: Set.new, prs: [], issues: [] }
 
-        [:prs, :issues].each do |contrib_type|
+        [ :prs, :issues ].each do |contrib_type|
           QueryService.fetch_user_contribution_type(user, items, contrib_type)
         end
 

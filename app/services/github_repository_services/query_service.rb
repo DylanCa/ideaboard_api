@@ -79,7 +79,7 @@ module GithubRepositoryServices
       end
 
       def build_user_search_query(username, type)
-        type_filter = type == :prs ? 'pr' : 'issue'
+        type_filter = type == :prs ? "pr" : "issue"
         "author:#{username} is:public is:#{type_filter}"
       end
 

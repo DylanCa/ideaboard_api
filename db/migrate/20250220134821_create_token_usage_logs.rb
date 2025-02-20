@@ -10,7 +10,7 @@ class CreateTokenUsageLogs < ActiveRecord::Migration[8.0]
       t.integer :points_remaining, null: false
       t.timestamps
 
-      t.index [:user_id, :github_repository_id]
+      t.index [ :user_id, :github_repository_id ]
       t.index :usage_type
       t.index :query
     end

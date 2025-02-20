@@ -12,12 +12,12 @@ module IdeaboardApi
     config.load_defaults 8.0
 
     config.action_dispatch.default_headers = {
-      'X-Frame-Options' => 'DENY',
-      'X-XSS-Protection' => '1; mode=block',
-      'X-Content-Type-Options' => 'nosniff',
-      'X-Download-Options' => 'noopen',
-      'X-Permitted-Cross-Domain-Policies' => 'none',
-      'Referrer-Policy' => 'strict-origin-when-cross-origin'
+      "X-Frame-Options" => "DENY",
+      "X-XSS-Protection" => "1; mode=block",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
     }
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
