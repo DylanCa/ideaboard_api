@@ -28,6 +28,6 @@ class GithubRepository < ApplicationRecord
 
   def last_polled_at_date
     return nil unless last_polled_at
-    last_polled_at.strftime("%Y-%m-%d")
+    last_polled_at.strftime("%Y-%m-%dT%H:%M:%S+00:00")
   end
 end
