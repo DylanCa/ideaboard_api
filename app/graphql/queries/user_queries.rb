@@ -32,6 +32,7 @@ module Queries
           used
         }
                   viewer {
+                    login
                     repositories(
                       privacy: PUBLIC,
                       first: 100,
@@ -71,12 +72,15 @@ module Queries
       RepositoryData = Github.client.parse <<~GRAPHQL
                 query ($owner: String!, $name: String!) {
                   rateLimit {
-          cost
-          remaining
-          resetAt
-          limit
-          used
-        }
+                    cost
+                    remaining
+                    resetAt
+                    limit
+                    used
+                  }
+                  viewer {
+                    login
+                  }
                   repository(owner: $owner, name: $name) {
                     id
                     nameWithOwner
@@ -105,12 +109,15 @@ module Queries
       RepositoryPrs = Github.client.parse <<~GRAPHQL
                 query ($owner: String!, $name: String!, $cursor: String) {
                   rateLimit {
-          cost
-          remaining
-          resetAt
-          limit
-          used
-        }
+                    cost
+                    remaining
+                    resetAt
+                    limit
+                    used
+                  }
+                  viewer {
+                    login
+                  }
                   repository(owner: $owner, name: $name) {
                     pullRequests(first: 100, states: OPEN, after: $cursor) {
                       pageInfo {
@@ -145,12 +152,15 @@ module Queries
       RepositoryIssues = Github.client.parse <<~GRAPHQL
                 query ($owner: String!, $name: String!, $cursor: String) {
                   rateLimit {
-          cost
-          remaining
-          resetAt
-          limit
-          used
-        }
+                    cost
+                    remaining
+                    resetAt
+                    limit
+                    used
+                  }
+                  viewer {
+                    login
+                  }
                   repository(owner: $owner, name: $name) {
                     issues(first: 100, states: OPEN, after: $cursor) {
                       pageInfo {
@@ -179,73 +189,76 @@ module Queries
       GRAPHQL
 
       SearchQuery = Github.client.parse <<~GRAPHQL
-  query($query: String!, $cursor: String) {
-    rateLimit {
-      cost
-      remaining
-      resetAt
-      limit
-      used
-    }
-    search(
-      query: $query
-      type: ISSUE
-      first: 100
-      after: $cursor
-    ) {
-      issueCount
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        ... on PullRequest {
-          id
-          title
-          url
-          number
-          state
-          author {
+        query($query: String!, $cursor: String) {
+          rateLimit {
+            cost
+            remaining
+            resetAt
+            limit
+            used
+          }
+          viewer {
             login
           }
-          mergedAt
-          closedAt
-          createdAt
-          updatedAt
-          isDraft
-          totalCommentsCount
-          commits {
-            totalCount
-          }
-          repository {
-            id
-            nameWithOwner
+          search(
+            query: $query
+            type: ISSUE
+            first: 100
+            after: $cursor
+          ) {
+            issueCount
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              ... on PullRequest {
+                id
+                title
+                url
+                number
+                state
+                author {
+                  login
+                }
+                mergedAt
+                closedAt
+                createdAt
+                updatedAt
+                isDraft
+                totalCommentsCount
+                commits {
+                  totalCount
+                }
+                repository {
+                  id
+                  nameWithOwner
+                }
+              }
+              ... on Issue {
+                id
+                title
+                url
+                number
+                state
+                author {
+                  login
+                }
+                createdAt
+                updatedAt
+                closedAt
+                comments {
+                  totalCount
+                }
+                repository {
+                  id
+                  nameWithOwner
+                }
+              }
+            }
           }
         }
-        ... on Issue {
-          id
-          title
-          url
-          number
-          state
-          author {
-            login
-          }
-          createdAt
-          updatedAt
-          closedAt
-          comments {
-            totalCount
-          }
-          repository {
-            id
-            nameWithOwner
-          }
-        }
-      }
-    }
-  }
-GRAPHQL
+    GRAPHQL
     end
 
     # Class methods to provide a clean interface for accessing the queries
