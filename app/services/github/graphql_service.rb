@@ -35,6 +35,10 @@ module Github
         Processing::RepositoryProcessorService.fetch_repository_update(repo)
       end
 
+      def fetch_user_contributions(user)
+        Processing::RepositoryProcessorService.fetch_user_contributions(user)
+      end
+
       private
 
       def execute_query(query, access_token = nil)
