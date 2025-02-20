@@ -36,8 +36,8 @@ module Github
         user = User.with_github_id(github_user.id).first
 
         ActiveRecord::Base.transaction do
-          user ||= create_new_user(client, tokens)
-          update_user_tokens(user, tokens)
+          user ||= create_new_user(client)
+          update_user_token(user, tokens)
           user
         end
       rescue ActiveRecord::RecordNotUnique => e
@@ -46,7 +46,7 @@ module Github
 
       private
 
-      def create_new_user(client, tokens)
+      def create_new_user(client)
         User.create!(
           email: client.user.email,
           account_status: :enabled,
@@ -59,11 +59,15 @@ module Github
         )
       end
 
-      def update_user_tokens(user, tokens)
-        user.user_tokens.create!(
-          access_token: tokens[:access_token],
-          refresh_token: tokens[:refresh_token],
-          expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
+      def update_user_token(user, tokens)
+        UserToken.upsert(
+          {
+            user_id: user.id,
+            access_token: tokens[:access_token],
+            refresh_token: tokens[:refresh_token],
+            expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
+          },
+          unique_by: :user_id
         )
       end
     end
