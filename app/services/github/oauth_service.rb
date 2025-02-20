@@ -13,6 +13,11 @@ module Github
         }
       end
 
+      def refresh_token(refresh_token)
+        client =  Octokit::Client.new(client_id: ENV["GITHUB_APP_CLIENT_ID"], client_secret: ENV["GITHUB_APP_SECRET_KEY"])
+        client.refresh_access_token(refresh_token)
+      end
+
       private
 
       def get_tokens(code)
@@ -25,9 +30,8 @@ module Github
 
         {
           access_token: result.access_token,
-          access_token_expires_in: result.expires_in,
-          refresh_token: result.refresh_token,
-          refresh_token_expires_in: result.refresh_token_expires_in
+          expires_in: result.expires_in,
+          refresh_token: result.refresh_token
         }
       end
 
@@ -36,20 +40,18 @@ module Github
         user = User.with_github_id(github_user.id).first
 
         ActiveRecord::Base.transaction do
-          user ||= create_new_user(client, tokens)
-          update_user_tokens(user, tokens)
+          user ||= create_new_user(client)
+          update_user_token(user, tokens)
           user
         end
       rescue ActiveRecord::RecordNotUnique => e
         raise e
       end
 
-      private
-
-      def create_new_user(client, tokens)
+      def create_new_user(client)
         User.create!(
           email: client.user.email,
-          account_status: :active,
+          account_status: :enabled,
           github_account_attributes: {
             github_id: client.user.id,
             github_username: client.user.login,
@@ -59,11 +61,15 @@ module Github
         )
       end
 
-      def update_user_tokens(user, tokens)
-        user.user_tokens.create!(
-          access_token: tokens[:access_token],
-          refresh_token: tokens[:refresh_token],
-          expires_at: Time.now.utc + tokens[:refresh_token_expires_in]
+      def update_user_token(user, tokens)
+        UserToken.upsert(
+          {
+            user_id: user.id,
+            access_token: tokens[:access_token],
+            refresh_token: tokens[:refresh_token],
+            expires_at: Time.now.utc + tokens[:expires_in]
+          },
+          unique_by: :user_id
         )
       end
     end

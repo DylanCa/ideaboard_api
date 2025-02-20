@@ -2,7 +2,7 @@ class User < ApplicationRecord
   # Associations
   has_one :github_account, dependent: :destroy
   has_one :user_stat, dependent: :destroy
-  has_many :user_tokens, dependent: :destroy
+  has_one :user_token, dependent: :destroy
   has_many :owned_repositories, class_name: "GithubRepository", foreign_key: "owner_id", dependent: :nullify
   has_many :user_repository_stats, dependent: :destroy
   has_many :rate_limit_logs, dependent: :destroy
@@ -13,21 +13,23 @@ class User < ApplicationRecord
   validates :allow_token_usage, inclusion: { in: [ true, false ] }
 
   accepts_nested_attributes_for :github_account
-  accepts_nested_attributes_for :user_tokens
+  accepts_nested_attributes_for :user_token
   accepts_nested_attributes_for :user_stat
 
-  enum :account_status, { active: 1, disabled: 0, banned: -1 }
+  enum :account_status, { enabled: 1, disabled: 0, banned: -1 }
+
+  enum :token_usage_level, {
+    personal: 0,   # Only their data
+    contributed: 1,     # Their data + repos they contributed to
+    global_pool: 2      # Any repository
+  }, default: 0
 
   scope :with_github_id, ->(github_id) {
     joins(:github_account).where(github_account: { github_id: github_id })
   }
 
   def access_token
-    last_token = user_tokens.last
-    return last_token.access_token if last_token.expires_at > Time.now.utc
-
-    # TODO: Implement refresh token logic here
-    raise Octokit::Error
+    user_token.access_token
   end
 
   def issues

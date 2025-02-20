@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_15_091427) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -164,6 +164,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_091427) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
+  create_table "token_usage_logs", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "github_repository_id"
+    t.string "query", null: false
+    t.string "variables"
+    t.integer "usage_type", null: false
+    t.integer "points_used", null: false
+    t.integer "points_remaining", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["github_repository_id"], name: "index_token_usage_logs_on_github_repository_id"
+    t.index ["query"], name: "index_token_usage_logs_on_query"
+    t.index ["usage_type"], name: "index_token_usage_logs_on_usage_type"
+    t.index ["user_id", "github_repository_id"], name: "index_token_usage_logs_on_user_id_and_github_repository_id"
+    t.index ["user_id"], name: "index_token_usage_logs_on_user_id"
+  end
+
   create_table "user_repository_stats", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_repository_id", null: false
@@ -196,15 +213,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_091427) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["refresh_token"], name: "index_user_tokens_on_refresh_token", unique: true
-    t.index ["user_id"], name: "index_user_tokens_on_user_id"
+    t.index ["user_id"], name: "index_user_tokens_on_user_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
     t.string "email", null: false
     t.integer "account_status", null: false
-    t.boolean "allow_token_usage", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "token_usage_level", default: 0
     t.index ["account_status"], name: "index_users_on_account_status"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
@@ -219,6 +236,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_15_091427) do
   add_foreign_key "pull_request_labels", "labels"
   add_foreign_key "pull_request_labels", "pull_requests"
   add_foreign_key "pull_requests", "github_repositories"
+  add_foreign_key "token_usage_logs", "github_repositories"
+  add_foreign_key "token_usage_logs", "users"
   add_foreign_key "user_repository_stats", "github_repositories"
   add_foreign_key "user_repository_stats", "users"
   add_foreign_key "user_stats", "users"

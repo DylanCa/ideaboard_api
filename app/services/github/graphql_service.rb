@@ -1,5 +1,5 @@
 require_relative "../persistence/repository_persistence_service"
-require_relative "../processing/repository_processor_service"
+require_relative "../github_repository_services/orchestration_service"
 require_relative "../persistence/pull_request_persistence_service"
 require_relative "../persistence/issue_persistence_service"
 require_relative "../../graphql/queries/user_queries"
@@ -21,24 +21,28 @@ module Github
 
       def update_repositories_data
         repos = GithubRepository.all
-        Processing::RepositoryProcessorService.update_repositories(repos)
+        GithubRepositoryServices::OrchestrationService.update_repositories(repos)
       end
 
       def add_repo_by_name(repo_name)
-        Processing::RepositoryProcessorService.add_repo_by_name(repo_name)
+        GithubRepositoryServices::OrchestrationService.add_repo_by_name(repo_name)
       end
 
       def fetch_repository_update(repo_name)
         repo = GithubRepository.find_by_full_name(repo_name)
         return nil if repo.nil?
 
-        Processing::RepositoryProcessorService.fetch_repository_update(repo)
+        GithubRepositoryServices::OrchestrationService.fetch_repository_update(repo)
+      end
+
+      def fetch_user_contributions(user)
+        GithubRepositoryServices::OrchestrationService.fetch_user_contributions(user)
       end
 
       private
 
-      def execute_query(query, access_token = nil)
-        response = Github::Helper.query_with_logs(query, nil, { token: access_token })
+      def execute_query(query, access_token = nil, repo_name = nil, username = nil)
+        response = Github::Helper.query_with_logs(query, nil, { token: access_token }, repo_name, username)
 
         if response.errors.any?
           return nil
