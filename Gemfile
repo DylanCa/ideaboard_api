@@ -60,7 +60,7 @@ gem "graphql-client"
 gem "sidekiq"
 
 group :development do
-  gem "ruby-debug-ide"
+  gem 'ruby-debug-ide', '0.7.5'
   gem "debase"
   gem "foreman", require: false
   gem "tapioca"
