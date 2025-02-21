@@ -38,18 +38,20 @@ module Persistence
       private
 
       def insert_items_metadata(items_data, inserted_items, model_class, join_class, item_key, metadata_key)
-        metadata_items = items_data.values.flatten
-        return unless metadata_items.any?
+        return unless items_data.any?
 
-        model_class.upsert_all(
-          metadata_items,
-          unique_by: :name,
-          returning: %w[id name]
-        )
+        # Extract unique metadata items to reduce duplicate processing
+        metadata_names = items_data.values.flatten.map { |item| item[:name] }.uniq
 
-        item_names = metadata_items.map { |item| item[:name] }
-        db_items = model_class.where(name: item_names).index_by(&:name)
+        # Use find_or_create_by with bulk operations instead of separate upsert + select
+        db_items = {}
+        ActiveRecord::Base.transaction do
+          metadata_names.each do |name|
+            db_items[name] = model_class.find_or_create_by(name: name)
+          end
+        end
 
+        # Build join records in memory, insert in a single operation
         join_records = []
         inserted_items.each do |item|
           github_id = item['github_id']
@@ -57,20 +59,14 @@ module Persistence
 
           items_data[github_id].each do |metadata_item|
             metadata_id = db_items[metadata_item[:name]].id
-            join_records << {
-              item_key => item['id'],
-              metadata_key => metadata_id
-            }
+            join_records << { item_key => item['id'], metadata_key => metadata_id }
           end
         end
 
-        return unless join_records.any?
-
-        join_class.upsert_all(
-          join_records,
-          unique_by: [item_key, metadata_key],
-          returning: false
-        )
+        # Insert in larger batches (e.g., 1000 at a time)
+        join_records.each_slice(1000) do |batch|
+          join_class.upsert_all(batch, unique_by: [item_key, metadata_key], returning: false)
+        end
       end
     end
   end
