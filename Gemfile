@@ -61,7 +61,7 @@ gem "sidekiq"
 
 group :development do
   gem 'ruby-debug-ide', '0.7.5'
-  gem "debase"
+  gem "debase", "0.2.9"
   gem "foreman", require: false
   gem "tapioca"
 end

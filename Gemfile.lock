@@ -88,8 +88,8 @@ GEM
     connection_pool (2.5.0)
     crass (1.0.6)
     date (3.4.1)
-    debase (3.0.2)
-      debase-ruby_core_source (~> 3.4.1)
+    debase (0.2.9)
+      debase-ruby_core_source (>= 3.4.1)
     debase-ruby_core_source (3.4.1)
     debug (1.10.0)
       irb (~> 1.10)
@@ -406,7 +406,7 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   brakeman
-  debase
+  debase (= 0.2.9)
   debug
   dotenv (= 3.1.7)
   faraday-retry
