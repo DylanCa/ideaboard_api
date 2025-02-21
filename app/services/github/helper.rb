@@ -179,7 +179,7 @@ module Github
         end
 
       def log_query_error(query, variables, response, error)
-        query_error = response&.errors&.to_h || 'undefined'
+        query_error = response&.errors&.to_h || "undefined"
 
         LoggerExtension.log(:error, "GraphQL Query Error", {
           query_name: query.definition_name,

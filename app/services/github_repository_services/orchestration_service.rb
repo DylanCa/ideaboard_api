@@ -5,7 +5,7 @@ module GithubRepositoryServices
         # Process repositories in parallel using a thread pool
         repos.each do |repo|
           fetched_repo = QueryService.fetch_repository(repo.full_name)
-          Persistence::RepositoryPersistenceService.persist_many([fetched_repo])
+          Persistence::RepositoryPersistenceService.persist_many([ fetched_repo ])
           repo.reload
 
           # Use parallel processing for PRs and issues

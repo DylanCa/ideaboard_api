@@ -168,14 +168,14 @@ module Persistence
         # Build join records in memory
         join_records = []
         inserted_items.each do |item|
-          github_id = item['github_id']
+          github_id = item["github_id"]
           next unless github_id && items_data.key?(github_id)
           next unless items_data[github_id] # Skip if nil
 
           items_data[github_id].each do |metadata_item|
             next unless metadata_item && metadata_item[:name] && db_items[metadata_item[:name]]
             metadata_id = db_items[metadata_item[:name]].id
-            join_records << { item_key => item['id'], metadata_key => metadata_id }
+            join_records << { item_key => item["id"], metadata_key => metadata_id }
           end
         end
 
@@ -184,7 +184,7 @@ module Persistence
 
         # Insert in larger batches
         join_records.each_slice(1000) do |batch|
-          join_class.upsert_all(batch, unique_by: [item_key, metadata_key], returning: false)
+          join_class.upsert_all(batch, unique_by: [ item_key, metadata_key ], returning: false)
         end
       end
     end
