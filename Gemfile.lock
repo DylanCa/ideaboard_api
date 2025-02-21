@@ -88,6 +88,9 @@ GEM
     connection_pool (2.5.0)
     crass (1.0.6)
     date (3.4.1)
+    debase (3.0.2)
+      debase-ruby_core_source (~> 3.4.1)
+    debase-ruby_core_source (3.4.1)
     debug (1.10.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
@@ -122,6 +125,7 @@ GEM
     faraday-rack (1.0.0)
     faraday-retry (1.0.3)
     fiber-storage (1.0.0)
+    foreman (0.88.1)
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
@@ -268,6 +272,8 @@ GEM
       sorbet-runtime (>= 0.5.9204)
     rdoc (6.12.0)
       psych (>= 4.0.0)
+    redis-client (0.23.2)
+      connection_pool
     regexp_parser (2.10.0)
     reline (0.6.0)
       io-console (~> 0.5)
@@ -331,12 +337,20 @@ GEM
       rubocop-minitest
       rubocop-performance
       rubocop-rails
+    ruby-debug-ide (3.0.2)
+      debase (~> 3.0.2)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
     sawyer (0.9.2)
       addressable (>= 2.3.5)
       faraday (>= 0.17.3, < 3)
     securerandom (0.4.1)
+    sidekiq (7.3.9)
+      base64
+      connection_pool (>= 2.3.0)
+      logger
+      rack (>= 2.2.4)
+      redis-client (>= 0.22.2)
     solid_cable (3.0.7)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -430,9 +444,11 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   brakeman
+  debase
   debug
   dotenv (= 3.1.7)
   faraday-retry
+  foreman
   graphql-client
   jwt
   kamal
@@ -443,6 +459,8 @@ DEPENDENCIES
   rspec-rails
   rswag
   rubocop-rails-omakase
+  ruby-debug-ide
+  sidekiq
   solid_cable
   solid_cache
   solid_queue

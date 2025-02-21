@@ -1,0 +1,2 @@
+rails: bundle exec rdebug-ide --host 0.0.0.0 --port 1234 --dispatcher-port 26162 -- bin/rails server -p 3000
+sidekiq: bundle exec rdebug-ide --host 0.0.0.0 --port 1235 --dispatcher-port 26163 -- bundle exec sidekiq
