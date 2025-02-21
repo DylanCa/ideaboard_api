@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_21_095114) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -95,6 +95,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_095114) do
     t.index ["author_username"], name: "index_issues_on_author_username"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "index_issues_on_github_repository_id_and_author_username"
+    t.index ["github_repository_id", "github_updated_at"], name: "index_issues_on_github_repository_id_and_github_updated_at"
     t.index ["github_repository_id", "number"], name: "index_issues_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
   end
@@ -141,6 +142,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_095114) do
     t.index ["author_username"], name: "index_pull_requests_on_author_username"
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "idx_on_github_repository_id_author_username_558298bf1e"
+    t.index ["github_repository_id", "github_updated_at"], name: "idx_on_github_repository_id_github_updated_at_965a46efdb"
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
     t.index ["merged_at"], name: "index_pull_requests_on_merged_at"
@@ -171,6 +173,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_095114) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["github_repository_id"], name: "index_token_usage_logs_on_github_repository_id"
+    t.index ["query", "created_at"], name: "index_token_usage_logs_on_query_and_created_at"
     t.index ["query"], name: "index_token_usage_logs_on_query"
     t.index ["usage_type"], name: "index_token_usage_logs_on_usage_type"
     t.index ["user_id", "github_repository_id"], name: "index_token_usage_logs_on_user_id_and_github_repository_id"
