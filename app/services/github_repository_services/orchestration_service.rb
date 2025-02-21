@@ -2,14 +2,25 @@ module GithubRepositoryServices
   class OrchestrationService
     class << self
       def update_repositories(repos)
+        # Process repositories in parallel using a thread pool
         repos.each do |repo|
           fetched_repo = QueryService.fetch_repository(repo.full_name)
-          Persistence::RepositoryPersistenceService.persist_many([ fetched_repo ])
+          Persistence::RepositoryPersistenceService.persist_many([fetched_repo])
           repo.reload
 
-          prs = QueryService.fetch_items(repo.full_name, item_type: :prs)
-          issues = QueryService.fetch_items(repo.full_name, item_type: :issues)
-          PersistenceService.update_repository_items(repo, prs, issues)
+          # Use parallel processing for PRs and issues
+          threads = []
+          threads << Thread.new do
+            prs = QueryService.fetch_items(repo.full_name, item_type: :prs)
+            PersistenceService.update_repository_items(repo, prs, [])
+          end
+
+          threads << Thread.new do
+            issues = QueryService.fetch_items(repo.full_name, item_type: :issues)
+            PersistenceService.update_repository_items(repo, [], issues)
+          end
+
+          threads.each(&:join)
 
           repo.update(last_polled_at: Time.current)
         end
