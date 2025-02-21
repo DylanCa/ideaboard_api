@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_21_140520) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -47,6 +47,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
     t.integer "owner_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["author_username", "stars_count"], name: "idx_repos_on_author_and_stars"
     t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
     t.index ["github_id"], name: "index_github_repositories_on_github_id", unique: true
@@ -92,6 +93,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
     t.integer "comments_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["author_username", "github_created_at"], name: "idx_issues_on_author_and_created_at"
     t.index ["author_username"], name: "index_issues_on_author_username"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "index_issues_on_github_repository_id_and_author_username"
@@ -109,6 +111,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
     t.datetime "updated_at", null: false
     t.integer "github_repository_id", null: false
     t.index ["github_repository_id"], name: "index_labels_on_github_repository_id"
+    t.index ["name", "github_repository_id"], name: "idx_labels_on_name_and_repo_id"
     t.index ["name"], name: "index_labels_on_name", unique: true
   end
 
@@ -138,6 +141,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
     t.datetime "closed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["author_username", "github_created_at"], name: "idx_prs_on_author_and_created_at"
     t.index ["author_username", "merged_at"], name: "index_pull_requests_on_author_username_and_merged_at"
     t.index ["author_username"], name: "index_pull_requests_on_author_username"
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
@@ -159,6 +163,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["executed_at"], name: "index_rate_limit_logs_on_executed_at"
+    t.index ["token_owner_id", "executed_at"], name: "idx_rate_limit_logs_on_owner_and_time"
     t.index ["token_owner_type", "token_owner_id"], name: "index_rate_limit_logs_on_token_owner_type_and_token_owner_id"
   end
 
@@ -172,6 +177,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_113222) do
     t.integer "points_remaining", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at", "user_id"], name: "idx_token_usage_logs_on_created_at_and_user_id"
     t.index ["github_repository_id"], name: "index_token_usage_logs_on_github_repository_id"
     t.index ["query", "created_at"], name: "index_token_usage_logs_on_query_and_created_at"
     t.index ["query"], name: "index_token_usage_logs_on_query"
