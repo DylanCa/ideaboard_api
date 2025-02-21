@@ -4,8 +4,8 @@ class GithubRepository < ApplicationRecord
 
   # Associations
   belongs_to :owner, class_name: "User", optional: true
-  has_many :github_repository_tags, dependent: :destroy
-  has_many :tags, through: :github_repository_tags
+  has_many :github_repository_topics, dependent: :destroy
+  has_many :topics, through: :github_repository_topics
   has_many :issues, dependent: :destroy
   has_many :pull_requests, dependent: :destroy
   has_many :user_repository_stats, dependent: :destroy
