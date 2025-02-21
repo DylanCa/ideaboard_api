@@ -178,8 +178,6 @@ module Github
       \e[34mUser:\e[0m #{response.data.viewer.login}
       \e[35mExecution Time:\e[0m #{execution_time}ms
       \e[35m[Rate Limit]\e[0m Cost: #{rate_limit_info[:cost]} points | \e[32m#{rate_limit_info[:remaining]}/#{rate_limit_info[:limit]}\e[0m requests remaining (#{rate_limit_info[:percentage_used]}% used) | Resets at: #{rate_limit_info[:reset_at]}
-      \e[33m[Response]\e[0m
-      #{response.data.to_h}
     LOG
         end
       end
