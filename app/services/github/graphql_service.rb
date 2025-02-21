@@ -42,20 +42,21 @@ module Github
         response = Github::Helper.query_with_logs(query, nil, { token: access_token }, repo_name, username)
 
         if response.errors.any?
+          LoggerExtension.log(:error, "GraphQL Query Errors", {
+            errors: response.errors,
+            query: query.to_s
+          })
           return nil
         end
 
         response.data.viewer
       rescue StandardError => e
-        Rails.logger.error do
-          {
-            message: "Unhandled GraphQL Error",
-            error: e.full_message,
-            backtrace: e.backtrace.first(10),
-            query: query.to_s
-          }.to_json
-        end
-
+        LoggerExtension.log(:error, "Unhandled GraphQL Error", {
+          error_class: e.class.name,
+          error_message: e.message,
+          backtrace: e.backtrace.first(10),
+          query: query.to_s
+        })
         nil
       end
     end

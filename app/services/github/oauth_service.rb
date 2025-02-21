@@ -42,9 +42,20 @@ module Github
         ActiveRecord::Base.transaction do
           user ||= create_new_user(client)
           update_user_token(user, tokens)
+
+          LoggerExtension.log(:info, "User Authentication", {
+            github_id: github_user.id,
+            username: github_user.login,
+            action: user.persisted? ? "existing_user" : "new_user"
+          })
+
           user
         end
       rescue ActiveRecord::RecordNotUnique => e
+        LoggerExtension.log(:error, "User Creation Conflict", {
+          error_message: e.message,
+          github_id: github_user.id
+        })
         raise e
       end
 
