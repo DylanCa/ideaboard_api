@@ -5,14 +5,25 @@
       def self.persist_many(pull_requests, repo)
         validate_bulk_input!(pull_requests)
 
-        pull_requests = pull_requests.map { |pr| Github::PullRequest.from_github(pr, repo.id) }
-        attributes_list = pull_requests.map(&:stringify_keys)
+        prs = []
+        raw_labels = {}
 
-        repo.pull_requests.upsert_all(
-          attributes_list,
+        pull_requests.each do |pr|
+          unless pr.labels.nil?
+            labels = pr.labels.nodes.map { |l| Github::Label.from_github(l, repo.id).stringify_keys }
+            raw_labels[pr.id] = labels
+          end
+
+          prs << Github::PullRequest.from_github(pr, repo.id).stringify_keys
+        end
+
+        inserted_prs = repo.pull_requests.upsert_all(
+          prs,
           unique_by: :github_id,
-          returning: false
+          returning: %w[id github_id]
         )
+
+        Helper.insert_prs_labels_if_any(raw_labels, inserted_prs)
       end
 
       private
