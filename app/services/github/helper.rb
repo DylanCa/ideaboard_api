@@ -9,13 +9,13 @@ module Github
           user_id, context[:token], usage_type = select_token(repo, username)
         else
           user_token = UserToken.find_by_access_token(context[:token])
-          user_id = user_token.user_id
+          user_id = user_token&.user_id
           usage_type = :personal
 
-          context[:token] = user_token.refresh!.user_token if user_token.needs_refresh?
+          context[:token] = user_token.refresh!.user_token if user_token&.needs_refresh?
         end
 
-
+        log_query_before_execution(query, variables, user_id)
         start_time = Time.current
         response = execute_query(query, variables, context)
         execution_time = calculate_execution_time(start_time)
@@ -23,6 +23,7 @@ module Github
         log_query_execution(query, variables, response, execution_time, user_id, repo, usage_type)
         response
       rescue => e
+        Rails.logger.info e
         log_query_error(query, variables, response, e)
         raise e
       end
@@ -146,6 +147,17 @@ module Github
         }
       end
 
+      def log_query_before_execution(query, variables, user_id)
+        Rails.logger.info do
+          <<~LOG
+      \e[36m[GraphQL Query]\e[0m
+      \e[34mOperation:\e[0m #{query}
+      \e[34mVariables:\e[0m #{variables.inspect}
+      \e[34mToken Owner ID:\e[0m #{user_id}
+    LOG
+        end
+      end
+
       def log_query_execution(query, variables, response, execution_time, user_id, repo, usage_type)
         rate_limit_info = format_rate_limit_info(response.data.rate_limit)
 
@@ -153,10 +165,8 @@ module Github
 
         Rails.logger.info do
           <<~LOG
-      \e[36m[GraphQL Query]\e[0m #{execution_time}ms
       \e[34mUser:\e[0m #{response.data.viewer.login}
-      \e[34mOperation:\e[0m #{query}
-      \e[34mVariables:\e[0m #{variables.inspect}
+      \e[35mExecution Time:\e[0m #{execution_time}ms
       \e[35m[Rate Limit]\e[0m Cost: #{rate_limit_info[:cost]} points | \e[32m#{rate_limit_info[:remaining]}/#{rate_limit_info[:limit]}\e[0m requests remaining (#{rate_limit_info[:percentage_used]}% used) | Resets at: #{rate_limit_info[:reset_at]}
       \e[33m[Response]\e[0m
       #{response.data.to_h}
@@ -165,7 +175,9 @@ module Github
       end
 
       def log_query_error(query, variables, response, error)
-        query_error = response.errors&.to_h
+        query_error = 'undefined'
+        query_error = response.errors&.to_h unless response.nil?
+
         Rails.logger.error do
           <<~ERROR
       \e[31m[GraphQL Error]\e[0m
