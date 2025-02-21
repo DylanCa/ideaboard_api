@@ -29,10 +29,7 @@ module Github
       end
 
       def fetch_repository_update(repo_name)
-        repo = GithubRepository.find_by_full_name(repo_name)
-        return nil if repo.nil?
-
-        GithubRepositoryServices::OrchestrationService.fetch_repository_update(repo)
+        RepositoryUpdateWorker.perform_async(repo_name)
       end
 
       def fetch_user_contributions(user)
