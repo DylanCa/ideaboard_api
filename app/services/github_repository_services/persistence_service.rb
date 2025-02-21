@@ -4,7 +4,6 @@ module GithubRepositoryServices
       def update_repository_items(repo, prs, issues)
         update_pull_requests(repo, prs)
         update_issues(repo, issues)
-        repo.update(last_polled_at: Time.current)
       end
 
       def update_repositories_content(repositories, items)
