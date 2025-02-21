@@ -60,6 +60,16 @@ module Github
       def select_token_for_repository(repo)
         return [ nil, installation_token, :personal ] if repo.nil?
 
+        cache_key = "token_for_repo_#{repo&.id || 'default'}"
+        cached = Rails.cache.read(cache_key)
+        return cached if cached
+
+        result = detect_appropriate_token(repo)
+        Rails.cache.write(cache_key, result, expires_in: 5.minutes)
+        result
+      end
+
+      def detect_appropriate_token(repo)
         # First try: Repository owner's token
         owner = User.joins(:github_account)
                     .where(github_accounts: { github_username: repo.author_username })
