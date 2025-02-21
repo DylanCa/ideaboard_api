@@ -1,12 +1,17 @@
 module GithubRepositoryServices
   class OrchestrationService
     class << self
-      # Public Interface Methods
       def update_repositories(repos)
         repos.each do |repo|
+          fetched_repo = QueryService.fetch_repository(repo.full_name)
+          Persistence::RepositoryPersistenceService.persist_many([ fetched_repo ])
+          repo.reload
+
           prs = QueryService.fetch_items(repo.full_name, item_type: :prs)
           issues = QueryService.fetch_items(repo.full_name, item_type: :issues)
           PersistenceService.update_repository_items(repo, prs, issues)
+
+          repo.update(last_polled_at: Time.current)
         end
       end
 
@@ -20,6 +25,8 @@ module GithubRepositoryServices
       def fetch_repository_update(repo)
         items = QueryService.fetch_updates(repo.full_name, repo.last_polled_at_date)
         PersistenceService.update_repository_items(repo, items[:prs], items[:issues])
+
+        repo.update(last_polled_at: Time.current)
       end
 
       def fetch_user_contributions(user)
