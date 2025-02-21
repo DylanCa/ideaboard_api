@@ -1,7 +1,7 @@
-class GithubRepositoryTag < ApplicationRecord
+class GithubRepositoryTopic < ApplicationRecord
   # Associations
   belongs_to :github_repository
-  belongs_to :tag
+  belongs_to :topic
 
   # Validations
   validates :github_repository_id, presence: true

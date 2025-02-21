@@ -56,5 +56,12 @@ gem "openssl"
 gem "jwt"
 gem "sorbet"
 gem "sorbet-runtime"
-gem "tapioca", group: :development
 gem "graphql-client"
+gem "sidekiq"
+
+group :development do
+  gem "ruby-debug-ide", "0.7.5"
+  gem "debase", "0.2.9"
+  gem "foreman", require: false
+  gem "tapioca"
+end

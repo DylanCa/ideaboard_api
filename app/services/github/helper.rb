@@ -9,20 +9,21 @@ module Github
           user_id, context[:token], usage_type = select_token(repo, username)
         else
           user_token = UserToken.find_by_access_token(context[:token])
-          user_id = user_token.user_id
+          user_id = user_token&.user_id
           usage_type = :personal
 
-          context[:token] = user_token.refresh!.user_token if user_token.needs_refresh?
+          context[:token] = user_token.refresh!.user_token if user_token&.needs_refresh?
         end
 
-
+        log_query_before_execution(query, variables, user_id)
         start_time = Time.current
         response = execute_query(query, variables, context)
         execution_time = calculate_execution_time(start_time)
+        log_query_execution(response, execution_time, repo, usage_type)
 
-        log_query_execution(query, variables, response, execution_time, user_id, repo, usage_type)
         response
       rescue => e
+        Rails.logger.info e
         log_query_error(query, variables, response, e)
         raise e
       end
@@ -59,6 +60,16 @@ module Github
       def select_token_for_repository(repo)
         return [ nil, installation_token, :personal ] if repo.nil?
 
+        cache_key = "token_for_repo_#{repo&.id || 'default'}"
+        cached = Rails.cache.read(cache_key)
+        return cached if cached
+
+        result = detect_appropriate_token(repo)
+        Rails.cache.write(cache_key, result, expires_in: 5.minutes)
+        result
+      end
+
+      def detect_appropriate_token(repo)
         # First try: Repository owner's token
         owner = User.joins(:github_account)
                     .where(github_accounts: { github_username: repo.author_username })
@@ -146,36 +157,37 @@ module Github
         }
       end
 
-      def log_query_execution(query, variables, response, execution_time, user_id, repo, usage_type)
-        rate_limit_info = format_rate_limit_info(response.data.rate_limit)
-
-        log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
-
-        Rails.logger.info do
-          <<~LOG
-      \e[36m[GraphQL Query]\e[0m #{execution_time}ms
-      \e[34mUser:\e[0m #{response.data.viewer.login}
-      \e[34mOperation:\e[0m #{query}
-      \e[34mVariables:\e[0m #{variables.inspect}
-      \e[35m[Rate Limit]\e[0m Cost: #{rate_limit_info[:cost]} points | \e[32m#{rate_limit_info[:remaining]}/#{rate_limit_info[:limit]}\e[0m requests remaining (#{rate_limit_info[:percentage_used]}% used) | Resets at: #{rate_limit_info[:reset_at]}
-      \e[33m[Response]\e[0m
-      #{response.data.to_h}
-    LOG
-        end
+      def log_query_before_execution(query, variables, user_id)
+        LoggerExtension.log(:info, "GraphQL Query Execution", {
+          operation: query,
+          variables: variables.inspect,
+          token_owner_id: user_id
+        })
       end
 
-      def log_query_error(query, variables, response, error)
-        query_error = response.errors&.to_h
-        Rails.logger.error do
-          <<~ERROR
-      \e[31m[GraphQL Error]\e[0m
-      Query: #{query.definition_name}
-      Variables: #{variables.inspect}
-      Error: #{error.message}
-      Query Error: #{query_error}
-      #{error.backtrace.first(5).join("\n")}
-    ERROR
+      def log_query_execution(response, execution_time, repo, usage_type)
+        rate_limit_info = format_rate_limit_info(response.data.rate_limit)
+
+        LoggerExtension.log(:info, "GraphQL Query Completed", {
+          user: response.data.viewer.login,
+          execution_time: "#{execution_time}ms",
+          rate_limit: "#{rate_limit_info[:remaining]}/#{rate_limit_info[:limit]} requests remaining",
+          usage_percentage: "#{rate_limit_info[:percentage_used]}%",
+          repository: repo&.full_name,
+          usage_type: usage_type
+        })
         end
+
+      def log_query_error(query, variables, response, error)
+        query_error = response&.errors&.to_h || "undefined"
+
+        LoggerExtension.log(:error, "GraphQL Query Error", {
+          query_name: query.definition_name,
+          variables: variables.inspect,
+          error_message: error.message,
+          query_error: query_error,
+          backtrace: error.backtrace&.first(5)&.join("\n")
+        })
       end
     end
   end

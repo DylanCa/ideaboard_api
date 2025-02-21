@@ -1,24 +1,38 @@
-  module Persistence
-    class PullRequestPersistenceService
-      extend T::Sig
+module Persistence
+  class PullRequestPersistenceService
+    extend T::Sig
 
-      def self.persist_many(pull_requests, repo)
-        validate_bulk_input!(pull_requests)
+    def self.persist_many(pull_requests, repo)
+      validate_bulk_input!(pull_requests)
 
-        pull_requests = pull_requests.map { |pr| Github::PullRequest.from_github(pr, repo.id) }
-        attributes_list = pull_requests.map(&:stringify_keys)
+      prs = []
+      raw_labels = {}
 
-        repo.pull_requests.upsert_all(
-          attributes_list,
-          unique_by: :github_id,
-          returning: false
-        )
+      # Prepare all data before any database operations
+      pull_requests.each do |pr|
+        unless pr.labels.nil?
+          labels = pr.labels.nodes.map { |l| Github::Label.from_github(l, repo.id).stringify_keys }
+          raw_labels[pr.id] = labels
+        end
+
+        prs << Github::PullRequest.from_github(pr, repo.id).stringify_keys
       end
 
-      private
+      # Perform bulk insertion for pull requests
+      inserted_prs = repo.pull_requests.upsert_all(
+        prs,
+        unique_by: :github_id,
+        returning: %w[id github_id]
+      )
 
-      def self.validate_bulk_input!(pull_requests)
-        raise ArgumentError, "Pull Requests cannot be nil" if pull_requests.nil?
-      end
+      # Insert labels with the optimized helper
+      Persistence::Helper.insert_prs_labels_if_any(raw_labels, inserted_prs)
+    end
+
+    private
+
+    def self.validate_bulk_input!(pull_requests)
+      raise ArgumentError, "Pull Requests cannot be nil" if pull_requests.nil?
     end
   end
+end

@@ -2,9 +2,10 @@ module GithubRepositoryServices
   class PersistenceService
     class << self
       def update_repository_items(repo, prs, issues)
-        update_pull_requests(repo, prs)
-        update_issues(repo, issues)
-        repo.update(last_polled_at: Time.current)
+        ActiveRecord::Base.transaction do
+          update_pull_requests(repo, prs) if prs.present?
+          update_issues(repo, issues) if issues.present?
+        end
       end
 
       def update_repositories_content(repositories, items)

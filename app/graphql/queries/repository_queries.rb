@@ -31,6 +31,13 @@ module Queries
                     licenseInfo {
                       key
                     }
+                    repositoryTopics(first: 100) {
+                      nodes {
+                        topic {
+                          name
+                        }
+                      }
+                    }
                     createdAt
                     updatedAt
                   }
@@ -74,6 +81,12 @@ module Queries
                         commits {
                           totalCount
                         }
+                        labels(first: 100) {
+                          nodes {
+                            name
+                            color
+                          }
+                        }
                       }
                     }
                   }
@@ -113,6 +126,12 @@ module Queries
                         closedAt
                         comments {
                           totalCount
+                        }
+                        labels(first: 100) {
+                          nodes {
+                            name
+                            color
+                          }
                         }
                       }
                     }

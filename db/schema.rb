@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_21_140520) do
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "github_id", limit: 8, null: false
@@ -47,6 +47,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.integer "owner_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["author_username", "stars_count"], name: "idx_repos_on_author_and_stars"
     t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
     t.index ["github_id"], name: "index_github_repositories_on_github_id", unique: true
@@ -58,14 +59,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.index ["visible", "archived", "disabled"], name: "index_github_repositories_on_visible_and_archived_and_disabled"
   end
 
-  create_table "github_repository_tags", force: :cascade do |t|
+  create_table "github_repository_topics", force: :cascade do |t|
     t.integer "github_repository_id", null: false
-    t.integer "tag_id", null: false
+    t.integer "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["github_repository_id", "tag_id"], name: "index_repository_tags_uniqueness", unique: true
-    t.index ["github_repository_id"], name: "index_github_repository_tags_on_github_repository_id"
-    t.index ["tag_id"], name: "index_github_repository_tags_on_tag_id"
+    t.index ["github_repository_id", "topic_id"], name: "idx_on_github_repository_id_topic_id_43985769e2", unique: true
+    t.index ["github_repository_id", "topic_id"], name: "index_repository_tags_uniqueness", unique: true
+    t.index ["github_repository_id"], name: "index_github_repository_topics_on_github_repository_id"
+    t.index ["topic_id"], name: "index_github_repository_topics_on_topic_id"
   end
 
   create_table "issue_labels", force: :cascade do |t|
@@ -91,9 +93,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.integer "comments_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["author_username", "github_created_at"], name: "idx_issues_on_author_and_created_at"
     t.index ["author_username"], name: "index_issues_on_author_username"
     t.index ["github_id"], name: "index_issues_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "index_issues_on_github_repository_id_and_author_username"
+    t.index ["github_repository_id", "github_updated_at"], name: "index_issues_on_github_repository_id_and_github_updated_at"
     t.index ["github_repository_id", "number"], name: "index_issues_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_issues_on_github_repository_id"
   end
@@ -105,6 +109,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.boolean "is_bug", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "github_repository_id", null: false
+    t.index ["github_repository_id"], name: "index_labels_on_github_repository_id"
+    t.index ["name", "github_repository_id"], name: "idx_labels_on_name_and_repo_id"
     t.index ["name"], name: "index_labels_on_name", unique: true
   end
 
@@ -134,10 +141,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.datetime "closed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["author_username", "github_created_at"], name: "idx_prs_on_author_and_created_at"
     t.index ["author_username", "merged_at"], name: "index_pull_requests_on_author_username_and_merged_at"
     t.index ["author_username"], name: "index_pull_requests_on_author_username"
     t.index ["github_id"], name: "index_pull_requests_on_github_id", unique: true
     t.index ["github_repository_id", "author_username"], name: "idx_on_github_repository_id_author_username_558298bf1e"
+    t.index ["github_repository_id", "github_updated_at"], name: "idx_on_github_repository_id_github_updated_at_965a46efdb"
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
     t.index ["merged_at"], name: "index_pull_requests_on_merged_at"
@@ -154,14 +163,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["executed_at"], name: "index_rate_limit_logs_on_executed_at"
+    t.index ["token_owner_id", "executed_at"], name: "idx_rate_limit_logs_on_owner_and_time"
     t.index ["token_owner_type", "token_owner_id"], name: "index_rate_limit_logs_on_token_owner_type_and_token_owner_id"
-  end
-
-  create_table "tags", force: :cascade do |t|
-    t.string "name", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
   create_table "token_usage_logs", force: :cascade do |t|
@@ -174,11 +177,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
     t.integer "points_remaining", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at", "user_id"], name: "idx_token_usage_logs_on_created_at_and_user_id"
     t.index ["github_repository_id"], name: "index_token_usage_logs_on_github_repository_id"
+    t.index ["query", "created_at"], name: "index_token_usage_logs_on_query_and_created_at"
     t.index ["query"], name: "index_token_usage_logs_on_query"
     t.index ["usage_type"], name: "index_token_usage_logs_on_usage_type"
     t.index ["user_id", "github_repository_id"], name: "index_token_usage_logs_on_user_id_and_github_repository_id"
     t.index ["user_id"], name: "index_token_usage_logs_on_user_id"
+  end
+
+  create_table "topics", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_topics_on_name", unique: true
   end
 
   create_table "user_repository_stats", force: :cascade do |t|
@@ -228,11 +240,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_151158) do
 
   add_foreign_key "github_accounts", "users"
   add_foreign_key "github_repositories", "users", column: "owner_id"
-  add_foreign_key "github_repository_tags", "github_repositories"
-  add_foreign_key "github_repository_tags", "tags"
+  add_foreign_key "github_repository_topics", "github_repositories"
+  add_foreign_key "github_repository_topics", "topics"
   add_foreign_key "issue_labels", "issues"
   add_foreign_key "issue_labels", "labels"
   add_foreign_key "issues", "github_repositories"
+  add_foreign_key "labels", "github_repositories"
   add_foreign_key "pull_request_labels", "labels"
   add_foreign_key "pull_request_labels", "pull_requests"
   add_foreign_key "pull_requests", "github_repositories"

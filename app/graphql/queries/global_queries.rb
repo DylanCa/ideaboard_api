@@ -47,6 +47,12 @@ module Queries
                   id
                   nameWithOwner
                 }
+                labels(first: 100) {
+                  nodes {
+                    name
+                    color
+                  }
+                }
               }
               ... on Issue {
                 id
@@ -66,6 +72,12 @@ module Queries
                 repository {
                   id
                   nameWithOwner
+                }
+                labels(first: 100) {
+                  nodes {
+                    name
+                    color
+                  }
                 }
               }
             }

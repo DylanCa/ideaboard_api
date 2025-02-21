@@ -32,7 +32,10 @@ module GithubRepositoryServices
 
         items
       rescue StandardError => e
-        Rails.logger.error "Fetch #{item_type} error: #{e.message}"
+        LoggerExtension.log(:error, "Fetch #{item_type} error", {
+          error_message: e.message,
+          repository: repo_full_name
+        })
         []
       end
 

@@ -6,13 +6,23 @@ require_relative "../../models/github/repository"
 
       def self.persist_many(repositories)
         validate_bulk_input!(repositories)
-        repos = repositories.map { |repo| Github::Repository.from_github(repo).stringify_keys }
 
-        GithubRepository.upsert_all(
+        repos = []
+        raw_topics = {}
+
+        repositories.each do |repo|
+          topics = repo.repository_topics.nodes.map { |t| Github::Topic.from_github(t).stringify_keys }
+          raw_topics[repo.id] = topics
+          repos << Github::Repository.from_github(repo).stringify_keys
+        end
+
+        inserted_repos = GithubRepository.upsert_all(
           repos,
           unique_by: :github_id,
-          returning: false
+          returning: %w[id github_id]
         )
+
+        Helper.insert_repos_topics_if_any(raw_topics, inserted_repos)
       end
 
       private
