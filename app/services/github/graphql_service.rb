@@ -1,5 +1,4 @@
 require_relative "../persistence/repository_persistence_service"
-require_relative "../github_repository_services/orchestration_service"
 require_relative "../persistence/pull_request_persistence_service"
 require_relative "../persistence/issue_persistence_service"
 require_relative "../../graphql/queries/user_queries"
@@ -21,19 +20,23 @@ module Github
 
       def update_repositories_data
         repos = GithubRepository.all
-        GithubRepositoryServices::OrchestrationService.update_repositories(repos)
-      end
+        repos.each do |repo|
+          RepositoryDataFetcherWorker.perform_async(repo.id)
+        end      end
 
       def add_repo_by_name(repo_name)
-        GithubRepositoryServices::OrchestrationService.add_repo_by_name(repo_name)
+        RepositoryFetcherWorker.perform_async(repo_name)
       end
 
       def fetch_repository_update(repo_name)
-        RepositoryUpdateWorker.perform_async(repo_name)
+        repo = GithubRepository.find_by_full_name(repo_name)
+        return nil if repo.nil?
+
+        RepositoryUpdateWorker.perform_async(repo.id)
       end
 
       def fetch_user_contributions(user)
-        GithubRepositoryServices::OrchestrationService.fetch_user_contributions(user)
+        UserContributionsFetcherWorker.perform_async(user.id)
       end
 
       private

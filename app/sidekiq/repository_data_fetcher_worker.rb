@@ -1,4 +1,4 @@
-class RepositoryUpdateWorker
+class RepositoryDataFetcherWorker
   include Sidekiq::Job
 
   sidekiq_options queue: :default, retry: 3
@@ -8,9 +8,10 @@ class RepositoryUpdateWorker
     return if repo.nil?
 
     # Step 1: Update repository metadata
-    RepositoryFetcherWorker.new.perform(repo.full_name)
+    RepositoryFetcherWorker.perform_async(repo.full_name)
 
     # Step 2: Schedule items fetching with a delay to avoid rate limiting
-    GithubRepositoryServices::QueryService.fetch_updates(repo.full_name, repo.last_polled_at_date)
+    ItemsFetcherWorker.perform_async(repo.id, "prs")
+    ItemsFetcherWorker.perform_async(repo.id, "issues")
   end
 end

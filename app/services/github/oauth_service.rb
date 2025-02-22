@@ -39,18 +39,16 @@ module Github
         github_user = client.user
         user = User.with_github_id(github_user.id).first
 
-        ActiveRecord::Base.transaction do
-          user ||= create_new_user(client)
-          update_user_token(user, tokens)
+        user ||= create_new_user(client)
+        update_user_token(user, tokens)
 
-          LoggerExtension.log(:info, "User Authentication", {
-            github_id: github_user.id,
-            username: github_user.login,
-            action: user.persisted? ? "existing_user" : "new_user"
-          })
+        LoggerExtension.log(:info, "User Authentication", {
+          github_id: github_user.id,
+          username: github_user.login,
+          action: user.persisted? ? "existing_user" : "new_user"
+        })
 
-          user
-        end
+        user
       rescue ActiveRecord::RecordNotUnique => e
         LoggerExtension.log(:error, "User Creation Conflict", {
           error_message: e.message,
@@ -60,16 +58,26 @@ module Github
       end
 
       def create_new_user(client)
-        User.create!(
-          email: client.user.email,
-          account_status: :enabled,
-          github_account_attributes: {
+        ActiveRecord::Base.transaction do
+          user = User.create!(
+            email: client.user.email,
+            account_status: :enabled
+          )
+
+          GithubAccount.create!(
+            user: user,
             github_id: client.user.id,
             github_username: client.user.login,
-            avatar_url: client.user.avatar_url
-          },
-          user_stat_attributes: { reputation_points: 0 }
-        )
+            avatar_url: client.user.avatar_url,
+          )
+
+          UserStat.create!(
+            user: user,
+            reputation_points: 0
+          )
+
+          user
+        end
       end
 
       def update_user_token(user, tokens)
