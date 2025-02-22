@@ -9,7 +9,7 @@ class UserContributionsFetcherWorker
 
     items = { repositories: Set.new, prs: [], issues: [] }
 
-    [:prs, :issues].each do |contrib_type|
+    [ :prs, :issues ].each do |contrib_type|
       GithubRepositoryServices::QueryService.fetch_user_contribution_type(user, items, contrib_type)
     end
 

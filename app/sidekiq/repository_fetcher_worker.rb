@@ -7,7 +7,7 @@ class RepositoryFetcherWorker
     repo = GithubRepositoryServices::QueryService.fetch_repository(repo_name)
     return if repo.nil?
 
-    Persistence::RepositoryPersistenceService.persist_many([repo])
+    Persistence::RepositoryPersistenceService.persist_many([ repo ])
     LoggerExtension.log(:info, "Repository Fetch Completed", {
       repository: repo_name,
       action: "fetch_repository"
