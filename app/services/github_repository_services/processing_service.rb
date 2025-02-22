@@ -30,7 +30,7 @@ module GithubRepositoryServices
 
         repositories.each do |repo|
           next if existing_repos.key?(repo.name_with_owner)
-          GithubRepositoryServices::OrchestrationService.add_repo_by_name(repo.name_with_owner)
+          RepositoryFetcherWorker.perform_async(repo.name_with_owner)
         end
 
         fetch_existing_repositories(repositories)

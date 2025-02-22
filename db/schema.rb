@@ -11,9 +11,12 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.0].define(version: 2025_02_21_140520) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "github_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.integer "github_id", limit: 8, null: false
+    t.bigint "github_id", null: false
     t.string "github_username", null: false
     t.string "avatar_url"
     t.datetime "created_at", null: false
@@ -168,8 +171,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_21_140520) do
   end
 
   create_table "token_usage_logs", force: :cascade do |t|
-    t.integer "user_id"
-    t.integer "github_repository_id"
+    t.bigint "user_id"
+    t.bigint "github_repository_id"
     t.string "query", null: false
     t.string "variables"
     t.integer "usage_type", null: false
