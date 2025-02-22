@@ -10,7 +10,6 @@ class User < ApplicationRecord
   # Validations
   validates :email, presence: true, uniqueness: true
   validates :account_status, presence: true
-  validates :allow_token_usage, inclusion: { in: [ true, false ] }
 
   accepts_nested_attributes_for :github_account
   accepts_nested_attributes_for :user_token
