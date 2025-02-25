@@ -53,10 +53,9 @@ module GithubRepositoryServices
         items
       end
 
-      def fetch_user_contribution_type(user, items, contrib_type)
+      def fetch_user_contribution_type(username, items, contrib_type, last_polled_at_date = nil)
         query = Queries::GlobalQueries.search_query
-        username = user.github_account.github_username
-        search_query = build_user_search_query(username, contrib_type)
+        search_query = build_user_search_query(username, contrib_type, last_polled_at_date)
 
         paginate_query(query, { query: search_query }, nil, username) do |response|
           ProcessingService.process_search_response(response.data.search.nodes, items)
@@ -81,9 +80,12 @@ module GithubRepositoryServices
         end
       end
 
-      def build_user_search_query(username, type)
+      def build_user_search_query(username, type, last_polled_at_date)
         type_filter = type == :prs ? "pr" : "issue"
-        "author:#{username} is:public is:#{type_filter}"
+        search_query = "author:#{username} is:public is:#{type_filter}"
+        search_query += " updated:>=#{last_polled_at_date}" if last_polled_at_date
+
+        search_query
       end
 
       def validate_update_params(repo_full_name)
