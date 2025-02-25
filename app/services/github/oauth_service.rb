@@ -44,6 +44,7 @@ module Github
         update_user_token(user, tokens)
 
         link_repositories_to_user(user, github_user.login) if is_new_user
+        UserContributionsFetcherWorker.perform_async(user.id)
 
         LoggerExtension.log(:info, "User Authentication", {
           github_id: github_user.id,
