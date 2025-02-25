@@ -52,6 +52,20 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ideaboard_test
+        ports:
+          - 5432:5432
+        # Health checks to ensure database is ready before tests run
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       redis:
         image: redis
         ports: ['6379:6379']
@@ -64,6 +78,7 @@ jobs:
     env:
       RAILS_ENV: test
       REDIS_URL: redis://localhost:6379/0
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ideaboard_test
       GITHUB_APP_ID: ${{ secrets.APP_ID }}
       GITHUB_APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
       GITHUB_APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}

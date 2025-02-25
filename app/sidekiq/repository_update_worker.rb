@@ -7,10 +7,8 @@ class RepositoryUpdateWorker
     repo = GithubRepository.find_by(id: repo_id)
     return if repo.nil?
 
-    # Step 1: Update repository metadata
     RepositoryFetcherWorker.new.perform(repo.full_name)
-
-    # Step 2: Schedule items fetching with a delay to avoid rate limiting
     GithubRepositoryServices::QueryService.fetch_updates(repo.full_name, repo.last_polled_at_date)
+    repo.update(last_polled_at: Time.current)
   end
 end

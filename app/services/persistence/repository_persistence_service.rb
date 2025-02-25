@@ -4,7 +4,7 @@ require_relative "../../models/github/repository"
     class RepositoryPersistenceService
       extend T::Sig
 
-      def self.persist_many(repositories)
+      def self.persist_many(repositories, user_id = nil)
         validate_bulk_input!(repositories)
 
         repos = []
@@ -13,7 +13,7 @@ require_relative "../../models/github/repository"
         repositories.each do |repo|
           topics = repo.repository_topics.nodes.map { |t| Github::Topic.from_github(t).stringify_keys }
           raw_topics[repo.id] = topics
-          repos << Github::Repository.from_github(repo).stringify_keys
+          repos << Github::Repository.from_github(repo, user_id).stringify_keys
         end
 
         inserted_repos = GithubRepository.upsert_all(

@@ -24,7 +24,6 @@ class GithubRepository < ApplicationRecord
   scope :active, -> { where(archived: false, disabled: false) }
   scope :with_language, ->(language) { where(language: language) }
   scope :recently_updated, -> { order(github_updated_at: :desc) }
-  scope :needs_polling, -> { where(update_method: :polling).where("last_polled_at < ?", 1.hour.ago) }
 
   def last_polled_at_date
     return nil unless last_polled_at
