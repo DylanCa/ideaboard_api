@@ -14,8 +14,9 @@ module Github
     const :license, T.nilable(String)
     const :github_created_at, String
     const :github_updated_at, String
+    const :owner_id, T.nilable(Integer)
 
-    def self.from_github(data)
+    def self.from_github(data, user_id)
       new(
         github_id: data.id,
         author_username: data.owner.login,
@@ -31,6 +32,7 @@ module Github
         license: data.license_info&.key,
         github_created_at: data.created_at,
         github_updated_at: data.updated_at,
+        owner_id: user_id
       )
     end
 
@@ -49,7 +51,8 @@ module Github
         license: license,
         visible: visible,
         github_created_at: github_created_at,
-        github_updated_at: github_updated_at
+        github_updated_at: github_updated_at,
+        owner_id: owner_id
       }
     end
   end
