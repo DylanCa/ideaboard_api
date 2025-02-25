@@ -39,13 +39,16 @@ module Github
         github_user = client.user
         user = User.with_github_id(github_user.id).first
 
+        is_new_user = user.nil?
         user ||= create_new_user(client)
         update_user_token(user, tokens)
+
+        link_repositories_to_user(user, github_user.login) if is_new_user
 
         LoggerExtension.log(:info, "User Authentication", {
           github_id: github_user.id,
           username: github_user.login,
-          action: user.persisted? ? "existing_user" : "new_user"
+          action: is_new_user ? "new_user" : "existing_user"
         })
 
         user
@@ -55,6 +58,17 @@ module Github
           github_id: github_user.id
         })
         raise e
+      end
+
+      def link_repositories_to_user(user, github_username)
+        unlinked_repos = GithubRepository.where(owner_id: nil, author_username: github_username)
+        linked_count = unlinked_repos.update_all(owner_id: user.id)
+
+        LoggerExtension.log(:info, "Repository Linking for New User", {
+          user_id: user.id,
+          github_username: github_username,
+          linked_repos_count: linked_count
+        }) if linked_count > 0
       end
 
       def create_new_user(client)
