@@ -3,7 +3,7 @@ class ItemsFetcherWorker
 
   sidekiq_options queue: :default, retry: 3
 
-  def perform(repo_id, item_type = "both", update_last_polled_at = false)
+  def perform(repo_id, item_type = "both")
     repo = GithubRepository.find_by(id: repo_id)
     return if repo.nil?
 
@@ -16,8 +16,6 @@ class ItemsFetcherWorker
       issues = GithubRepositoryServices::QueryService.fetch_items(repo.full_name, item_type: :issues)
       GithubRepositoryServices::PersistenceService.update_repository_items(repo, [], issues)
     end
-
-    repo.update(last_polled_at: Time.current) if update_last_polled_at
 
     LoggerExtension.log(:info, "Items Fetch Completed", {
       repository: repo.full_name,
