@@ -7,13 +7,13 @@ class RepositoryTierUpdateWorker
     LoggerExtension.log(:info, "Starting repository update for tier: #{tier}")
 
     repos = case tier
-            when "owner_token"
+    when "owner_token"
               find_owner_token_repos
-            when "contributor_token"
+    when "contributor_token"
               find_contributor_token_repos
-            when "global_pool"
+    when "global_pool"
               find_global_pool_repos
-            end
+    end
 
     repos.each do |repo|
       RepositoryUpdateWorker.perform_async(repo.id)
@@ -31,9 +31,9 @@ class RepositoryTierUpdateWorker
   end
 
   def find_contributor_token_repos
-    GithubRepository.joins(user_repository_stats: {user: :user_token})
+    GithubRepository.joins(user_repository_stats: { user: :user_token })
                     .where("user_tokens.expires_at > ?", Time.current)
-                    .where(users: {token_usage_level: User.token_usage_levels[:contributed]})
+                    .where(users: { token_usage_level: User.token_usage_levels[:contributed] })
                     .where(owner_id: nil)
                     .where("last_polled_at IS NULL OR last_polled_at < ?", 6.hours.ago)
                     .distinct
