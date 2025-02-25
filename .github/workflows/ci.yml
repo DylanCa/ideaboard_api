@@ -64,6 +64,7 @@ jobs:
     env:
       RAILS_ENV: test
       REDIS_URL: redis://localhost:6379/0
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ideaboard_test
       GITHUB_APP_ID: ${{ secrets.APP_ID }}
       GITHUB_APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
       GITHUB_APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
