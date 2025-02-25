@@ -12,10 +12,7 @@ module Github
       end
 
       def fetch_current_user_repositories(user)
-        query = Queries::UserQueries.user_repositories
-        data = execute_query(query, user.access_token)
-        repos = data.repositories.nodes
-        Persistence::RepositoryPersistenceService.persist_many(repos, user.id)
+        UserRepositoriesFetcherWorker.perform_async(user.id)
       end
 
       def update_repositories_data

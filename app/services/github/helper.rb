@@ -19,13 +19,27 @@ module Github
         start_time = Time.current
         response = execute_query(query, variables, context)
         execution_time = calculate_execution_time(start_time)
+
+        if response.errors.any?
+          LoggerExtension.log(:error, "GraphQL Query Errors", {
+            errors: response.errors,
+            query: query.to_s
+          })
+          return nil
+        end
+
         log_query_execution(response, execution_time, repo, usage_type)
 
+
         response
-      rescue => e
-        Rails.logger.info e
-        log_query_error(query, variables, response, e)
-        raise e
+      rescue StandardError => e
+        LoggerExtension.log(:error, "Unhandled GraphQL Error", {
+          error_class: e.class.name,
+          error_message: e.message,
+          backtrace: e.backtrace.first(10),
+          query: query.to_s
+        })
+        nil
       end
 
       def installation_token
