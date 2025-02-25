@@ -4,7 +4,7 @@ class RepositoryTierUpdateWorker
   sidekiq_options queue: :default, retry: 3
 
   def perform(tier = :owner_token)
-    LoggerExtension.log(:info, "Starting repository update.", { tier: tier, worker: 'RepositoryTierUpdateWorker' })
+    LoggerExtension.log(:info, "Starting repository update.", { tier: tier, worker: "RepositoryTierUpdateWorker" })
 
 
     repos = case tier
@@ -20,7 +20,7 @@ class RepositoryTierUpdateWorker
       RepositoryUpdateWorker.perform_async(repo.id)
     end
 
-    LoggerExtension.log(:info, "Repository update completed.", { tier: tier, repos_updated_count: repos.count, worker: 'RepositoryTierUpdateWorker' })
+    LoggerExtension.log(:info, "Repository update completed.", { tier: tier, repos_updated_count: repos.count, worker: "RepositoryTierUpdateWorker" })
   end
 
   private
