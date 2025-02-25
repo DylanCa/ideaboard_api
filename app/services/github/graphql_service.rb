@@ -15,14 +15,15 @@ module Github
         query = Queries::UserQueries.user_repositories
         data = execute_query(query, user.access_token)
         repos = data.repositories.nodes
-        Persistence::RepositoryPersistenceService.persist_many(repos)
+        Persistence::RepositoryPersistenceService.persist_many(repos, user.id)
       end
 
       def update_repositories_data
         repos = GithubRepository.all
         repos.each do |repo|
           RepositoryDataFetcherWorker.perform_async(repo.id)
-        end      end
+          end
+      end
 
       def add_repo_by_name(repo_name)
         RepositoryFetcherWorker.perform_async(repo_name)
