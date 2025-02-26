@@ -107,7 +107,7 @@ module Github
         end
 
         # Fallback to app token
-        [nil, installation_token, :global_pool]
+        [ nil, installation_token, :global_pool ]
       end
 
       def find_contributor_tokens(repo)
@@ -125,7 +125,7 @@ module Github
 
       def get_return_values_with_refreshed_token(user, token_type)
         user.user_token.refresh!
-        [user.id, user.access_token, token_type]
+        [ user.id, user.access_token, token_type ]
       end
 
       def log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
