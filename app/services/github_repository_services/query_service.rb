@@ -46,20 +46,32 @@ module GithubRepositoryServices
         search_query = "repo:#{repo_full_name}"
         search_query += " updated:>=#{last_synced_at}" if last_synced_at
 
-        paginate_query(Queries::GlobalQueries.search_query, { query: search_query }, repo_full_name, nil) do |response|
+        paginate_query(Queries::GlobalQueries.search_query, { query: search_query, type: "ISSUE" }, repo_full_name, nil) do |response|
           ProcessingService.process_search_response(response.data.search.nodes, items)
         end
 
         items
       end
 
-      def fetch_user_contribution_type(username, items, contrib_type, last_polled_at_date = nil)
+      def fetch_user_contributions(username, items, contrib_type, last_polled_at_date = nil)
         query = Queries::GlobalQueries.search_query
-        search_query = build_user_search_query(username, contrib_type, last_polled_at_date)
+        search_query = build_user_contribs_search_query(username, contrib_type, last_polled_at_date)
 
-        paginate_query(query, { query: search_query }, nil, username) do |response|
+        paginate_query(query, { query: search_query, type: "ISSUE" }, nil, username) do |response|
           ProcessingService.process_search_response(response.data.search.nodes, items)
         end
+      end
+
+      def fetch_user_repos(username, last_polled_at_date = nil)
+        query = Queries::GlobalQueries.search_query
+        search_query = build_user_repos_search_query(username, last_polled_at_date)
+        repos = []
+
+        paginate_query(query, { query: search_query, type: "REPOSITORY" }, nil, username) do |response|
+          repos << response.data.search.nodes
+        end
+
+        repos
       end
 
       private
@@ -80,10 +92,17 @@ module GithubRepositoryServices
         end
       end
 
-      def build_user_search_query(username, type, last_polled_at_date)
+      def build_user_contribs_search_query(username, type, last_polled_at_date)
         type_filter = type == :prs ? "pr" : "issue"
         search_query = "author:#{username} is:public is:#{type_filter}"
         search_query += " updated:>=#{last_polled_at_date}" if last_polled_at_date
+
+        search_query
+      end
+
+      def build_user_repos_search_query(username, last_polled_at_date)
+        search_query = "owner:#{username} is:public"
+        search_query += " created:>=#{last_polled_at_date}" if last_polled_at_date
 
         search_query
       end

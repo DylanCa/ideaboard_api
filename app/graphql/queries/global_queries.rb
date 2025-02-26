@@ -2,7 +2,7 @@ module Queries
   module GlobalQueries
     module Definitions
       SearchQuery = Github.client.parse <<~GRAPHQL
-        query($query: String!, $cursor: String) {
+        query($query: String!, $type: SearchType!, $cursor: String) {
           rateLimit {
             cost
             remaining
@@ -15,7 +15,7 @@ module Queries
           }
           search(
             query: $query
-            type: ISSUE
+            type: $type
             first: 100
             after: $cursor
           ) {
@@ -79,6 +79,34 @@ module Queries
                     color
                   }
                 }
+              }
+              ... on Repository  {
+                id
+                nameWithOwner
+                description
+                owner {
+                  login
+                }
+                primaryLanguage {
+                  name
+                }
+                isFork
+                stargazerCount
+                forkCount
+                isArchived
+                isDisabled
+                licenseInfo {
+                  key
+                }
+                repositoryTopics(first: 100) {
+                  nodes {
+                    topic {
+                      name
+                    }
+                  }
+                }
+                createdAt
+                updatedAt
               }
             }
           }

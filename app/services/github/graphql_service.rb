@@ -18,12 +18,12 @@ module Github
       def update_repositories_data
         repos = GithubRepository.all
         repos.each do |repo|
-          RepositoryDataFetcherWorker.perform_async(repo.id)
-          end
+          RepositoryDataFetcherWorker.perform_async(repo.full_name)
+        end
       end
 
       def add_repo_by_name(repo_name)
-        RepositoryFetcherWorker.perform_async(repo_name)
+        RepositoryDataFetcherWorker.perform_async(repo_name)
       end
 
       def fetch_repository_update(repo_name)

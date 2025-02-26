@@ -43,7 +43,7 @@ module Github
         user ||= create_new_user(client)
         update_user_token(user, tokens)
 
-        link_repositories_to_user(user, github_user.login) if is_new_user
+        UserRepositoriesFetcherWorker.perform_async(user.id) if is_new_user
         UserContributionsFetcherWorker.perform_async(user.id)
 
         LoggerExtension.log(:info, "User Authentication", {
@@ -59,17 +59,6 @@ module Github
           github_id: github_user.id
         })
         raise e
-      end
-
-      def link_repositories_to_user(user, github_username)
-        unlinked_repos = GithubRepository.where(owner_id: nil, author_username: github_username)
-        linked_count = unlinked_repos.update_all(owner_id: user.id)
-
-        LoggerExtension.log(:info, "Repository Linking for New User", {
-          user_id: user.id,
-          github_username: github_username,
-          linked_repos_count: linked_count
-        }) if linked_count > 0
       end
 
       def create_new_user(client)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_25_153029) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_26_113054) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,7 +49,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_153029) do
     t.string "webhook_secret"
     t.boolean "app_installed", default: false, null: false
     t.boolean "webhook_installed", default: false, null: false
-    t.integer "owner_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["author_username", "stars_count"], name: "idx_repos_on_author_and_stars"
@@ -58,7 +57,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_153029) do
     t.index ["github_id"], name: "index_github_repositories_on_github_id", unique: true
     t.index ["github_updated_at"], name: "index_github_repositories_on_github_updated_at"
     t.index ["last_polled_at"], name: "index_github_repositories_on_last_polled_at"
-    t.index ["owner_id"], name: "index_github_repositories_on_owner_id"
     t.index ["stars_count", "visible", "archived", "disabled"], name: "idx_on_stars_count_visible_archived_disabled_2b4ce69e99"
     t.index ["update_method"], name: "index_github_repositories_on_update_method"
     t.index ["visible", "archived", "disabled"], name: "index_github_repositories_on_visible_and_archived_and_disabled"
@@ -208,7 +206,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_153029) do
     t.integer "issues_with_pr_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "closed_prs_count", default: 0, null: false
+    t.datetime "last_contribution_at"
+    t.datetime "first_contribution_at"
+    t.integer "contribution_streak", default: 0, null: false
     t.index ["github_repository_id"], name: "index_user_repository_stats_on_github_repository_id"
+    t.index ["last_contribution_at"], name: "index_user_repository_stats_on_last_contribution_at"
     t.index ["user_id", "github_repository_id"], name: "idx_on_user_id_github_repository_id_b7aa4510b5", unique: true
     t.index ["user_id"], name: "index_user_repository_stats_on_user_id"
   end
@@ -244,7 +247,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_153029) do
   end
 
   add_foreign_key "github_accounts", "users"
-  add_foreign_key "github_repositories", "users", column: "owner_id"
   add_foreign_key "github_repository_topics", "github_repositories"
   add_foreign_key "github_repository_topics", "topics"
   add_foreign_key "issue_labels", "issues"
