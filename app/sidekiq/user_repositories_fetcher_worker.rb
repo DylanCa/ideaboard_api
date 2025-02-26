@@ -16,7 +16,7 @@ class UserRepositoriesFetcherWorker
     repos = response.data&.viewer&.repositories&.nodes
     return if repos.nil?
 
-    Persistence::RepositoryPersistenceService.persist_many(repos, user.id)
+    Persistence::RepositoryPersistenceService.persist_many(repos)
 
     LoggerExtension.log(:info, "User Repos fetching Completed", {
       repos_count: repos.count,
