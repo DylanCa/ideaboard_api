@@ -28,8 +28,9 @@ module Github
           return nil
         end
 
-        log_query_execution(response, execution_time, repo, usage_type)
-
+        rate_limit_info = format_rate_limit_info(response.data.rate_limit)
+        log_query_execution(response, execution_time, repo, usage_type, rate_limit_info)
+        log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
 
         response
       rescue StandardError => e
@@ -88,39 +89,43 @@ module Github
         owner = User.joins(:github_account)
                     .where(github_accounts: { github_username: repo.author_username })
                     .first
-        return [ owner.id, owner.access_token, :personal ] unless owner.nil?
+
+        if owner
+          return get_return_values_with_refreshed_token(owner, :personal)
+        end
 
         # Second try: Contributors tokens
-        if (contributor_tokens = find_contributor_tokens(repo)).any?
-          user_id, token = contributor_tokens.sample
-          return [ user_id, token, :contributed ]
+        contributor_tokens = find_contributor_tokens(repo)
+        if contributor_tokens.any?
+          return get_return_values_with_refreshed_token(contributor_tokens.sample, :contributed)
         end
 
         # Last try: Global pool
-        if (global_tokens = find_global_pool_tokens).any?
-          user_id, token = global_tokens.sample
-          return [ user_id, token, :global_pool ]
+        global_tokens = find_global_pool_tokens
+        if global_tokens.any?
+          return get_return_values_with_refreshed_token(global_tokens.sample, :global_pool)
         end
 
         # Fallback to app token
-        [ nil, installation_token, :personal ]
+        [nil, installation_token, :global_pool]
       end
 
       def find_contributor_tokens(repo)
         User.where(token_usage_level: :contributed)
             .joins(:user_token, :user_repository_stats)
-            .where("user_token.expires_at > ?", Time.current)
+            .where("user_tokens.expires_at > ?", Time.current)
             .where(user_repository_stats: { github_repository_id: repo.id })
-            .pluck(:id, "user_token.access_token")
-            .map { |id, token| [ id, token ] }
       end
 
       def find_global_pool_tokens
         User.where(token_usage_level: :global_pool)
             .joins(:user_token)
-            .where("user_token.expires_at > ?", Time.current)
-            .pluck(:id, "user_token.access_token")
-            .map { |id, token| [ id, token ] }
+            .where("user_tokens.expires_at > ?", Time.current)
+      end
+
+      def get_return_values_with_refreshed_token(user, token_type)
+        user.user_token.refresh!
+        [user.id, user.access_token, token_type]
       end
 
       def log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
@@ -179,9 +184,7 @@ module Github
         })
       end
 
-      def log_query_execution(response, execution_time, repo, usage_type)
-        rate_limit_info = format_rate_limit_info(response.data.rate_limit)
-
+      def log_query_execution(response, execution_time, repo, usage_type, rate_limit_info)
         LoggerExtension.log(:info, "GraphQL Query Completed", {
           user: response.data.viewer.login,
           execution_time: "#{execution_time}ms",
