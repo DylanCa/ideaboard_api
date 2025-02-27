@@ -11,22 +11,12 @@ module Github
           user_token = UserToken.find_by_access_token(context[:token])
           user_id = user_token&.user_id
           usage_type = :personal
-
-          context[:token] = user_token.refresh!.user_token if user_token&.needs_refresh?
         end
 
         log_query_before_execution(query, variables, user_id)
         start_time = Time.current
         response = execute_query(query, variables, context)
         execution_time = calculate_execution_time(start_time)
-
-        if response.errors.any?
-          LoggerExtension.log(:error, "GraphQL Query Errors", {
-            errors: response.errors,
-            query: query.to_s
-          })
-          return nil
-        end
 
         rate_limit_info = format_rate_limit_info(response.data.rate_limit)
         log_query_execution(response, execution_time, repo, usage_type, rate_limit_info)
@@ -44,14 +34,13 @@ module Github
       end
 
       def installation_token
-        return @token unless token_expired?
+        return @token unless @token.nil?
 
         # Get a new installation token
         jwt_client = Octokit::Client.new(bearer_token: jwt)
         installation = jwt_client.find_app_installations.first
         token_response = jwt_client.create_app_installation_access_token(installation.id)
 
-        @token_expires_at = token_response[:expires_at]
         @token = token_response[:token]
       end
 
@@ -64,7 +53,6 @@ module Github
                       .first
 
           unless owner.nil?
-            owner.user_token.refresh!
             return [ owner.id, owner.access_token, :personal ]
           end
         end
@@ -90,20 +78,20 @@ module Github
                     .where(github_accounts: { github_username: repo.author_username })
                     .first
 
-        if owner
-          return get_return_values_with_refreshed_token(owner, :personal)
-        end
+        return [owner.id, owner.access_token, :personal] if owner
 
         # Second try: Contributors tokens
         contributor_tokens = find_contributor_tokens(repo)
         if contributor_tokens.any?
-          return get_return_values_with_refreshed_token(contributor_tokens.sample, :contributed)
+          id, token = contributor_tokens.sample
+          return [id, token, :contributed]
         end
 
         # Last try: Global pool
         global_tokens = find_global_pool_tokens
         if global_tokens.any?
-          return get_return_values_with_refreshed_token(global_tokens.sample, :global_pool)
+          id, token = global_tokens.sample
+          return [id, token, :global_pool]
         end
 
         # Fallback to app token
@@ -113,19 +101,12 @@ module Github
       def find_contributor_tokens(repo)
         User.where(token_usage_level: :contributed)
             .joins(:user_token, :user_repository_stats)
-            .where("user_tokens.expires_at > ?", Time.current)
             .where(user_repository_stats: { github_repository_id: repo.id })
       end
 
       def find_global_pool_tokens
         User.where(token_usage_level: :global_pool)
             .joins(:user_token)
-            .where("user_tokens.expires_at > ?", Time.current)
-      end
-
-      def get_return_values_with_refreshed_token(user, token_type)
-        user.user_token.refresh!
-        [ user.id, user.access_token, token_type ]
       end
 
       def log_token_usage(user_id, repo, usage_type, query, variables, rate_limit_info)
@@ -142,7 +123,15 @@ module Github
 
       def execute_query(query, variables, context)
         args = { variables: variables, context: context }.compact
-        args.empty? ? Github.client.query(query) : Github.client.query(query, **args)
+        response = args.empty? ? Github.client.query(query) : Github.client.query(query, **args)
+        return response unless response.errors.any?
+
+        LoggerExtension.log(:error, "GraphQL Query Errors", {
+          errors: response.errors,
+          query: query.to_s
+        })
+
+        nil
       end
 
       def jwt
@@ -154,11 +143,6 @@ module Github
         }
 
         JWT.encode(payload, private_key, "RS256")
-      end
-
-      def token_expired?
-        return true if @token_expires_at.nil?
-        @token_expires_at - 5.minutes < Time.current
       end
 
       def calculate_execution_time(start_time)
