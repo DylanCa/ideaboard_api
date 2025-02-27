@@ -42,15 +42,14 @@ module Github
       def execute_query(query, access_token = nil, repo_name = nil, username = nil)
         response = Github::Helper.query_with_logs(query, nil, { token: access_token }, repo_name, username)
 
-        if response.errors.any?
-          LoggerExtension.log(:error, "GraphQL Query Errors", {
-            errors: response.errors,
-            query: query.to_s
-          })
-          return nil
-        end
+        return response.data.viewer unless response.errors.any?
 
-        response.data.viewer
+        LoggerExtension.log(:error, "GraphQL Query Errors", {
+          errors: response.errors,
+          query: query.to_s
+        })
+
+        nil
       rescue StandardError => e
         LoggerExtension.log(:error, "Unhandled GraphQL Error", {
           error_class: e.class.name,

@@ -2,20 +2,16 @@ module Github
   class OauthService
     class << self
       def authenticate(code)
-        tokens = get_tokens(code)
-        client = Octokit::Client.new(access_token: tokens[:access_token])
+        token = get_tokens(code)[:access_token]
+
+        client = Octokit::Client.new(access_token: token)
         return { is_authenticated: false } unless client.user_authenticated?
 
-        user = get_or_create_user(client, tokens)
+        user = get_or_create_user(client, token)
         {
           is_authenticated: true,
           user: user
         }
-      end
-
-      def refresh_token(refresh_token)
-        client =  Octokit::Client.new(client_id: ENV["GITHUB_APP_CLIENT_ID"], client_secret: ENV["GITHUB_APP_SECRET_KEY"])
-        client.refresh_access_token(refresh_token)
       end
 
       private
@@ -30,18 +26,16 @@ module Github
 
         {
           access_token: result.access_token,
-          expires_in: result.expires_in,
-          refresh_token: result.refresh_token
         }
       end
 
-      def get_or_create_user(client, tokens)
+      def get_or_create_user(client, token)
         github_user = client.user
         user = User.with_github_id(github_user.id).first
 
         is_new_user = user.nil?
         user ||= create_new_user(client)
-        update_user_token(user, tokens)
+        update_user_token(user, token)
 
         UserRepositoriesFetcherWorker.perform_async(user.id) if is_new_user
         UserContributionsFetcherWorker.perform_async(user.id)
@@ -84,13 +78,11 @@ module Github
         end
       end
 
-      def update_user_token(user, tokens)
+      def update_user_token(user, token)
         UserToken.upsert(
           {
             user_id: user.id,
-            access_token: tokens[:access_token],
-            refresh_token: tokens[:refresh_token],
-            expires_at: Time.now.utc + tokens[:expires_in]
+            access_token: token,
           },
           unique_by: :user_id
         )
