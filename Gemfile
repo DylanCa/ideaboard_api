@@ -42,6 +42,8 @@ group :development, :test do
 
   gem "foreman", require: false
   gem "tapioca"
+  gem 'factory_bot_rails'
+  gem 'faker'
 end
 
 group :debug do
