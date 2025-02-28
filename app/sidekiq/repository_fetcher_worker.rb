@@ -1,19 +1,10 @@
 class RepositoryFetcherWorker
-  include Sidekiq::Job
+  include BaseWorker
 
-  sidekiq_options queue: :default, retry: 3
-
-  def perform(repo_name)
+  def execute(repo_name)
     repo = GithubRepositoryServices::QueryService.fetch_repository(repo_name)
     return if repo.nil?
 
-    inserted_repo = Persistence::RepositoryPersistenceService.persist_many([ repo ])[0]
-
-    LoggerExtension.log(:info, "Repository Fetch Completed", {
-      repository: repo_name,
-      action: "fetch_repository"
-    })
-
-    inserted_repo
+    Persistence::RepositoryPersistenceService.persist_many([repo])[0]
   end
 end

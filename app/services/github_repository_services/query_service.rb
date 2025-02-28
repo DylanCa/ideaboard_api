@@ -42,7 +42,7 @@ module GithubRepositoryServices
       def fetch_updates(repo_full_name, last_synced_at)
         validate_update_params(repo_full_name)
 
-        items = { prs: [], issues: [] }
+        items = { repositories: Set.new, prs: [], issues: [] }
         search_query = "repo:#{repo_full_name}"
         search_query += " updated:>=#{last_synced_at}" if last_synced_at
 

@@ -1,11 +1,9 @@
 class ItemsFetcherWorker
-  include Sidekiq::Job
+  include BaseWorker
 
-  sidekiq_options queue: :default, retry: 3
-
-  def perform(repo_id, item_type = "both")
+  def execute(repo_id, item_type = "both")
     repo = GithubRepository.find_by(id: repo_id)
-    return if repo.nil?
+    return nil if repo.nil?
 
     if item_type == "prs" || item_type == "both"
       prs = GithubRepositoryServices::QueryService.fetch_items(repo.full_name, item_type: :prs)
@@ -17,10 +15,12 @@ class ItemsFetcherWorker
       GithubRepositoryServices::PersistenceService.update_repository_items(repo, [], issues)
     end
 
-    LoggerExtension.log(:info, "Items Fetch Completed", {
-      repository: repo.full_name,
+    {
+      repository_id: repo_id,
+      full_name: repo.full_name,
       item_type: item_type,
-      action: "fetch_items"
-    })
+      prs_count: item_type.include?("prs") ? prs&.size : 0,
+      issues_count: item_type.include?("issues") ? issues&.size : 0
+    }
   end
 end

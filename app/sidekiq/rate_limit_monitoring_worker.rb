@@ -1,9 +1,8 @@
 class RateLimitMonitoringWorker
-  include Sidekiq::Job
+  include BaseWorker
+  sidekiq_options queue: :low_priority
 
-  sidekiq_options queue: :low_priority, retry: 3
-
-  def perform
+  def execute
     low_limit_tokens = RateLimitLog
                          .where("created_at > ?", 1.hour.ago)
                          .where("remaining_points < 1000")
@@ -11,12 +10,12 @@ class RateLimitMonitoringWorker
                          .count
 
     if low_limit_tokens.any?
-      LoggerExtension.log(:warn, "Low Rate Limit Detected", {
-        tokens_count: low_limit_tokens.size,
-        action: "rate_limit_monitoring"
-      })
-
-      # Alert or take action based on rate limit status
+      {
+        low_limit_tokens_count: low_limit_tokens.size,
+        tokens: low_limit_tokens.keys
+      }
+    else
+      { status: "ok", low_limit_tokens_count: 0 }
     end
   end
 end
