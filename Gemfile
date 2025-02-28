@@ -45,6 +45,8 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "faker"
   gem "overcommit"
+  gem "simplecov"
+  gem "simplecov-json"
 end
 
 group :debug do

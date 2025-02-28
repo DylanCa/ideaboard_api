@@ -49,6 +49,7 @@ jobs:
         run: bin/rubocop -f github
 
   test:
+    permissions: write-all
     runs-on: ubuntu-latest
 
     services:
@@ -115,3 +116,8 @@ jobs:
         run: |
           bin/rails db:test:prepare
           bundle exec rspec --fail-fast --format progress
+
+      - uses: joshmfrankel/simplecov-check-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          on_fail_status: 'neutral'
