@@ -1,0 +1,17 @@
+{
+  "data": {
+    "rateLimit": {
+      "cost": 1,
+      "remaining": 4980,
+      "resetAt": "2025-02-28T15:50:57+01:00",
+      "limit": 5000,
+      "used": 20
+    },
+    "viewer": {
+      "databaseId": 12345,
+      "email": "test@example.com",
+      "login": "testuser",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/12345"
+    }
+  }
+}
