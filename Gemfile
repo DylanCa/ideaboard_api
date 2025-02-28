@@ -42,6 +42,11 @@ group :development, :test do
 
   gem "foreman", require: false
   gem "tapioca"
+  gem "factory_bot_rails"
+  gem "faker"
+  gem "overcommit"
+  gem "simplecov"
+  gem "simplecov-json"
 end
 
 group :debug do

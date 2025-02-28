@@ -25,7 +25,7 @@ module Github
         )
 
         {
-          access_token: result.access_token,
+          access_token: result.access_token
         }
       end
 
@@ -82,7 +82,7 @@ module Github
         UserToken.upsert(
           {
             user_id: user.id,
-            access_token: token,
+            access_token: token
           },
           unique_by: :user_id
         )

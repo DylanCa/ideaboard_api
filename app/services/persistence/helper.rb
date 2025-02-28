@@ -1,36 +1,36 @@
 module Persistence
   class Helper
     class << self
-      def insert_repos_topics_if_any(raw_topics, inserted_repos)
-        insert_items_metadata(
-          raw_topics,
-          inserted_repos,
-          Topic,
-          GithubRepositoryTopic,
-          :github_repository_id,
-          :topic_id
-        )
-      end
+      def insert_items_labels_if_any(labels, inserted_items, type)
+        if type == :prs
+          label_type = Label
+          model = PullRequestLabel
+          item_key = :pull_request_id
+          metadata_key = :label_id
 
-      def insert_prs_labels_if_any(raw_labels, inserted_prs)
-        insert_items_metadata(
-          raw_labels,
-          inserted_prs,
-          Label,
-          PullRequestLabel,
-          :pull_request_id,
-          :label_id
-        )
-      end
+        elsif type == :issues
+          label_type = Label
+          model = IssueLabel
+          item_key = :issue_id
+          metadata_key = :label_id
 
-      def insert_issues_labels_if_any(raw_labels, inserted_issues)
+        elsif type == :repositories
+          label_type = Topic
+          model = GithubRepositoryTopic
+          item_key = :github_repository_id
+          metadata_key = :topic_id
+
+        else
+          raise
+        end
+
         insert_items_metadata(
-          raw_labels,
-          inserted_issues,
-          Label,
-          IssueLabel,
-          :issue_id,
-          :label_id
+          labels,
+          inserted_items,
+          label_type,
+          model,
+          item_key,
+          metadata_key
         )
       end
 

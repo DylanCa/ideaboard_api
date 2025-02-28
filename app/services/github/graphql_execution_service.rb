@@ -1,5 +1,5 @@
 module Github
-  class GraphQLExecutionService
+  class GraphqlExecutionService
     class << self
       def execute_query(query, variables = nil, context = nil, repo_name = nil, username = nil)
         context ||= {}
@@ -58,7 +58,7 @@ module Github
       def perform_query_execution(query, variables, context)
         args = { variables: variables, context: context }.compact
         response = args.empty? ? Github.client.query(query) : Github.client.query(query, **args)
-        return response unless response.errors.any?
+        return response unless response.errors&.any?
 
         LoggerExtension.log(:error, "GraphQL Query Errors", {
           errors: response.errors,

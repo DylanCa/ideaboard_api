@@ -8,7 +8,7 @@ module Github
                       .first
 
           unless owner.nil?
-            return [owner.id, owner.access_token, :personal]
+            return [ owner.id, owner.access_token, :personal ]
           end
         end
 
@@ -16,7 +16,7 @@ module Github
       end
 
       def select_token_for_repository(repo)
-        return [nil, installation_token, :global_pool] if repo.nil?
+        return [ nil, installation_token, :global_pool ] if repo.nil?
 
         cache_key = "token_for_repo_#{repo&.id || 'default'}"
         cached = Rails.cache.read(cache_key)
@@ -46,37 +46,37 @@ module Github
                     .where(github_accounts: { github_username: repo.author_username })
                     .first
 
-        return [owner.id, owner.access_token, :personal] if owner
+        return [ owner.id, owner.access_token, :personal ] if owner
 
         # Second try: Contributors tokens
         contributor_tokens = find_contributor_tokens(repo)
         if contributor_tokens.any?
           id, token = contributor_tokens.sample
-          return [id, token, :contributed]
+          return [ id, token, :contributed ]
         end
 
         # Last try: Global pool
         global_tokens = find_global_pool_tokens
         if global_tokens.any?
           id, token = global_tokens.sample
-          return [id, token, :global_pool]
+          return [ id, token, :global_pool ]
         end
 
         # Fallback to app token
-        [nil, installation_token, :global_pool]
+        [ nil, installation_token, :global_pool ]
       end
 
       def find_contributor_tokens(repo)
         User.where(token_usage_level: :contributed)
             .joins(:user_token, :user_repository_stats)
             .where(user_repository_stats: { github_repository_id: repo.id })
-          .pluck([:id, :access_token])
+          .pluck([ :id, :access_token ])
       end
 
       def find_global_pool_tokens
         User.where(token_usage_level: :global_pool)
             .joins(:user_token)
-          .pluck([:id, :access_token])
+          .pluck([ :id, :access_token ])
       end
 
       def jwt

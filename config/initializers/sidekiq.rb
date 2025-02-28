@@ -1,6 +1,6 @@
 # config/initializers/sidekiq.rb
 Sidekiq.configure_server do |config|
-  config.redis = { url: ENV["REDIS_URL"] || "redis://localhost:6379/0" }
+  config.redis = { url: "redis://redis:6379/0" }
 
   # Schedule all tiers to run hourly but with different criteria
   Sidekiq::Cron::Job.create(

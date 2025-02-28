@@ -35,7 +35,7 @@ class UserContributionsFetcherWorker
   end
 
   def fetch_newly_updated_contributions(user, items)
-    [:prs, :issues].each do |contrib_type|
+    [ :prs, :issues ].each do |contrib_type|
       GithubRepositoryServices::QueryService.fetch_user_contributions(
         user.github_account.github_username,
         items,
