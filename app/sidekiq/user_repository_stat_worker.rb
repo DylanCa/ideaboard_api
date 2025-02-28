@@ -1,19 +1,11 @@
 class UserRepositoryStatWorker
-  include Sidekiq::Job
+  include BaseWorker
 
-  sidekiq_options queue: :default, retry: 3
-
-  def perform(user_id, github_repository_id = nil)
+  def execute(user_id, github_repository_id = nil)
     user = User.find_by(id: user_id)
-    return if user.nil? || user.github_account.nil?
+    return nil if user.nil? || user.github_account.nil?
 
     username = user.github_account.github_username
-
-    LoggerExtension.log(:info, "Starting User Repository Stat calculations.", {
-      username: user.github_account.github_username,
-      user_id: user_id,
-      worker: "UserRepositoryStatWorker"
-    })
 
     if github_repository_id
       find_contributions_for_single_repo(user_id, username, github_repository_id)
@@ -21,11 +13,7 @@ class UserRepositoryStatWorker
       find_contributions_for_multiple_repos(user_id, username)
     end
 
-    LoggerExtension.log(:info, "User Repository Stat calculations completed.", {
-      username: user.github_account.github_username,
-      user_id: user_id,
-      worker: "UserRepositoryStatWorker"
-    })
+    { user_id: user_id, username: username, completed: true }
   end
 
   private
@@ -49,10 +37,11 @@ class UserRepositoryStatWorker
 
       process_repository_stats(user_id, repo_id, repo_prs, repo_issues)
     end
+
+    { processed_repos: repository_ids.count }
   end
 
   def process_repository_stats(user_id, repo_id, prs, issues)
-    # Find or create stats record
     stats = UserRepositoryStat.find_or_initialize_by(
       user_id: user_id,
       github_repository_id: repo_id
@@ -73,7 +62,6 @@ class UserRepositoryStatWorker
 
     stats.contribution_streak = calculate_streak(contribution_dates)
 
-    # Save the stats
     stats.save!
   end
 
