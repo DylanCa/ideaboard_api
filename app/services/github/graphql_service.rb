@@ -1,6 +1,4 @@
 require_relative "../persistence/repository_persistence_service"
-require_relative "../persistence/pull_request_persistence_service"
-require_relative "../persistence/issue_persistence_service"
 require_relative "../../graphql/queries/user_queries"
 
 module Github
@@ -39,7 +37,7 @@ module Github
       def execute_query(query, access_token = nil, repo_name = nil, username = nil)
         response = Github::Helper.query_with_logs(query, nil, { token: access_token }, repo_name, username)
 
-        return response.data.viewer unless response.errors.any?
+        return response.data.viewer unless response.errors&.any?
 
         LoggerExtension.log(:error, "GraphQL Query Errors", {
           errors: response.errors,
