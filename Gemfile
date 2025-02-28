@@ -44,6 +44,7 @@ group :development, :test do
   gem "tapioca"
   gem "factory_bot_rails"
   gem "faker"
+  gem "overcommit"
 end
 
 group :debug do

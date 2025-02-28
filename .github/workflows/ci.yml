@@ -114,4 +114,4 @@ jobs:
       - name: Run tests
         run: |
           bin/rails db:test:prepare
-          bundle exec rspec --format progress
+          bundle exec rspec --fail-fast --format progress

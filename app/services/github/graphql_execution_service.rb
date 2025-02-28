@@ -1,5 +1,5 @@
 module Github
-  class GraphQLExecutionService
+  class GraphqlExecutionService
     class << self
       def execute_query(query, variables = nil, context = nil, repo_name = nil, username = nil)
         context ||= {}
