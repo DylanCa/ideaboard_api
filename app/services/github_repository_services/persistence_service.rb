@@ -22,12 +22,12 @@ module GithubRepositoryServices
 
       def update_pull_requests(repo, prs)
         return unless prs.present?
-        Persistence::PullRequestPersistenceService.persist_many(prs, repo)
+        Persistence::ItemPersistenceService.persist_many(prs, repo, type: :prs)
       end
 
       def update_issues(repo, issues)
         return unless issues.present?
-        Persistence::IssuePersistenceService.persist_many(issues, repo)
+        Persistence::ItemPersistenceService.persist_many(issues, repo, type: :issues)
       end
     end
   end

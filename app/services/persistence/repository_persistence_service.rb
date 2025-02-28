@@ -22,7 +22,7 @@ require_relative "../../models/github/repository"
           returning: %w[id github_id]
         )
 
-        Helper.insert_repos_topics_if_any(raw_topics, inserted_repos)
+        Helper.insert_items_labels_if_any(raw_topics, inserted_repos, :repositories)
 
         inserted_repos
       end
