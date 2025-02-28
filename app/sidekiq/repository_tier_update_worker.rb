@@ -5,7 +5,7 @@ class RepositoryTierUpdateWorker
     repos = fetch_repositories_for_tier(tier)
 
     repos.each do |repo|
-      RepositoryUpdateWorker.perform_async(repo.id)
+      RepositoryUpdateWorker.perform_async(repo.full_name)
     end
 
     { tier: tier, repos_updated_count: repos.count }
