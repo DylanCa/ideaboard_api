@@ -5,14 +5,7 @@ RSpec.describe Github::GraphqlService do
     let(:user) { create(:user, :with_github_account, :with_access_token) }
 
     it 'fetches user data from GitHub' do
-      stub_github_graphql_query(:user_data, {
-        viewer: {
-          database_id: 12345,
-          email: 'test@example.com',
-          login: 'testuser',
-          avatarUrl: 'https://example.com/avatar.jpg'
-        }
-      })
+      mock_github_query(:user_data)
 
       result = described_class.fetch_current_user_data(user)
 
