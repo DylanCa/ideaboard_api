@@ -20,7 +20,7 @@ development:
 
 test:
   <<: *default
-  url: <%= ENV.fetch("DATABASE_URL") { "postgres://ideaboard:password@db:5432/ideaboard_test" } %>
+  url: <%= ENV.fetch("DATABASE_URL_TEST") { "postgres://ideaboard:password@db:5432/ideaboard_test" } %>
   # Disable prepared statements for testing to avoid leaks
   prepared_statements: false
 
