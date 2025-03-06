@@ -7,9 +7,9 @@ class TokenUsageLog < ApplicationRecord
   validates :points_used, :points_remaining, numericality: { greater_than_or_equal_to: 0 }
 
   # Scopes
-  scope :recent, -> { order(created_at: :desc) }
   scope :by_user, ->(user) { where(user: user) }
   scope :by_repository, ->(repo) { where(github_repository: repo) }
-  scope :installation_queries, -> { where(usage_type: :installation) }
-  scope :user_queries, -> { where.not(usage_type: :installation) }
+  scope :personal_queries, -> { where(usage_type: User.token_usage_levels[:personal]) }
+  scope :contributed_queries, -> { where(usage_type: User.token_usage_levels[:contributed]) }
+  scope :global_pool_queries, -> { where(usage_type: User.token_usage_levels[:global_pool]) }
 end

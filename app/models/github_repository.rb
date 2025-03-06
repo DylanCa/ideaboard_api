@@ -2,8 +2,6 @@ class GithubRepository < ApplicationRecord
   # Enums
   enum :update_method, { polling: 0, webhook: 1 }
 
-  # Associations
-  belongs_to :owner, class_name: "User", optional: true
   has_many :github_repository_topics, dependent: :destroy
   has_many :topics, through: :github_repository_topics
   has_many :issues, dependent: :destroy
@@ -11,8 +9,7 @@ class GithubRepository < ApplicationRecord
   has_many :user_repository_stats, dependent: :destroy
 
   # Validations
-  validates :full_name, presence: true, uniqueness: true
-  validates :github_id, uniqueness: true, allow_nil: true
+  validates :full_name, :github_id, presence: true, uniqueness: true
   validates :stars_count, :forks_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :github_created_at, :github_updated_at, presence: true
   validates :is_fork, :archived, :disabled, :visible, :has_contributing,

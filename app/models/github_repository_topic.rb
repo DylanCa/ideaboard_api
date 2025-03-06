@@ -5,6 +5,6 @@ class GithubRepositoryTopic < ApplicationRecord
 
   # Validations
   validates :github_repository_id, presence: true
-  validates :tag_id, presence: true
-  validates :github_repository_id, uniqueness: { scope: :tag_id }
+  validates :topic_id, presence: true
+  validates :github_repository_id, uniqueness: { scope: :topic_id }
 end
