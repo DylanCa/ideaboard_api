@@ -5,11 +5,4 @@ class Topic < ApplicationRecord
 
   # Validations
   validates :name, presence: true, uniqueness: true
-
-  # Scopes
-  scope :popular, -> {
-    joins(:github_repository_topics)
-      .group(:id)
-      .order("COUNT(github_repository_topics.id) DESC")
-  }
 end

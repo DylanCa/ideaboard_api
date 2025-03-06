@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_27_112404) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_06_225430) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -41,7 +41,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_27_112404) do
     t.string "license"
     t.boolean "visible", default: true, null: false
     t.datetime "github_updated_at", null: false
-    t.string "github_id"
+    t.string "github_id", null: false
     t.string "author_username"
     t.string "language"
     t.integer "update_method", default: 0, null: false
@@ -115,7 +115,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_27_112404) do
     t.integer "github_repository_id", null: false
     t.index ["github_repository_id"], name: "index_labels_on_github_repository_id"
     t.index ["name", "github_repository_id"], name: "idx_labels_on_name_and_repo_id"
-    t.index ["name"], name: "index_labels_on_name", unique: true
   end
 
   create_table "pull_request_labels", force: :cascade do |t|
@@ -153,21 +152,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_27_112404) do
     t.index ["github_repository_id", "number"], name: "index_pull_requests_on_github_repository_id_and_number"
     t.index ["github_repository_id"], name: "index_pull_requests_on_github_repository_id"
     t.index ["merged_at"], name: "index_pull_requests_on_merged_at"
-  end
-
-  create_table "rate_limit_logs", force: :cascade do |t|
-    t.string "token_owner_type", null: false
-    t.bigint "token_owner_id", null: false
-    t.string "query_name", null: false
-    t.integer "cost", null: false
-    t.integer "remaining_points", null: false
-    t.datetime "reset_at", null: false
-    t.datetime "executed_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["executed_at"], name: "index_rate_limit_logs_on_executed_at"
-    t.index ["token_owner_id", "executed_at"], name: "idx_rate_limit_logs_on_owner_and_time"
-    t.index ["token_owner_type", "token_owner_id"], name: "index_rate_limit_logs_on_token_owner_type_and_token_owner_id"
   end
 
   create_table "token_usage_logs", force: :cascade do |t|

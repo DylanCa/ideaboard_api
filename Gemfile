@@ -47,6 +47,7 @@ group :development, :test do
   gem "overcommit"
   gem "simplecov"
   gem "simplecov-json"
+  gem "shoulda-matchers", "~> 5.0"
 end
 
 group :debug do

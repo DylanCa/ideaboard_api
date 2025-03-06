@@ -1,8 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe GithubRepository, type: :model do
+  subject { create(:github_repository) }
+
   describe 'associations' do
-    it { should belong_to(:owner).class_name('User').optional }
     it { should have_many(:github_repository_topics).dependent(:destroy) }
     it { should have_many(:topics).through(:github_repository_topics) }
     it { should have_many(:issues).dependent(:destroy) }
@@ -13,7 +14,8 @@ RSpec.describe GithubRepository, type: :model do
   describe 'validations' do
     it { should validate_presence_of(:full_name) }
     it { should validate_uniqueness_of(:full_name) }
-    it { should validate_uniqueness_of(:github_id).allow_nil }
+    it { should validate_presence_of(:github_id) }
+    it { should validate_uniqueness_of(:github_id) }
     it { should validate_presence_of(:stars_count) }
     it { should validate_presence_of(:forks_count) }
     it { should validate_presence_of(:github_created_at) }

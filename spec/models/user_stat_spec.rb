@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe UserStat, type: :model do
+  subject { create(:user_stat) }
+
   describe 'associations' do
     it { should belong_to(:user) }
   end
