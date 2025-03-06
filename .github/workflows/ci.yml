@@ -115,7 +115,7 @@ jobs:
       - name: Run tests
         run: |
           bin/rails db:test:prepare
-          bundle exec rspec --fail-fast --format progress
+          bundle exec rspec --format progress
 
       - uses: joshmfrankel/simplecov-check-action@main
         with:

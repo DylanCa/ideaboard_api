@@ -1,0 +1,78 @@
+{
+  "rateLimit": {
+    "cost": 2,
+    "remaining": 4920,
+    "resetAt": "2025-02-28T15:50:57+01:00",
+    "limit": 5000,
+    "used": 80
+  },
+  "viewer": {
+    "login": "testuser"
+  },
+  "repository": {
+    "issues": {
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK5MjAyNC0wMi0xOFQxNTozMDo0NSswMTowMM4_-FoK"
+      },
+      "nodes": [
+        {
+          "id": "I_kwDOG2TNuA494ZP1",
+          "title": "Bug: Application crashes on login",
+          "url": "https://github.com/owner/repo/issues/42",
+          "number": 42,
+          "state": "OPEN",
+          "author": {
+            "login": "user1"
+          },
+          "createdAt": "2025-02-01T10:15:00Z",
+          "updatedAt": "2025-02-10T14:25:00Z",
+          "closedAt": null,
+          "comments": {
+            "totalCount": 8
+          },
+          "labels": {
+            "nodes": [
+              {
+                "name": "bug",
+                "color": "d73a4a"
+              },
+              {
+                "name": "high-priority",
+                "color": "b60205"
+              }
+            ]
+          }
+        },
+        {
+          "id": "I_kwDOG2TNuA494ZP2",
+          "title": "Feature Request: Add dark mode",
+          "url": "https://github.com/owner/repo/issues/41",
+          "number": 41,
+          "state": "OPEN",
+          "author": {
+            "login": "user2"
+          },
+          "createdAt": "2025-01-28T16:30:00Z",
+          "updatedAt": "2025-02-15T11:45:00Z",
+          "closedAt": null,
+          "comments": {
+            "totalCount": 12
+          },
+          "labels": {
+            "nodes": [
+              {
+                "name": "enhancement",
+                "color": "84b6eb"
+              },
+              {
+                "name": "ui",
+                "color": "fbca04"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

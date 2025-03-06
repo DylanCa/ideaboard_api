@@ -1,0 +1,90 @@
+{
+  "rateLimit": {
+    "cost": 1,
+    "remaining": 4950,
+    "resetAt": "2025-02-28T15:50:57+01:00",
+    "limit": 5000,
+    "used": 50
+  },
+  "viewer": {
+    "login": "testuser",
+    "repositories": {
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK5MjAyNC0wMS0wMlQxNTozMDo0NSswMTowMM4_-FoK"
+      },
+      "nodes": [
+        {
+          "id": "R_kgDOG2TNuA",
+          "nameWithOwner": "testuser/repo1",
+          "description": "Test repository one",
+          "owner": {
+            "login": "testuser"
+          },
+          "primaryLanguage": {
+            "name": "Ruby"
+          },
+          "isFork": false,
+          "stargazerCount": 42,
+          "forkCount": 10,
+          "isArchived": false,
+          "isDisabled": false,
+          "licenseInfo": {
+            "key": "mit"
+          },
+          "repositoryTopics": {
+            "nodes": [
+              {
+                "topic": {
+                  "name": "ruby"
+                }
+              },
+              {
+                "topic": {
+                  "name": "rails"
+                }
+              }
+            ]
+          },
+          "createdAt": "2024-01-01T12:00:00Z",
+          "updatedAt": "2025-01-15T14:30:00Z"
+        },
+        {
+          "id": "R_kgDOG2TgHb",
+          "nameWithOwner": "testuser/repo2",
+          "description": "Test repository two",
+          "owner": {
+            "login": "testuser"
+          },
+          "primaryLanguage": {
+            "name": "JavaScript"
+          },
+          "isFork": false,
+          "stargazerCount": 125,
+          "forkCount": 35,
+          "isArchived": false,
+          "isDisabled": false,
+          "licenseInfo": {
+            "key": "apache-2.0"
+          },
+          "repositoryTopics": {
+            "nodes": [
+              {
+                "topic": {
+                  "name": "javascript"
+                }
+              },
+              {
+                "topic": {
+                  "name": "react"
+                }
+              }
+            ]
+          },
+          "createdAt": "2024-02-15T09:30:00Z",
+          "updatedAt": "2025-02-10T16:45:00Z"
+        }
+      ]
+    }
+  }
+}
