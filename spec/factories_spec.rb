@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe 'Factories' do
   describe 'User factory' do
     it 'creates a valid user' do
-      user = build(:user)
+      user = create(:user)
       expect(user).to be_valid
     end
 
@@ -21,45 +21,93 @@ RSpec.describe 'Factories' do
 
   describe 'GithubAccount factory' do
     it 'creates a valid github account' do
-      github_account = build(:github_account)
+      # The factory should automatically create a user association
+      github_account = create(:github_account)
       expect(github_account).to be_valid
     end
   end
 
   describe 'UserToken factory' do
     it 'creates a valid user token' do
-      user_token = build(:user_token)
+      user_token = create(:user_token)
       expect(user_token).to be_valid
     end
   end
 
   describe 'GithubRepository factory' do
     it 'creates a valid github repository' do
-      repository = build(:github_repository)
+      repository = create(:github_repository)
       expect(repository).to be_valid
     end
   end
 
-  # Add factory specs for all relevant models
-  %i[
-    pull_request
-    issue
-    label
-    pull_request_label
-    issue_label
-    topic
-    github_repository_topic
-    user_repository_stat
-    user_stat
-    token_usage_log
-    rate_limit_log
-  ].each do |factory_name|
-    describe "#{factory_name.to_s.classify} factory" do
-      it "creates a valid #{factory_name.to_s.humanize.downcase}" do
-        pending "Factory #{factory_name} needs to be created"
-        record = build(factory_name)
-        expect(record).to be_valid
-      end
+  describe 'PullRequest factory' do
+    it 'creates a valid pull request' do
+      pull_request = create(:pull_request)
+      expect(pull_request).to be_valid
+    end
+  end
+
+  describe 'Issue factory' do
+    it 'creates a valid issue' do
+      issue = create(:issue)
+      expect(issue).to be_valid
+    end
+  end
+
+  describe 'Label factory' do
+    it 'creates a valid label' do
+      label = create(:label)
+      expect(label).to be_valid
+    end
+  end
+
+  describe 'PullRequestLabel factory' do
+    it 'creates a valid pull request label' do
+      pull_request_label = create(:pull_request_label)
+      expect(pull_request_label).to be_valid
+    end
+  end
+
+  describe 'IssueLabel factory' do
+    it 'creates a valid issue label' do
+      issue_label = create(:issue_label)
+      expect(issue_label).to be_valid
+    end
+  end
+
+  describe 'Topic factory' do
+    it 'creates a valid topic' do
+      topic = create(:topic)
+      expect(topic).to be_valid
+    end
+  end
+
+  describe 'GithubRepositoryTopic factory' do
+    it 'creates a valid github repository topic' do
+      github_repository_topic = create(:github_repository_topic)
+      expect(github_repository_topic).to be_valid
+    end
+  end
+
+  describe 'UserRepositoryStat factory' do
+    it 'creates a valid user repository stat' do
+      user_repository_stat = create(:user_repository_stat)
+      expect(user_repository_stat).to be_valid
+    end
+  end
+
+  describe 'UserStat factory' do
+    it 'creates a valid user stat' do
+      user_stat = create(:user_stat)
+      expect(user_stat).to be_valid
+    end
+  end
+
+  describe 'TokenUsageLog factory' do
+    it 'creates a valid token usage log' do
+      token_usage_log = create(:token_usage_log)
+      expect(token_usage_log).to be_valid
     end
   end
 end
