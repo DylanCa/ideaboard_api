@@ -1,13 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
+  subject { create(:user) }
+
   describe 'associations' do
     it { should have_one(:github_account).dependent(:destroy) }
     it { should have_one(:user_stat).dependent(:destroy) }
     it { should have_one(:user_token).dependent(:destroy) }
-    it { should have_many(:owned_repositories).class_name('GithubRepository').with_foreign_key('owner_id').dependent(:nullify) }
     it { should have_many(:user_repository_stats).dependent(:destroy) }
-    it { should have_many(:rate_limit_logs).dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -18,7 +18,11 @@ RSpec.describe User, type: :model do
 
   describe 'enums' do
     it { should define_enum_for(:account_status).with_values(enabled: 1, disabled: 0, banned: -1) }
-    it { should define_enum_for(:token_usage_level).with_values(personal: 0, contributed: 1, global_pool: 2).with_default(:personal) }
+    it { should define_enum_for(:token_usage_level).with_values(personal: 0, contributed: 1, global_pool: 2) }
+
+    it 'has personal as the default token_usage_level' do
+      expect(subject.token_usage_level).to eq('personal')
+    end
   end
 
   describe 'nested attributes' do

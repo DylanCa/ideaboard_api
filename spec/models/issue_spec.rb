@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Issue, type: :model do
+  subject { create(:issue) }
+
   describe 'associations' do
     it { should belong_to(:github_repository) }
     it { should have_many(:issue_labels).dependent(:destroy) }

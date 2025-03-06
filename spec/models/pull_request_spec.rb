@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe PullRequest, type: :model do
+  subject { create(:pull_request) }
+
   describe 'associations' do
     it { should belong_to(:github_repository) }
     it { should have_many(:pull_request_labels).dependent(:destroy) }
@@ -27,7 +29,7 @@ RSpec.describe PullRequest, type: :model do
   describe 'scopes' do
     let!(:open_pr) { create(:pull_request, closed_at: nil, merged_at: nil) }
     let!(:closed_pr) { create(:pull_request, closed_at: Time.current, merged_at: nil) }
-    let!(:merged_pr) { create(:pull_request, merged_at: Time.current) }
+    let!(:merged_pr) { create(:pull_request, closed_at: Time.current, merged_at: Time.current) }
     let!(:draft_pr) { create(:pull_request, is_draft: true) }
     let!(:user_pr) { create(:pull_request, author_username: 'test-user') }
     let!(:other_user_pr) { create(:pull_request, author_username: 'other-user') }
