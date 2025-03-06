@@ -3,9 +3,7 @@ class User < ApplicationRecord
   has_one :github_account, dependent: :destroy
   has_one :user_stat, dependent: :destroy
   has_one :user_token, dependent: :destroy
-  has_many :owned_repositories, class_name: "GithubRepository", foreign_key: "owner_id", dependent: :nullify
   has_many :user_repository_stats, dependent: :destroy
-  has_many :rate_limit_logs, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true
@@ -28,7 +26,7 @@ class User < ApplicationRecord
   }
 
   def access_token
-    user_token.access_token
+    user_token&.access_token
   end
 
   def issues
