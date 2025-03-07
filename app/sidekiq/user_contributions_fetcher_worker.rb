@@ -25,13 +25,15 @@ class UserContributionsFetcherWorker
   private
 
   def fetch_newly_created_repos(user)
-    repos = GithubRepositoryServices::QueryService.fetch_user_repos(
+    repos_result = GithubRepositoryServices::QueryService.fetch_user_repos(
       user.github_account.github_username,
       user.github_account.last_polled_at_date
-    )[0]
+    )
 
-    return if repos.nil?
-    Persistence::RepositoryPersistenceService.persist_many(repos)
+    # Check if repos_result is an array and has elements before accessing first element
+    if repos_result && repos_result[0]
+      Persistence::RepositoryPersistenceService.persist_many(repos_result[0])
+    end
   end
 
   def fetch_newly_updated_contributions(user, items)
