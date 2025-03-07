@@ -86,23 +86,51 @@ RSpec.describe RepositoryTierUpdateWorker do
 
   describe 'private methods' do
     let!(:recent_repo) { create(:github_repository, last_polled_at: Time.current) }
-    let!(:old_repo) { create(:github_repository, last_polled_at: 2.hours.ago) }
+    let!(:old_repo) { create(:github_repository, last_polled_at: 13.hours.ago) }
     let!(:never_polled_repo) { create(:github_repository, last_polled_at: nil) }
 
     describe '#find_owner_token_repos' do
-      # These tests would need more setup with the associations
-      # between github_accounts, user_tokens, and repositories
       it 'finds repositories that have an owner with tokens and need polling' do
-        # Specific implementation would depend on how to mock the complex join
-        # Consider testing the query directly instead of mocking it
-        pending "Test requires complex setup of associations"
+        # Create a user with token and github account
+        user = create(:user, :with_access_token)
+        github_account = create(:github_account, user: user, github_username: 'test-owner')
+
+        # Create repository owned by this user
+        fresh_repo = create(:github_repository, author_username: 'test-owner', last_polled_at: 30.minutes.ago)
+        stale_repo = create(:github_repository, author_username: 'test-owner', last_polled_at: 2.hours.ago)
+
+        # Create repository with different owner
+        other_repo = create(:github_repository, author_username: 'other-owner')
+
+        repos = subject.send(:find_owner_token_repos)
+
+        expect(repos).to include(stale_repo)
+        expect(repos).not_to include(fresh_repo) # Too recently polled
+        expect(repos).not_to include(other_repo) # Different owner
       end
     end
 
     describe '#find_contributor_token_repos' do
       it 'finds repositories with contributors that have tokens and need polling' do
-        # Similarly would need significant setup with user_repository_stats
-        pending "Test requires complex setup of associations"
+        # Create user with token
+        user = create(:user, :with_access_token, token_usage_level: :contributed)
+
+        # Create repositories
+        fresh_repo = create(:github_repository, last_polled_at: 4.hours.ago)
+        stale_repo = create(:github_repository, last_polled_at: 7.hours.ago)
+
+        # Create user repository stats to establish contributions
+        create(:user_repository_stat, user: user, github_repository: fresh_repo)
+        create(:user_repository_stat, user: user, github_repository: stale_repo)
+
+        # Repository without contributions
+        other_repo = create(:github_repository, last_polled_at: 7.hours.ago)
+
+        repos = subject.send(:find_contributor_token_repos)
+
+        expect(repos).to include(stale_repo)
+        expect(repos).not_to include(fresh_repo) # Too recently polled
+        expect(repos).not_to include(other_repo) # No contributions
       end
     end
 
