@@ -1,105 +1,93 @@
 require 'rails_helper'
 
-RSpec.describe JwtService do
-  let(:user_id) { 123 }
-  let(:github_username) { 'test-user' }
-  let(:payload) { { user_id: user_id, github_username: github_username, iat: Time.now.to_i } }
-  let(:secret_key) { 'test-secret-key' }
+RSpec.describe "JwtAuthenticable", type: :controller do
+  # Create a test controller that includes the JwtAuthenticable module
+  controller do
+    include JwtAuthenticable
+
+    def index
+      render json: { status: 'ok' }
+    end
+  end
 
   before do
-    # Mock SECRET_KEY directly
-    stub_const("SECRET_KEY", secret_key)
-
-    # Still mock ENV.fetch for JWT_EXPIRATION
-    allow(ENV).to receive(:fetch).with("JWT_EXPIRATION", 1.week).and_return(1.week)
+    # Properly set up routes for the test controller
+    @routes.draw { get "index" => "anonymous#index" }
   end
 
-  describe '.encode' do
-    it 'encodes a payload into a JWT token' do
-      token = described_class.encode(payload)
-      expect(token).to be_a(String)
-      expect(token.split('.').length).to eq(3) # Header, payload, signature
+  describe "#authenticate_user!" do
+    let(:user) { create(:user, :with_github_account) }
+    let(:github_account) { user.github_account }
+    let(:token_payload) do
+      {
+        "user_id" => user.id,
+        "github_username" => github_account.github_username,
+        "iat" => Time.now.to_i
+      }
     end
 
-    it 'adds expiration time to payload' do
-      allow(JWT).to receive(:encode).and_call_original
+    context "with valid token" do
+      before do
+        allow(JwtService).to receive(:decode).and_return(token_payload)
+        @request.headers['Authorization'] = 'Bearer valid_token'
+      end
 
-      described_class.encode(payload)
+      it "sets @current_user" do
+        get :index
+        expect(assigns(:current_user)).to eq(user)
+      end
 
-      expect(JWT).to have_received(:encode) do |encoded_payload, *args|
-        expect(encoded_payload).to include(
-                                     user_id: user_id,
-                                     github_username: github_username
-                                   )
-        expect(encoded_payload[:exp]).to be_a(Integer)
+      it "allows access to the action" do
+        get :index
+        expect(response).to have_http_status(:ok)
       end
     end
 
-    context 'with custom expiration time' do
-      it 'uses the provided expiration time' do
-        expiration_time = Time.now.to_i + 30.minutes
-        allow(JWT).to receive(:encode).and_call_original
-
-        described_class.encode(payload, expiration: expiration_time)
-
-        expect(JWT).to have_received(:encode) do |encoded_payload, *args|
-          expect(encoded_payload[:exp]).to eq(expiration_time)
-        end
-      end
-    end
-  end
-
-  describe '.decode' do
-    let(:token) { described_class.encode(payload) }
-
-    it 'decodes a JWT token' do
-      decoded_payload = described_class.decode(token)
-      expect(decoded_payload['user_id']).to eq(user_id)
-      expect(decoded_payload['github_username']).to eq(github_username)
-    end
-
-    context 'with expired token' do
-      it 'raises an AuthenticationError' do
-        allow(JWT).to receive(:decode).and_raise(JWT::ExpiredSignature)
-
-        expect {
-          described_class.decode(token)
-        }.to raise_error(AuthenticationError, 'Token has expired')
+    context "without Authorization header" do
+      it "returns unauthorized" do
+        get :index
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq({ "error" => "Unauthorized" })
       end
     end
 
-    context 'with invalid token format' do
-      it 'raises an AuthenticationError' do
-        allow(JWT).to receive(:decode).and_raise(JWT::DecodeError.new("Invalid token"))
+    context "with invalid token" do
+      before do
+        allow(JwtService).to receive(:decode).and_raise(StandardError)
+        @request.headers['Authorization'] = 'Bearer invalid_token'
+      end
 
-        expect {
-          described_class.decode(token)
-        }.to raise_error(AuthenticationError, /Invalid token/)
+      it "returns unauthorized" do
+        get :index
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq({ "error" => "Unauthorized" })
       end
     end
 
-    context 'with missing user_id' do
-      it 'raises an AuthenticationError' do
-        # Mock a valid JWT decode but with a payload missing user_id
-        allow(JWT).to receive(:decode).and_return([ { 'github_username' => github_username } ])
+    context "with mismatched user" do
+      before do
+        # Create a payload with a non-existent github username
+        mismatched_payload = token_payload.merge("github_username" => "wrong_username")
+        allow(JwtService).to receive(:decode).and_return(mismatched_payload)
+        @request.headers['Authorization'] = 'Bearer token'
+      end
 
-        expect {
-          described_class.decode(token)
-        }.to raise_error(AuthenticationError, 'Missing user ID')
+      it "returns unauthorized" do
+        get :index
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq({ "error" => "Unauthorized" })
       end
     end
-  end
 
-  describe '.default_expiration' do
-    it 'returns the value from ENV' do
-      expect(ENV).to receive(:fetch).with('JWT_EXPIRATION', 1.week).and_return(2.weeks.to_i)
-      expect(described_class.send(:default_expiration)).to eq(2.weeks.to_i)
-    end
-  end
+    describe "#extract_token" do
+      it "extracts token from Authorization header" do
+        @request.headers['Authorization'] = 'Bearer test_token'
+        expect(controller.send(:extract_token)).to eq("test_token")
+      end
 
-  describe 'AuthenticationError' do
-    it 'is a StandardError' do
-      expect(AuthenticationError.ancestors).to include(StandardError)
+      it "returns nil when no Authorization header" do
+        expect(controller.send(:extract_token)).to be_nil
+      end
     end
   end
 end
