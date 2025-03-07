@@ -170,4 +170,73 @@ RSpec.describe Persistence::Helper do
       end
     end
   end
+
+  describe '.insert_items_metadata' do
+    context 'when items_data is empty' do
+      it 'returns early without processing' do
+        expect(described_class.send(:insert_items_metadata, {}, [], Label, PullRequestLabel, :pull_request_id, :label_id)).to be_nil
+      end
+    end
+
+    context 'with topics' do
+      let(:repo) { create(:github_repository) }
+      let(:topics_data) { { 'repo-123' => [ { name: 'ruby' }, { name: 'api' } ] } }
+      let(:inserted_items) { [ { 'id' => repo.id, 'github_id' => 'repo-123' } ] }
+
+      it 'creates topics and join records in the database' do
+        # Ensure no existing records interfere
+        Topic.delete_all
+        GithubRepositoryTopic.delete_all
+
+        # Call the method with actual database interaction
+        described_class.send(:insert_items_metadata,
+                             topics_data,
+                             inserted_items,
+                             Topic,
+                             GithubRepositoryTopic,
+                             :github_repository_id,
+                             :topic_id
+        )
+
+        # Verify topics were created
+        expect(Topic.count).to eq(2)
+        expect(Topic.pluck(:name)).to match_array([ 'ruby', 'api' ])
+
+        # Verify join records were created
+        expect(GithubRepositoryTopic.count).to eq(2)
+
+        # Verify join records link correct topics to repository
+        ruby_topic = Topic.find_by(name: 'ruby')
+        api_topic = Topic.find_by(name: 'api')
+
+        expect(GithubRepositoryTopic.exists?(
+          github_repository_id: repo.id,
+          topic_id: ruby_topic.id
+        )).to be_truthy
+
+        expect(GithubRepositoryTopic.exists?(
+          github_repository_id: repo.id,
+          topic_id: api_topic.id
+        )).to be_truthy
+      end
+    end
+  end
+
+  describe '.preload_labels' do
+    context 'when label insertion fails' do
+      let(:repo) { create(:github_repository) }
+      let(:label_name) { 'new-label' }
+
+      before do
+        allow(Label).to receive(:where).and_return([])
+        allow(Label).to receive(:insert_all).and_raise(StandardError.new("Test error"))
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it 'logs errors during label creation' do
+        described_class.preload_labels([ label_name ], repo.id)
+        expect(Rails.logger).to have_received(:error).with(/Error creating labels/)
+      end
+    end
+  end
 end
