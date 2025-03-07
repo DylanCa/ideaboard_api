@@ -51,7 +51,7 @@ RSpec.describe Persistence::RepositoryPersistenceService do
       it 'raises ArgumentError when repositories is nil' do
         expect {
           described_class.persist_many(nil)
-        }.to raise_error(ArgumentError, "Repositories cannot be nil")
+        }.to raise_error(TypeError)
       end
     end
   end

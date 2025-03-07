@@ -41,6 +41,10 @@ RSpec.describe GithubRepositoryServices::ProcessingService do
     let(:nodes) { [ pr_node, issue_node, repo_node ] }
     let(:items) { { repositories: Set.new, prs: [], issues: [] } }
 
+    before do
+      allow(repo_node).to receive(:name_with_owner).and_return('owner/repo')
+    end
+
     it 'processes search results by categorizing nodes' do
       described_class.process_search_response(nodes, items)
 

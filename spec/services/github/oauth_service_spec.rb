@@ -4,8 +4,7 @@ RSpec.describe Github::OauthService do
   describe '.authenticate' do
     let(:code) { 'test-auth-code' }
     let(:github_user) do
-      instance_double(
-        Sawyer::Resource,
+      OpenStruct.new(
         id: 12345,
         login: 'test-user',
         email: 'test@example.com',
@@ -14,42 +13,58 @@ RSpec.describe Github::OauthService do
     end
 
     before do
-      # Mock token exchange
       allow(described_class).to receive(:get_tokens).with(code).and_return({ access_token: 'test-access-token' })
 
-      # Mock Octokit client
       client_double = instance_double(Octokit::Client)
       allow(Octokit::Client).to receive(:new).with(access_token: 'test-access-token').and_return(client_double)
       allow(client_double).to receive(:user_authenticated?).and_return(true)
       allow(client_double).to receive(:user).and_return(github_user)
 
-      # Mock worker enqueuing
       allow(UserRepositoriesFetcherWorker).to receive(:perform_async)
       allow(UserContributionsFetcherWorker).to receive(:perform_async)
 
-      # Mock logger
       allow(LoggerExtension).to receive(:log)
     end
 
     context 'when user does not exist' do
+      let(:client_double) { instance_double(Octokit::Client) }
+      let(:github_user) { double('GithubUser', id: 12345, login: 'test-user', email: 'test@example.com', avatar_url: 'https://github.com/avatar.png') }
+
       before do
-        allow(User).to receive_message_chain(:with_github_id, :first).and_return(nil)
-        allow(described_class).to receive(:create_new_user).with(an_instance_of(Octokit::Client)).and_return(
-          create(:user)
-        )
-        allow(described_class).to receive(:update_user_token)
+        allow(Octokit::Client).to receive(:new).with(access_token: 'test-access-token').and_return(client_double)
+        allow(client_double).to receive(:user_authenticated?).and_return(true)
+        allow(client_double).to receive(:user).and_return(github_user)
+
+
+        allow(described_class).to receive(:update_user_token).and_call_original
       end
 
       it 'creates a new user and returns authentication success' do
+        allow(described_class).to receive(:create_new_user).and_call_original
+
+        expect(ActiveRecord::Base).to receive(:transaction).and_call_original
+
         result = described_class.authenticate(code)
 
         expect(result[:is_authenticated]).to be true
-        expect(result).to have_key(:user)
-        expect(described_class).to have_received(:create_new_user)
-        expect(described_class).to have_received(:update_user_token)
+        expect(result[:user]).to be_a(User)
+
+        expect(result[:user].email).to eq('test@example.com')
+
+        expect(result[:user].github_account).to be_present
+        expect(result[:user].github_account.github_id).to eq(12345)
+        expect(result[:user].github_account.github_username).to eq('test-user')
+
+        expect(result[:user].user_stat).to be_present
+
         expect(UserRepositoriesFetcherWorker).to have_received(:perform_async)
         expect(UserContributionsFetcherWorker).to have_received(:perform_async)
-        expect(LoggerExtension).to have_received(:log).with(:info, "User Authentication", hash_including(action: "new_user"))
+
+        expect(LoggerExtension).to have_received(:log).with(
+          :info,
+          "User Authentication",
+          hash_including(action: "new_user")
+        )
       end
     end
 
@@ -75,6 +90,8 @@ RSpec.describe Github::OauthService do
 
     context 'when authentication fails' do
       before do
+        allow(described_class).to receive(:get_tokens).with(code).and_return({ access_token: 'test-access-token' })
+
         client_double = instance_double(Octokit::Client)
         allow(Octokit::Client).to receive(:new).with(access_token: 'test-access-token').and_return(client_double)
         allow(client_double).to receive(:user_authenticated?).and_return(false)

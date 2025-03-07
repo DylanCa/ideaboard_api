@@ -85,18 +85,18 @@ RSpec.describe Persistence::Helper do
   end
 
   describe 'label caching' do
-    let(:repo_id) { 1 }
+    let(:repo) { create(:github_repository) }
     let(:label_name) { 'bug' }
-    let(:label) { create(:label, name: label_name, github_repository_id: repo_id) }
+    let(:label) { create(:label, name: label_name, github_repository: repo) }
 
     describe '.get_label_by_name' do
       it 'returns nil when label is not cached' do
-        expect(described_class.get_label_by_name(label_name, repo_id)).to be_nil
+        expect(described_class.get_label_by_name(label_name, repo.id)).to be_nil
       end
 
       it 'returns the label when it is cached' do
-        described_class.label_cache["#{label_name}_#{repo_id}"] = label
-        expect(described_class.get_label_by_name(label_name, repo_id)).to eq(label)
+        described_class.label_cache["#{label_name}_#{repo.id}"] = label
+        expect(described_class.get_label_by_name(label_name, repo.id)).to eq(label)
       end
     end
 
@@ -108,9 +108,9 @@ RSpec.describe Persistence::Helper do
         end
 
         it 'loads and caches existing labels' do
-          described_class.preload_labels([ label_name ], repo_id)
+          described_class.preload_labels([ label_name ], repo.id)
 
-          cached_label = described_class.get_label_by_name(label_name, repo_id)
+          cached_label = described_class.get_label_by_name(label_name, repo.id)
           expect(cached_label).not_to be_nil
           expect(cached_label.name).to eq(label_name)
         end
@@ -122,16 +122,16 @@ RSpec.describe Persistence::Helper do
         before do
           allow(Label).to receive(:where).and_return([])
           allow(Label).to receive(:insert_all).and_return(
-            OpenStruct.new(rows: [ [ 2, label_name, repo_id ] ])
+            OpenStruct.new(rows: [ [ 2, label_name, repo.id ] ])
           )
         end
 
         it 'creates and caches new labels' do
-          described_class.preload_labels([ label_name ], repo_id)
+          described_class.preload_labels([ label_name ], repo.id)
 
           expect(Label).to have_received(:insert_all)
 
-          cached_label = described_class.get_label_by_name(label_name, repo_id)
+          cached_label = described_class.get_label_by_name(label_name, repo.id)
           expect(cached_label).not_to be_nil
           expect(cached_label.name).to eq(label_name)
         end
@@ -140,11 +140,11 @@ RSpec.describe Persistence::Helper do
       context 'with invalid inputs' do
         it 'handles nil label_names' do
           expect {
-            described_class.preload_labels(nil, repo_id)
+            described_class.preload_labels(nil, repo.id)
           }.not_to raise_error
         end
 
-        it 'handles nil repo_id' do
+        it 'handles nil repo.id' do
           expect {
             described_class.preload_labels([ label_name ], nil)
           }.not_to raise_error
@@ -152,7 +152,7 @@ RSpec.describe Persistence::Helper do
 
         it 'handles empty label_names array' do
           expect {
-            described_class.preload_labels([], repo_id)
+            described_class.preload_labels([], repo.id)
           }.not_to raise_error
         end
       end
@@ -160,7 +160,7 @@ RSpec.describe Persistence::Helper do
 
     describe '.reset_cache' do
       before do
-        described_class.label_cache["#{label_name}_#{repo_id}"] = label
+        described_class.label_cache["#{label_name}_#{repo.id}"] = label
       end
 
       it 'clears the label cache' do

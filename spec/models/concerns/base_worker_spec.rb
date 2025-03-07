@@ -106,8 +106,9 @@ RSpec.describe BaseWorker do
 
   describe '#args_for_logging' do
     it 'formats ActiveRecord objects for logging' do
-      record = instance_double(ActiveRecord::Base, id: 123, class: User)
-      allow(record.class).to receive(:name).and_return('User')
+      record = instance_double(User, id: 123)
+      allow(record).to receive(:class).and_return(User)
+      allow(record).to receive(:is_a?).with(ActiveRecord::Base).and_return(true)
 
       result = worker.send(:args_for_logging, [ record ])
 
