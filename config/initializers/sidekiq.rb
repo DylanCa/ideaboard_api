@@ -23,11 +23,4 @@ Sidekiq.configure_server do |config|
     class: "RepositoryTierUpdateWorker",
     args: [ "global_pool" ]
   )
-
-  Sidekiq::Cron::Job.create(
-    name: "Rate limit monitoring",
-    cron: "Every 15 minutes",
-    class: "RateLimitMonitoringWorker"
-  )
 end
-0
