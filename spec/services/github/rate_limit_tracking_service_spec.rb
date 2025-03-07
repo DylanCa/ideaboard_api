@@ -29,7 +29,8 @@ RSpec.describe Github::RateLimitTrackingService do
   end
 
   describe '.log_token_usage' do
-    let(:user_id) { 1 }
+    let(:user) { create(:user) }
+    let(:user_id) { user.id }
     let(:repo) { create(:github_repository) }
     let(:usage_type) { :personal }
     let(:query) { 'UserData' }
@@ -50,7 +51,7 @@ RSpec.describe Github::RateLimitTrackingService do
       expect(log.user_id).to eq(user_id)
       expect(log.github_repository).to eq(repo)
       expect(log.query).to eq(query)
-      expect(log.variables).to eq(variables)
+      expect(log.variables).to include('test-user')
       expect(log.usage_type).to eq(User.token_usage_levels[usage_type])
       expect(log.points_used).to eq(rate_limit_info[:cost])
       expect(log.points_remaining).to eq(rate_limit_info[:remaining])

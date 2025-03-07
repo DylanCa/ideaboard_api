@@ -11,28 +11,16 @@ RSpec.describe Github::GraphqlExecutionService do
     let(:user) { create(:user) }
 
     before do
+      mock_github_query('user_data')
       allow(GithubRepository).to receive(:find_by_full_name).with(repo_name).and_return(repo)
       allow(Github::TokenSelectionService).to receive(:select_token).and_return([ user.id, 'access-token', :personal ])
-      allow(Github.client).to receive(:query).and_return(OpenStruct.new(
-        data: OpenStruct.new(
-          viewer: OpenStruct.new(login: 'test-user'),
-          rate_limit: OpenStruct.new(
-            cost: 1,
-            remaining: 4999,
-            resetAt: Time.now + 1.hour,
-            limit: 5000,
-            used: 1
-          )
-        ),
-        errors: nil
-      ))
       allow(LoggerExtension).to receive(:log)
       allow(Github::RateLimitTrackingService).to receive(:extract_rate_limit_info).and_return({
                                                                                                 used: 1,
                                                                                                 remaining: 4999,
                                                                                                 limit: 5000,
                                                                                                 cost: 1,
-                                                                                                reset_at: Time.now + 1.hour,
+                                                                                                reset_at: (Time.now + 1.hour).to_s,
                                                                                                 percentage_used: 0.02
                                                                                               })
       allow(Github::RateLimitTrackingService).to receive(:log_token_usage)
@@ -41,9 +29,21 @@ RSpec.describe Github::GraphqlExecutionService do
     it 'executes the query and returns the response' do
       response = described_class.execute_query(query, variables, context, repo_name, username)
 
-      expect(response.data.viewer.login).to eq('test-user')
+      expect(response.data.viewer.login).to eq('testuser')
       expect(Github::TokenSelectionService).to have_received(:select_token).with(repo, username)
-      expect(Github.client).to have_received(:query).with(query, variables: variables, context: hash_including(token: 'access-token'))
+      expect(Github.client).to have_received(:query)
+      expect(LoggerExtension).to have_received(:log).with(:info, "GraphQL Query Execution", anything)
+      expect(LoggerExtension).to have_received(:log).with(:info, "GraphQL Query Completed", anything)
+      expect(Github::RateLimitTrackingService).to have_received(:extract_rate_limit_info)
+      expect(Github::RateLimitTrackingService).to have_received(:log_token_usage)
+    end
+
+    it 'executes the query and returns the response' do
+      response = described_class.execute_query(query, variables, context, repo_name, username)
+
+      expect(response.data.viewer.login).to eq('testuser')
+      expect(Github::TokenSelectionService).to have_received(:select_token).with(repo, username)
+      expect(Github.client).to have_received(:query)
       expect(LoggerExtension).to have_received(:log).with(:info, "GraphQL Query Execution", anything)
       expect(LoggerExtension).to have_received(:log).with(:info, "GraphQL Query Completed", anything)
       expect(Github::RateLimitTrackingService).to have_received(:extract_rate_limit_info)

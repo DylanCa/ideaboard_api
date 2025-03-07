@@ -48,6 +48,7 @@ group :development, :test do
   gem "simplecov"
   gem "simplecov-json"
   gem "shoulda-matchers", "~> 5.0"
+  gem "rails-controller-testing"
 end
 
 group :debug do
@@ -69,3 +70,4 @@ gem "graphql-client"
 gem "sidekiq"
 gem "sidekiq-cron"
 gem "pg"
+gem "redis", ">= 4.0.1"

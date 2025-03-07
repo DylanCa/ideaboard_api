@@ -7,14 +7,27 @@ module GithubRepositoryServices
       end
 
       def process_search_response(nodes, items)
-        nodes.each do |node|
-          items[:repositories] << node.repository unless items[:repositories].nil?
+        processed_repos = {}
 
+        nodes.each do |node|
           case node.__typename
           when "PullRequest"
+            if items[:repositories] && !processed_repos[node.repository.name_with_owner]
+              items[:repositories] << node.repository
+              processed_repos[node.repository.name_with_owner] = true
+            end
             items[:prs] << node
           when "Issue"
+            if items[:repositories] && !processed_repos[node.repository.name_with_owner]
+              items[:repositories] << node.repository
+              processed_repos[node.repository.name_with_owner] = true
+            end
             items[:issues] << node
+          when "Repository"
+            if items[:repositories] && !processed_repos[node.name_with_owner]
+              items[:repositories] << node
+              processed_repos[node.name_with_owner] = true
+            end
           end
         end
       end

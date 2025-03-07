@@ -72,13 +72,6 @@ RSpec.describe UserRepositoryStatWorker do
         create(:pull_request, github_repository: repo1, author_username: username)
         create(:pull_request, github_repository: repo2, author_username: username)
         create(:issue, github_repository: repo1, author_username: username)
-
-        allow(PullRequest).to receive(:where).and_return(
-          PullRequest.where(author_username: username).group_by(&:github_repository_id)
-        )
-        allow(Issue).to receive(:where).and_return(
-          Issue.where(author_username: username).group_by(&:github_repository_id)
-        )
       end
 
       it 'processes statistics for all repositories' do
