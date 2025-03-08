@@ -65,5 +65,28 @@ RSpec.describe Github::TokenSelectionService do
         expect(Rails.cache).to have_received(:write).with("token_for_repo_#{repo.id}", [ 2, 'new_token', :contributed ], expires_in: 5.minutes)
       end
     end
+
+    context 'with cache miss requiring database queries' do
+      before do
+        allow(Rails.cache).to receive(:read).and_return(nil)
+        allow(Rails.cache).to receive(:write)
+
+        # Create actual records in the database for thorough testing
+        owner = create(:user, :with_github_account, :with_access_token)
+        owner.github_account.update(github_username: repo.author_username)
+
+        contributor = create(:user, :with_access_token, token_usage_level: :contributed)
+        create(:user_repository_stat, user: contributor, github_repository: repo)
+
+        global_user = create(:user, :with_access_token, token_usage_level: :global_pool)
+      end
+
+      it 'detects appropriate token and caches it' do
+        result = described_class.select_token_for_repository(repo)
+
+        expect(result[2]).to eq(:personal)
+        expect(Rails.cache).to have_received(:write)
+      end
+    end
   end
 end

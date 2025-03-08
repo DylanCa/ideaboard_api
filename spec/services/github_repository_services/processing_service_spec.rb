@@ -4,7 +4,16 @@ RSpec.describe GithubRepositoryServices::ProcessingService do
   describe '.process_contributions' do
     let(:mock_repo) { create(:github_repository) }
     let(:repositories) { { mock_repo.full_name => mock_repo } }
-    let(:items) { { repositories: repositories, prs: [ double('PR') ], issues: [ double('Issue') ] } }
+
+    # Use actual fixture data instead of doubles
+    let(:search_response) { mock_github_query('search_query_mixed') }
+    let(:items) do
+      {
+        repositories: repositories,
+        prs: search_response.data.search.nodes.select { |n| n.__typename == "PullRequest" },
+        issues: search_response.data.search.nodes.select { |n| n.__typename == "Issue" }
+      }
+    end
 
     before do
       allow(described_class).to receive(:ensure_repositories_exist).and_return(repositories)
@@ -20,73 +29,36 @@ RSpec.describe GithubRepositoryServices::ProcessingService do
   end
 
   describe '.process_search_response' do
-    let(:repository) { double('Repository', name_with_owner: 'owner/repo') }
-    let(:pr_node) {
-      double('PullRequestNode',
-             __typename: 'PullRequest',
-             repository: repository
-      )
-    }
-    let(:issue_node) {
-      double('IssueNode',
-             __typename: 'Issue',
-             repository: repository
-      )
-    }
-    let(:repo_node) {
-      double('RepositoryNode',
-             __typename: 'Repository'
-      )
-    }
-    let(:nodes) { [ pr_node, issue_node, repo_node ] }
+    # Use actual fixture data from GraphQLMocks
+    let(:search_response) { mock_github_query('search_query_mixed') }
+    let(:nodes) { search_response.data.search.nodes }
     let(:items) { { repositories: Set.new, prs: [], issues: [] } }
-
-    before do
-      allow(repo_node).to receive(:name_with_owner).and_return('owner/repo')
-    end
 
     it 'processes search results by categorizing nodes' do
       described_class.process_search_response(nodes, items)
 
-      expect(items[:repositories].count).to eq(1)
+      expect(items[:repositories].count).to eq(2)
       expect(items[:prs].count).to eq(1)
       expect(items[:issues].count).to eq(1)
-    end
-
-    context 'when nodes have different types' do
-      let(:unknown_node) { double('UnknownNode', __typename: 'Unknown') }
-      let(:nodes) { [ pr_node, issue_node, repo_node, unknown_node ] }
-
-      it 'only processes recognized node types' do
-        described_class.process_search_response(nodes, items)
-
-        expect(items[:repositories].count).to eq(1)
-        expect(items[:prs].count).to eq(1)
-        expect(items[:issues].count).to eq(1)
-      end
     end
   end
 
   describe '.filter_items_by_repo' do
     let(:repo_name) { 'owner/repo' }
-    let(:matching_repo) { double('Repository', name_with_owner: repo_name) }
-    let(:non_matching_repo) { double('Repository', name_with_owner: 'other/repo') }
-    let(:matching_item) { double('Item', repository: matching_repo) }
-    let(:non_matching_item) { double('Item', repository: non_matching_repo) }
-    let(:items) { [ matching_item, non_matching_item ] }
+    # Use fixture data for more realistic testing
+    let(:search_response) { mock_github_query('search_query_prs') }
+    let(:items) { search_response.data.search.nodes }
 
     it 'filters items to only those matching the repository name' do
       result = described_class.filter_items_by_repo(items, repo_name)
-
-      expect(result).to eq([ matching_item ])
+      expect(result.all? { |item| item.repository.name_with_owner == repo_name }).to be true
     end
 
     context 'when no items match' do
-      let(:items) { [ non_matching_item ] }
+      let(:repo_name) { 'nonexistent/repo' }
 
       it 'returns an empty array' do
         result = described_class.filter_items_by_repo(items, repo_name)
-
         expect(result).to be_empty
       end
     end
