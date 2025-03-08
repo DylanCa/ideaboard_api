@@ -47,7 +47,7 @@ group :development, :test do
   gem "overcommit"
   gem "simplecov"
   gem "simplecov-json"
-  gem "shoulda-matchers", "~> 5.0"
+  gem "shoulda-matchers", "~> 6.4"
   gem "rails-controller-testing"
 end
 
