@@ -103,7 +103,7 @@ RSpec.describe Persistence::Helper do
     describe '.preload_labels' do
       context 'when labels exist in database' do
         before do
-          label  # Create the label
+          label
           allow(Label).to receive(:where).and_return([ label ])
         end
 
@@ -184,11 +184,9 @@ RSpec.describe Persistence::Helper do
       let(:inserted_items) { [ { 'id' => repo.id, 'github_id' => 'repo-123' } ] }
 
       it 'creates topics and join records in the database' do
-        # Ensure no existing records interfere
         Topic.delete_all
         GithubRepositoryTopic.delete_all
 
-        # Call the method with actual database interaction
         described_class.send(:insert_items_metadata,
                              topics_data,
                              inserted_items,
@@ -198,14 +196,10 @@ RSpec.describe Persistence::Helper do
                              :topic_id
         )
 
-        # Verify topics were created
         expect(Topic.count).to eq(2)
         expect(Topic.pluck(:name)).to match_array([ 'ruby', 'api' ])
-
-        # Verify join records were created
         expect(GithubRepositoryTopic.count).to eq(2)
 
-        # Verify join records link correct topics to repository
         ruby_topic = Topic.find_by(name: 'ruby')
         api_topic = Topic.find_by(name: 'api')
 

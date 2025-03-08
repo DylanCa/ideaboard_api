@@ -5,7 +5,6 @@ RSpec.describe GithubRepositoryServices::ProcessingService do
     let(:mock_repo) { create(:github_repository) }
     let(:repositories) { { mock_repo.full_name => mock_repo } }
 
-    # Use actual fixture data instead of doubles
     let(:search_response) { mock_github_query('search_query_mixed') }
     let(:items) do
       {
@@ -29,7 +28,6 @@ RSpec.describe GithubRepositoryServices::ProcessingService do
   end
 
   describe '.process_search_response' do
-    # Use actual fixture data from GraphQLMocks
     let(:search_response) { mock_github_query('search_query_mixed') }
     let(:nodes) { search_response.data.search.nodes }
     let(:items) { { repositories: Set.new, prs: [], issues: [] } }
@@ -45,7 +43,6 @@ RSpec.describe GithubRepositoryServices::ProcessingService do
 
   describe '.filter_items_by_repo' do
     let(:repo_name) { 'owner/repo' }
-    # Use fixture data for more realistic testing
     let(:search_response) { mock_github_query('search_query_prs') }
     let(:items) { search_response.data.search.nodes }
 

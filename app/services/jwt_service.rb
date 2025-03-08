@@ -34,5 +34,4 @@ class JwtService
   end
 end
 
-# Custom error class for more specific error handling
 class AuthenticationError < StandardError; end

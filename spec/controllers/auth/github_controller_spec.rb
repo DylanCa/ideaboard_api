@@ -75,7 +75,6 @@ RSpec.describe Auth::GithubController, type: :controller do
 
     context "with missing code parameter" do
       it "raises an error" do
-        # Allow the controller to receive empty params
         allow(controller).to receive(:params).and_return({})
 
         expect {
@@ -121,8 +120,6 @@ RSpec.describe Auth::GithubController, type: :controller do
                                                                                     })
 
         allow(JwtService).to receive(:encode).and_return(jwt_token)
-
-        # Freeze time for testing the timestamp
         allow(Time).to receive(:now).and_return(Time.at(1614556800))
       end
 

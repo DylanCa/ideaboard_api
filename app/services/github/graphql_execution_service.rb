@@ -5,7 +5,6 @@ module Github
         context ||= {}
         repo = GithubRepository.find_by_full_name(repo_name)
 
-        # Get token if not provided
         if context[:token].nil?
           user_id, context[:token], usage_type = TokenSelectionService.select_token(repo, username)
         else
@@ -14,15 +13,12 @@ module Github
           usage_type = :personal
         end
 
-        # Log before execution
         log_query_before_execution(query, variables, user_id)
 
-        # Execute query with timing
         start_time = Time.current
         response = perform_query_execution(query, variables, context)
         execution_time = calculate_execution_time(start_time)
 
-        # Handle response and logging
         if response.errors&.any?
           LoggerExtension.log(:error, "GraphQL Query Errors", {
             errors: response.errors,
@@ -33,10 +29,8 @@ module Github
         else
           rate_limit_info = RateLimitTrackingService.extract_rate_limit_info(response)
 
-          # Log execution details
           log_query_execution(response, execution_time, repo, usage_type, rate_limit_info)
 
-          # Track rate limit usage
           RateLimitTrackingService.log_token_usage(
             user_id, repo, usage_type, query, variables, rate_limit_info
           )

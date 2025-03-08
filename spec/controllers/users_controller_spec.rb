@@ -46,7 +46,7 @@ RSpec.describe UsersController, type: :controller do
 
       result = JSON.parse(response.body)
       expect(result['data']).to be_an(Array)
-      expect(result['data'].size).to eq(2) # Based on fixture
+      expect(result['data'].size).to eq(2)
     end
   end
 

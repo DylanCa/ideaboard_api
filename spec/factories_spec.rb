@@ -21,7 +21,6 @@ RSpec.describe 'Factories' do
 
   describe 'GithubAccount factory' do
     it 'creates a valid github account' do
-      # The factory should automatically create a user association
       github_account = create(:github_account)
       expect(github_account).to be_valid
     end

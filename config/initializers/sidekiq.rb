@@ -2,7 +2,6 @@
 Sidekiq.configure_server do |config|
   config.redis = { url: "redis://redis:6379/0" }
 
-  # Schedule all tiers to run hourly but with different criteria
   Sidekiq::Cron::Job.create(
     name: "Owner token repositories - tier 1",
     cron: "Every 30 seconds",

@@ -7,10 +7,7 @@ RSpec.describe JwtService do
   let(:secret_key) { 'test-secret-key' }
 
   before do
-    # Mock SECRET_KEY directly
     stub_const("SECRET_KEY", secret_key)
-
-    # Still mock ENV.fetch for JWT_EXPIRATION
     allow(ENV).to receive(:fetch).with("JWT_EXPIRATION", 1.week).and_return(1.week)
   end
 
@@ -18,7 +15,7 @@ RSpec.describe JwtService do
     it 'encodes a payload into a JWT token' do
       token = described_class.encode(payload)
       expect(token).to be_a(String)
-      expect(token.split('.').length).to eq(3) # Header, payload, signature
+      expect(token.split('.').length).to eq(3)
     end
 
     it 'adds expiration time to payload' do
@@ -80,7 +77,6 @@ RSpec.describe JwtService do
 
     context 'with missing user_id' do
       it 'raises an AuthenticationError' do
-        # Mock a valid JWT decode but with a payload missing user_id
         allow(JWT).to receive(:decode).and_return([ { 'github_username' => github_username } ])
 
         expect {

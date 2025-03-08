@@ -23,7 +23,6 @@ RSpec.describe GithubRepository, type: :model do
     it { should validate_numericality_of(:stars_count).is_greater_than_or_equal_to(0) }
     it { should validate_numericality_of(:forks_count).is_greater_than_or_equal_to(0) }
 
-    # Boolean validations
     it { should validate_inclusion_of(:is_fork).in_array([ true, false ]) }
     it { should validate_inclusion_of(:archived).in_array([ true, false ]) }
     it { should validate_inclusion_of(:disabled).in_array([ true, false ]) }
@@ -66,7 +65,7 @@ RSpec.describe GithubRepository, type: :model do
     describe '.active' do
       it 'returns non-archived, non-disabled repositories' do
         expect(GithubRepository.active).to include(visible_repo)
-        expect(GithubRepository.active).to include(invisible_repo) # Invisible but still active
+        expect(GithubRepository.active).to include(invisible_repo)
         expect(GithubRepository.active).not_to include(archived_repo)
         expect(GithubRepository.active).not_to include(disabled_repo)
       end

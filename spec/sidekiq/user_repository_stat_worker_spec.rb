@@ -20,7 +20,6 @@ RSpec.describe UserRepositoryStatWorker do
       let(:open_issue) { create(:issue, github_repository: repo, author_username: username, closed_at: nil) }
 
       before do
-        # Set up test data
         merged_pr
         open_pr
         closed_pr
@@ -68,7 +67,6 @@ RSpec.describe UserRepositoryStatWorker do
       let(:repo2) { create(:github_repository) }
 
       before do
-        # Create PRs and issues across multiple repositories
         create(:pull_request, github_repository: repo1, author_username: username)
         create(:pull_request, github_repository: repo2, author_username: username)
         create(:issue, github_repository: repo1, author_username: username)

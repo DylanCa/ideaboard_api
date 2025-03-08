@@ -54,12 +54,10 @@ RSpec.describe GithubRepositoryServices::QueryService do
 
     context 'when fetching issues' do
       it 'fetches issues using the GraphQL API' do
-        # Create your response directly without depending on the API module
         response = create_response_from_fixture(Rails.root.join("spec/fixtures/github_api/repository_issues.json"))
 
-        # Mock the helper to return your response
         expect(Github::Helper).to receive(:query_with_logs).with(
-          anything, # Don't check the actual query object
+          anything,
           { owner: owner, name: name, cursor: nil },
           nil,
           repo_full_name,
@@ -124,7 +122,7 @@ RSpec.describe GithubRepositoryServices::QueryService do
         expect(Github::Helper).to receive(:query_with_logs).with(
           Queries::GlobalQueries.search_query,
           { query: "repo:owner/repo", type: "ISSUE", cursor: nil },
-          {}, # Empty context
+          {},
           repo_full_name,
           nil
         ).and_return(mock_response)
@@ -213,7 +211,6 @@ RSpec.describe GithubRepositoryServices::QueryService do
     end
   end
 
-  # Helper method for creating consistent mock clients
   def create_mock_client(mock_response)
     mock_client = double('GraphQL::Client')
     allow(mock_client).to receive(:query).and_return(mock_response)

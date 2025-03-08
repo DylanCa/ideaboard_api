@@ -33,7 +33,6 @@ class UsersController < ApplicationController
     render json: { data: result }
   end
 
-  # GET /users
   def profile
     render json: { user: @current_user,
                    github_account: @current_user.github_account,

@@ -71,7 +71,6 @@ RSpec.describe Github::TokenSelectionService do
         allow(Rails.cache).to receive(:read).and_return(nil)
         allow(Rails.cache).to receive(:write)
 
-        # Create actual records in the database for thorough testing
         owner = create(:user, :with_github_account, :with_access_token)
         owner.github_account.update(github_username: repo.author_username)
 

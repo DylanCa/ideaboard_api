@@ -1,6 +1,5 @@
 require 'rails_helper'
 
-# Create a test worker class that includes BaseWorker
 class TestWorker
   include BaseWorker
 

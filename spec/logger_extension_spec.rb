@@ -4,7 +4,6 @@ RSpec.describe LoggerExtension do
   describe '.log' do
     let(:message) { 'Test log message' }
 
-    # Stub Rails logger to capture log calls
     before do
       @logged_messages = []
       allow(Rails.logger).to receive(:debug) { |msg| @logged_messages << [ :debug, msg ] }
@@ -101,7 +100,6 @@ RSpec.describe LoggerExtension do
       end
 
       it 'sets up a logger with STDOUT output' do
-        # Ensure this file is loaded to trigger the logger configuration
         load 'lib/logger_extension.rb'
         expect(Rails.logger.instance_variable_get(:@logdev).dev).to eq(STDOUT)
       end

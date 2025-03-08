@@ -28,17 +28,14 @@ RSpec.describe ItemsFetcherWorker do
 
         expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
 
-        # Verify PR fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :prs
         )
 
-        # Verify Issue fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :issues
         )
 
-        # Verify twice for both PRs and issues
         expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).twice
 
         expect(result).to include(
@@ -57,17 +54,14 @@ RSpec.describe ItemsFetcherWorker do
 
         expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
 
-        # Verify PR fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :prs
         )
 
-        # Verify Issue fetch and update was not called
         expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items).with(
           repo.full_name, item_type: :issues
         )
 
-        # Verify once for PRs only
         expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).once
 
         expect(result).to include(
@@ -86,17 +80,14 @@ RSpec.describe ItemsFetcherWorker do
 
         expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
 
-        # Verify PR fetch and update was not called
         expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items).with(
           repo.full_name, item_type: :prs
         )
 
-        # Verify Issue fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :issues
         )
 
-        # Verify once for issues only
         expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).once
 
         expect(result).to include(

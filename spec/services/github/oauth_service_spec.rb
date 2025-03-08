@@ -5,14 +5,12 @@ RSpec.describe Github::OauthService do
     let(:code) { 'test-auth-code' }
 
     before do
-      # Set up Octokit authentication mocks (no change here)
       allow(described_class).to receive(:get_tokens).with(code).and_return({ access_token: 'test-access-token' })
 
       client_double = instance_double(Octokit::Client)
       allow(Octokit::Client).to receive(:new).with(access_token: 'test-access-token').and_return(client_double)
       allow(client_double).to receive(:user_authenticated?).and_return(true)
 
-      # Use fixture data instead of directly creating mock data
       github_user_data = JSON.parse(File.read(Rails.root.join('spec/fixtures/github_api/user_data.json')))
       github_user = OpenStruct.new(
         id: github_user_data['viewer']['databaseId'],
@@ -23,7 +21,6 @@ RSpec.describe Github::OauthService do
 
       allow(client_double).to receive(:user).and_return(github_user)
 
-      # Background jobs
       allow(UserRepositoriesFetcherWorker).to receive(:perform_async)
       allow(UserContributionsFetcherWorker).to receive(:perform_async)
       allow(LoggerExtension).to receive(:log)
