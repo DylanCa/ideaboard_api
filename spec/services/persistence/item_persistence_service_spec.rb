@@ -5,89 +5,30 @@ RSpec.describe Persistence::ItemPersistenceService do
     let(:repo) { create(:github_repository) }
 
     context 'when persisting pull requests' do
-      let(:pr) do
-        double('PR',
-               id: 'pr-123',
-               labels: double('Labels', nodes: [ double('Label') ]),
-               title: 'Test PR',
-               url: 'https://github.com/test/pr',
-               number: 1,
-               author: double('Author', login: 'testuser'),
-               merged_at: nil,
-               closed_at: nil,
-               created_at: '2025-01-01T00:00:00Z',
-               updated_at: '2025-01-01T00:00:00Z',
-               is_draft: false,
-               total_comments_count: 0,
-               commits: double('Commits', total_count: 1)
-        )
-      end
-      let(:items) { [ pr ] }
-
-      before do
-        allow(Github::PullRequest).to receive(:from_github).and_return(
-          OpenStruct.new(stringify_keys: { title: 'Test PR' })
-        )
-        allow(Github::Label).to receive(:from_github).and_return(
-          OpenStruct.new(stringify_keys: { name: 'test-label' })
-        )
-        allow(repo.pull_requests).to receive(:upsert_all).and_return([ { 'id' => 1, 'github_id' => 'pr-123' } ])
-        allow(Persistence::Helper).to receive(:insert_items_labels_if_any)
-      end
+      let(:prs_response) { mock_github_query('repository_prs') }
+      let(:items) { prs_response.data.repository.pull_requests.nodes }
 
       it 'persists pull requests and their labels' do
-        described_class.persist_many(items, repo, type: :prs)
+        expect {
+          described_class.persist_many(items, repo, type: :prs)
+        }.to change(PullRequest, :count).by(items.count)
 
-        expect(Github::PullRequest).to have_received(:from_github).with(pr, repo.id)
-        expect(Github::Label).to have_received(:from_github)
-        expect(repo.pull_requests).to have_received(:upsert_all)
-        expect(Persistence::Helper).to have_received(:insert_items_labels_if_any).with(
-          { 'pr-123' => [ { name: 'test-label' } ] },
-          [ { 'id' => 1, 'github_id' => 'pr-123' } ],
-          :prs
-        )
+        expect(Label.count).to be > 0
+        expect(PullRequestLabel.count).to be > 0
       end
     end
 
     context 'when persisting issues' do
-      let(:issue) do
-        double('Issue',
-               id: 'issue-123',
-               labels: double('Labels', nodes: [ double('Label') ]),
-               title: 'Test Issue',
-               url: 'https://github.com/test/issue',
-               number: 1,
-               author: double('Author', login: 'testuser'),
-               closed_at: nil,
-               created_at: '2025-01-01T00:00:00Z',
-               updated_at: '2025-01-01T00:00:00Z',
-               comments: double('Comments', total_count: 0)
-        )
-      end
-      let(:items) { [ issue ] }
-
-      before do
-        allow(Github::Issue).to receive(:from_github).and_return(
-          OpenStruct.new(stringify_keys: { title: 'Test Issue' })
-        )
-        allow(Github::Label).to receive(:from_github).and_return(
-          OpenStruct.new(stringify_keys: { name: 'test-label' })
-        )
-        allow(repo.issues).to receive(:upsert_all).and_return([ { 'id' => 1, 'github_id' => 'issue-123' } ])
-        allow(Persistence::Helper).to receive(:insert_items_labels_if_any)
-      end
+      let(:issues_response) { mock_github_query('repository_issues') }
+      let(:items) { issues_response.data.repository.issues.nodes }
 
       it 'persists issues and their labels' do
-        described_class.persist_many(items, repo, type: :issues)
+        expect {
+          described_class.persist_many(items, repo, type: :issues)
+        }.to change(Issue, :count).by(items.count)
 
-        expect(Github::Issue).to have_received(:from_github).with(issue, repo.id)
-        expect(Github::Label).to have_received(:from_github)
-        expect(repo.issues).to have_received(:upsert_all)
-        expect(Persistence::Helper).to have_received(:insert_items_labels_if_any).with(
-          { 'issue-123' => [ { name: 'test-label' } ] },
-          [ { 'id' => 1, 'github_id' => 'issue-123' } ],
-          :issues
-        )
+        expect(Label.count).to be > 0
+        expect(IssueLabel.count).to be > 0
       end
     end
 

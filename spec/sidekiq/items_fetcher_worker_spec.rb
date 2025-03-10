@@ -4,12 +4,21 @@ RSpec.describe ItemsFetcherWorker do
   describe '#execute' do
     let(:repo) { create(:github_repository, full_name: 'owner/repo') }
     let(:repo_id) { repo.id }
-    let(:prs) { [ double('PR1'), double('PR2') ] }
-    let(:issues) { [ double('Issue1'), double('Issue2') ] }
 
     before do
       allow(GithubRepository).to receive(:find_by).with(id: repo_id).and_return(repo)
-      allow(GithubRepositoryServices::QueryService).to receive(:fetch_items).and_return(prs, issues)
+
+      prs_response = mock_github_query('repository_prs')
+      issues_response = mock_github_query('repository_issues')
+
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_items)
+                                                         .with(repo.full_name, item_type: :prs)
+                                                         .and_return(prs_response.data.repository.pull_requests.nodes)
+
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_items)
+                                                         .with(repo.full_name, item_type: :issues)
+                                                         .and_return(issues_response.data.repository.issues.nodes)
+
       allow(GithubRepositoryServices::PersistenceService).to receive(:update_repository_items)
     end
 
@@ -19,17 +28,14 @@ RSpec.describe ItemsFetcherWorker do
 
         expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
 
-        # Verify PR fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :prs
         )
 
-        # Verify Issue fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :issues
         )
 
-        # Verify twice for both PRs and issues
         expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).twice
 
         expect(result).to include(
@@ -48,17 +54,14 @@ RSpec.describe ItemsFetcherWorker do
 
         expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
 
-        # Verify PR fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :prs
         )
 
-        # Verify Issue fetch and update was not called
         expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items).with(
           repo.full_name, item_type: :issues
         )
 
-        # Verify once for PRs only
         expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).once
 
         expect(result).to include(
@@ -77,17 +80,14 @@ RSpec.describe ItemsFetcherWorker do
 
         expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
 
-        # Verify PR fetch and update was not called
         expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items).with(
           repo.full_name, item_type: :prs
         )
 
-        # Verify Issue fetch and update
         expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
           repo.full_name, item_type: :issues
         )
 
-        # Verify once for issues only
         expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).once
 
         expect(result).to include(

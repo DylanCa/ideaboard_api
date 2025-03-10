@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe "JwtAuthenticable", type: :controller do
-  # Create a test controller that includes the JwtAuthenticable module
   controller do
     include JwtAuthenticable
 
@@ -11,7 +10,6 @@ RSpec.describe "JwtAuthenticable", type: :controller do
   end
 
   before do
-    # Properly set up routes for the test controller
     @routes.draw { get "index" => "anonymous#index" }
   end
 
@@ -66,7 +64,6 @@ RSpec.describe "JwtAuthenticable", type: :controller do
 
     context "with mismatched user" do
       before do
-        # Create a payload with a non-existent github username
         mismatched_payload = token_payload.merge("github_username" => "wrong_username")
         allow(JwtService).to receive(:decode).and_return(mismatched_payload)
         @request.headers['Authorization'] = 'Bearer token'

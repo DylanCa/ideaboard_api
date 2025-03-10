@@ -47,7 +47,7 @@ RSpec.describe PullRequest, type: :model do
     describe '.closed' do
       it 'returns PRs that are closed' do
         expect(PullRequest.closed).to include(closed_pr)
-        expect(PullRequest.closed).to include(merged_pr) # Merged PRs are also closed
+        expect(PullRequest.closed).to include(merged_pr)
         expect(PullRequest.closed).not_to include(open_pr)
       end
     end

@@ -30,7 +30,6 @@ class UserContributionsFetcherWorker
       user.github_account.last_polled_at_date
     )
 
-    # Check if repos_result is an array and has elements before accessing first element
     if repos_result && repos_result[0]
       Persistence::RepositoryPersistenceService.persist_many(repos_result[0])
     end

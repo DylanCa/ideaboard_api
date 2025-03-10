@@ -30,7 +30,6 @@ module Github
       def installation_token
         return @token unless @token.nil?
 
-        # Get a new installation token
         jwt_client = Octokit::Client.new(bearer_token: jwt)
         installation = jwt_client.find_app_installations.first
         token_response = jwt_client.create_app_installation_access_token(installation.id)

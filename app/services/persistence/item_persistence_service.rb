@@ -35,7 +35,6 @@ module Persistence
         )
       end
 
-      # Insert labels using the optimized helper
       Persistence::Helper.insert_items_labels_if_any(labels_for_item, inserted_items, type)
     end
 

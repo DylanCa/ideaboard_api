@@ -11,11 +11,9 @@ module LoggerExtension
   RESET_COLOR = "\e[0m"
 
   def self.log(level, message, context = {})
-    # Colorize the message based on log level
     color_code = COLORS[level] || COLORS[:info]
     formatted_message = "#{color_code}#{format_log_message(message, context)}#{RESET_COLOR}"
 
-    # Use the appropriate Rails logger method
     case level
     when :debug
       Rails.logger.debug(formatted_message)
@@ -43,7 +41,6 @@ module LoggerExtension
   end
 end
 
-# Modify Rails logger configuration to support color
 if Rails.env.development?
   Rails.logger = ActiveSupport::Logger.new(STDOUT)
   Rails.logger.formatter = proc do |severity, datetime, progname, msg|

@@ -5,23 +5,19 @@ RSpec.describe UserRepositoriesFetcherWorker do
     let(:user) { create(:user, :with_github_account, :with_access_token) }
     let(:user_id) { user.id }
     let(:github_username) { user.github_account.github_username }
-    let(:mock_repo_nodes) { [ double('Repository1'), double('Repository2') ] }
-    let(:mock_response) do
-      OpenStruct.new(
-        data: OpenStruct.new(
-          viewer: OpenStruct.new(
-            repositories: OpenStruct.new(
-              nodes: mock_repo_nodes
-            )
-          )
-        )
-      )
-    end
+    let(:mock_response) { mock_github_query('user_repositories') }
 
     before do
       allow(User).to receive(:find).with(user_id).and_return(user)
+
+      mock_response = mock_github_query('user_repositories')
+
       allow(Github::Helper).to receive(:query_with_logs).and_return(mock_response)
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos).and_return([ [ mock_response.data.viewer.repositories.nodes ] ])
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_contributions)
+
       allow(Persistence::RepositoryPersistenceService).to receive(:persist_many)
+      allow(GithubRepositoryServices::ProcessingService).to receive(:process_contributions)
     end
 
     it 'fetches and persists user repositories' do
@@ -33,7 +29,7 @@ RSpec.describe UserRepositoriesFetcherWorker do
         nil,
         { token: user.access_token }
       )
-      expect(Persistence::RepositoryPersistenceService).to have_received(:persist_many).with(mock_repo_nodes)
+      expect(Persistence::RepositoryPersistenceService).to have_received(:persist_many).with(mock_response.data.viewer.repositories.nodes)
 
       expect(result).to include(
                           repos_count: 2,
@@ -72,7 +68,9 @@ RSpec.describe UserRepositoriesFetcherWorker do
 
     context 'when API response has no repositories' do
       before do
+        mock_response = mock_github_query('user_repositories')
         allow(mock_response.data.viewer.repositories).to receive(:nodes).and_return(nil)
+        allow(Github::Helper).to receive(:query_with_logs).and_return(mock_response)
       end
 
       it 'returns early without persisting' do

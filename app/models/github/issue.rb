@@ -9,7 +9,7 @@ module Github
     const :comments_count, Integer
     const :github_created_at, String
     const :github_updated_at, String
-    const :closed_at, T.nilable(String) # can be nil
+    const :closed_at, T.nilable(String)
 
     def self.from_github(data, repo_id = nil)
       new(

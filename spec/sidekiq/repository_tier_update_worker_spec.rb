@@ -7,12 +7,10 @@ RSpec.describe RepositoryTierUpdateWorker do
     let(:global_pool_repos) { [ create(:github_repository, full_name: 'owner/repo3') ] }
 
     before do
-      # Mock the tier-specific repository fetching methods
       allow(subject).to receive(:find_owner_token_repos).and_return(owner_token_repos)
       allow(subject).to receive(:find_contributor_token_repos).and_return(contributor_token_repos)
       allow(subject).to receive(:find_global_pool_repos).and_return(global_pool_repos)
 
-      # Mock the repository update worker
       allow(RepositoryUpdateWorker).to receive(:perform_async)
     end
 
@@ -91,46 +89,39 @@ RSpec.describe RepositoryTierUpdateWorker do
 
     describe '#find_owner_token_repos' do
       it 'finds repositories that have an owner with tokens and need polling' do
-        # Create a user with token and github account
         user = create(:user, :with_access_token)
         github_account = create(:github_account, user: user, github_username: 'test-owner')
 
-        # Create repository owned by this user
         fresh_repo = create(:github_repository, author_username: 'test-owner', last_polled_at: 30.minutes.ago)
         stale_repo = create(:github_repository, author_username: 'test-owner', last_polled_at: 2.hours.ago)
 
-        # Create repository with different owner
         other_repo = create(:github_repository, author_username: 'other-owner')
 
         repos = subject.send(:find_owner_token_repos)
 
         expect(repos).to include(stale_repo)
-        expect(repos).not_to include(fresh_repo) # Too recently polled
-        expect(repos).not_to include(other_repo) # Different owner
+        expect(repos).not_to include(fresh_repo)
+        expect(repos).not_to include(other_repo)
       end
     end
 
     describe '#find_contributor_token_repos' do
       it 'finds repositories with contributors that have tokens and need polling' do
-        # Create user with token
         user = create(:user, :with_access_token, token_usage_level: :contributed)
 
-        # Create repositories
         fresh_repo = create(:github_repository, last_polled_at: 4.hours.ago)
         stale_repo = create(:github_repository, last_polled_at: 7.hours.ago)
 
-        # Create user repository stats to establish contributions
         create(:user_repository_stat, user: user, github_repository: fresh_repo)
         create(:user_repository_stat, user: user, github_repository: stale_repo)
 
-        # Repository without contributions
         other_repo = create(:github_repository, last_polled_at: 7.hours.ago)
 
         repos = subject.send(:find_contributor_token_repos)
 
         expect(repos).to include(stale_repo)
-        expect(repos).not_to include(fresh_repo) # Too recently polled
-        expect(repos).not_to include(other_repo) # No contributions
+        expect(repos).not_to include(fresh_repo)
+        expect(repos).not_to include(other_repo)
       end
     end
 
@@ -138,10 +129,8 @@ RSpec.describe RepositoryTierUpdateWorker do
       it 'finds repositories that have not been polled recently' do
         allow(GithubRepository).to receive(:where).and_call_original
 
-        # Call through the private method
         repos = subject.send(:find_global_pool_repos)
 
-        # Verify this returns repositories that haven't been polled recently
         expect(repos).to include(old_repo)
         expect(repos).to include(never_polled_repo)
         expect(repos).not_to include(recent_repo)

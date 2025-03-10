@@ -5,7 +5,7 @@ class CreateTokenUsageLogs < ActiveRecord::Migration[8.0]
       t.references :github_repository, foreign_key: true
       t.string :query, null: false
       t.string :variables
-      t.integer :usage_type, null: false # personal/contributed/global
+      t.integer :usage_type, null: false
       t.integer :points_used, null: false
       t.integer :points_remaining, null: false
       t.timestamps

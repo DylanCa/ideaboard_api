@@ -3,14 +3,6 @@ require 'rails_helper'
 RSpec.describe Github::OauthService do
   describe '.authenticate' do
     let(:code) { 'test-auth-code' }
-    let(:github_user) do
-      OpenStruct.new(
-        id: 12345,
-        login: 'test-user',
-        email: 'test@example.com',
-        avatar_url: 'https://github.com/avatar.png'
-      )
-    end
 
     before do
       allow(described_class).to receive(:get_tokens).with(code).and_return({ access_token: 'test-access-token' })
@@ -18,11 +10,19 @@ RSpec.describe Github::OauthService do
       client_double = instance_double(Octokit::Client)
       allow(Octokit::Client).to receive(:new).with(access_token: 'test-access-token').and_return(client_double)
       allow(client_double).to receive(:user_authenticated?).and_return(true)
+
+      github_user_data = JSON.parse(File.read(Rails.root.join('spec/fixtures/github_api/user_data.json')))
+      github_user = OpenStruct.new(
+        id: github_user_data['viewer']['databaseId'],
+        login: github_user_data['viewer']['login'],
+        email: github_user_data['viewer']['email'],
+        avatar_url: github_user_data['viewer']['avatarUrl']
+      )
+
       allow(client_double).to receive(:user).and_return(github_user)
 
       allow(UserRepositoriesFetcherWorker).to receive(:perform_async)
       allow(UserContributionsFetcherWorker).to receive(:perform_async)
-
       allow(LoggerExtension).to receive(:log)
     end
 
