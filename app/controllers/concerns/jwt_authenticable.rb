@@ -5,6 +5,10 @@ module JwtAuthenticable
     before_action :authenticate_user!
   end
 
+  def current_user
+    @current_user
+  end
+
   private
 
   def authenticate_user!
