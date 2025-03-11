@@ -1,5 +1,3 @@
-# app/controllers/webhooks_controller.rb (updated with improved error handling)
-
 class WebhooksController < ApplicationController
   include JwtAuthenticable
   skip_before_action :authenticate_user!, only: [ :receive_event ]
@@ -33,7 +31,6 @@ class WebhooksController < ApplicationController
     )
 
     if result[:success]
-      # Save the webhook secret and mark as installed
       @repository.update(
         webhook_secret: webhook_secret,
         webhook_installed: true,
@@ -73,7 +70,6 @@ class WebhooksController < ApplicationController
       return render json: { error: "Unauthorized to remove webhooks from this repository" }, status: :unauthorized
     end
 
-    # Check if webhook is not installed
     unless @repository.webhook_installed?
       return render json: {
         message: "No webhook installed",
@@ -82,14 +78,12 @@ class WebhooksController < ApplicationController
       }
     end
 
-    # Delete webhook with GitHub API
     result = Github::WebhookService.delete_webhook(
       @repository,
       @current_user.access_token
     )
 
     if result[:success] || result[:not_found]
-      # Clear webhook data regardless of whether it was found on GitHub
       @repository.update(
         webhook_secret: nil,
         webhook_installed: false,
@@ -118,60 +112,26 @@ class WebhooksController < ApplicationController
   end
 
   def receive_event
-    payload_body = request.body.read || ""
+    payload_body = request.body.read
     request.body.rewind
 
-    if payload_body.blank?
-      LoggerExtension.log(:warn, "Empty webhook payload received", {
-        delivery_id: request.headers["X-GitHub-Delivery"],
-        event: request.headers["X-GitHub-Event"]
-      })
+    payload = JSON.parse(payload_body)
 
-      payload = {}
-    else
-      begin
-        payload = JSON.parse(payload_body)
-      rescue JSON::ParserError => e
-        LoggerExtension.log(:error, "Invalid JSON in webhook payload", { error: e.message })
-        return head :bad_request
-      end
-    end
-
-    # GitHub sends the event type in the X-GitHub-Event header
     github_event = request.headers["X-GitHub-Event"]
-    github_delivery = request.headers["X-GitHub-Delivery"]
 
-    LoggerExtension.log(:info, "Webhook received", {
-      event: github_event,
-      delivery_id: github_delivery,
-      repository: payload.dig("repository", "full_name")
-    })
-
-    # Extract repository information from the payload
     repository_name = payload.dig("repository", "full_name")
     repository = GithubRepository.find_by(full_name: repository_name)
 
     if repository.nil?
-      # Repository not found in our system, log and return
-      LoggerExtension.log(:warn, "Webhook received for unknown repository", {
-        repository: repository_name,
-        event: github_event,
-        delivery_id: github_delivery
-      })
-      return head :ok  # Return 200 OK even for unknown repos to avoid GitHub retries
+      LoggerExtension.log(:warn, "Webhook received for unknown repository")
+      return head :not_found
     end
 
-    # Verify webhook signature
     unless verify_webhook_signature(payload_body, repository.webhook_secret)
-      LoggerExtension.log(:error, "Invalid webhook signature", {
-        repository: repository_name,
-        event: github_event,
-        delivery_id: github_delivery
-      })
+      LoggerExtension.log(:error, "Invalid webhook signature")
       return head :unauthorized
     end
 
-    # Process the event asynchronously
     WebhookEventProcessorWorker.perform_async(
       github_event,
       payload,
@@ -179,45 +139,35 @@ class WebhooksController < ApplicationController
     )
 
     head :ok
-  rescue => e
-    LoggerExtension.log(:error, "Error processing webhook", {
-      error: e.message,
-      backtrace: e.backtrace.first(5)
-    })
-
-    # Still return 200 to avoid GitHub retries
-    head :ok
+  rescue JSON::ParserError => e
+    LoggerExtension.log(:error, "Invalid JSON in webhook payload", { error: e.message })
+    render json: { error: "Invalid JSON payload" }, status: :bad_request
   end
 
   private
 
+  def verify_webhook_signature(payload_body, webhook_secret)
+    return false if webhook_secret.blank?
+
+    signature_header = request.headers["X-Hub-Signature-256"]
+    return false unless signature_header.present?
+
+    signature = "sha256=" + OpenSSL::HMAC.hexdigest(
+      OpenSSL::Digest.new("sha256"),
+      webhook_secret,
+      payload_body
+    )
+
+    ActiveSupport::SecurityUtils.secure_compare(signature, signature_header)
+  end
+
+  # TODO: Check for admin/write permissions using Github API
   def has_permission_for_repository?(repository)
-    # Simple check - user is the repository owner
-    # Could be expanded to check for admin/write permissions using GitHub API
     repository.author_username == @current_user.github_account.github_username
   end
 
   def webhook_callback_url
     host = ENV["APPLICATION_HOST"] || ENV["LOCAL_TUNNEL"]
     "https://#{host}/api/webhook"
-  end
-
-  def verify_webhook_signature(payload_body, webhook_secret)
-    return true if Rails.env.development? && params[:skip_signature_verification].present?
-    return false if webhook_secret.blank?
-
-    signature_header = request.headers["X-Hub-Signature-256"]
-    return false unless signature_header.present?
-
-    payload_to_verify = payload_body || ""
-
-    signature = "sha256=" + OpenSSL::HMAC.hexdigest(
-      OpenSSL::Digest.new("sha256"),
-      webhook_secret,
-      payload_to_verify
-    )
-
-    # Constant-time comparison to prevent timing attacks
-    ActiveSupport::SecurityUtils.secure_compare(signature, signature_header)
   end
 end
