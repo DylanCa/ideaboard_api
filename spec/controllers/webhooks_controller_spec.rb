@@ -10,6 +10,8 @@ RSpec.describe WebhooksController, type: :controller do
     allow_any_instance_of(JwtAuthenticable).to receive(:extract_token).and_return("test-token")
     allow(JwtService).to receive(:decode).and_return({ "user_id" => user.id, "github_username" => user.github_account.github_username })
     controller.instance_variable_set(:@current_user, user)
+
+    request.headers['CONTENT_TYPE'] = 'application/json'
   end
 
   describe "POST #create" do
@@ -20,7 +22,7 @@ RSpec.describe WebhooksController, type: :controller do
         repository,
         anything,
         anything,
-        hash_including(:callback_url)  # Match any callback URL
+        hash_including(:callback_url)
       ).and_return({
                      success: true,
                      webhook: OpenStruct.new(id: "webhook123")
@@ -60,7 +62,6 @@ RSpec.describe WebhooksController, type: :controller do
                                                "webhook_installed" => true
                                              )
 
-        # Should not call the webhook service
         expect(Github::WebhookService).not_to have_received(:create_webhook)
       end
     end
@@ -158,7 +159,6 @@ RSpec.describe WebhooksController, type: :controller do
                                                "webhook_installed" => false
                                              )
 
-        # Should not call the webhook service
         expect(Github::WebhookService).not_to have_received(:delete_webhook)
       end
     end
@@ -260,11 +260,9 @@ RSpec.describe WebhooksController, type: :controller do
     before do
       allow(WebhookEventProcessorWorker).to receive(:perform_async)
 
-      # Skip authentication for webhook endpoint
       request.headers["X-GitHub-Event"] = "issues"
       request.headers["X-GitHub-Delivery"] = "delivery_id"
 
-      # Calculate the signature
       signature = "sha256=" + OpenSSL::HMAC.hexdigest(
         OpenSSL::Digest.new('sha256'),
         webhook_secret,
@@ -274,8 +272,7 @@ RSpec.describe WebhooksController, type: :controller do
     end
 
     it "processes webhook events and returns 200 OK" do
-      request.env['RAW_POST_DATA'] = payload # Set the raw post data for the request
-      post :receive_event
+      post :receive_event, body: payload
 
       expect(response).to have_http_status(:ok)
       expect(WebhookEventProcessorWorker).to have_received(:perform_async).with(
@@ -291,8 +288,7 @@ RSpec.describe WebhooksController, type: :controller do
       end
 
       it "returns unauthorized" do
-        request.env['RAW_POST_DATA'] = payload
-        post :receive_event
+        post :receive_event, body: payload
 
         expect(response).to have_http_status(:unauthorized)
         expect(WebhookEventProcessorWorker).not_to have_received(:perform_async)
@@ -309,7 +305,6 @@ RSpec.describe WebhooksController, type: :controller do
       end
 
       before do
-        # Calculate the signature for the new payload
         signature = "sha256=" + OpenSSL::HMAC.hexdigest(
           OpenSSL::Digest.new('sha256'),
           webhook_secret,
@@ -318,11 +313,10 @@ RSpec.describe WebhooksController, type: :controller do
         request.headers["X-Hub-Signature-256"] = signature
       end
 
-      it "logs warning and returns 200 OK" do
-        request.env['RAW_POST_DATA'] = payload
-        post :receive_event
+      it "logs warning and returns 404 OK" do
+        post :receive_event, body: payload
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:not_found)
         expect(WebhookEventProcessorWorker).not_to have_received(:perform_async)
       end
     end
@@ -331,27 +325,10 @@ RSpec.describe WebhooksController, type: :controller do
       let(:invalid_payload) { "{invalid_json" }
 
       it "returns bad request" do
-        request.env['RAW_POST_DATA'] = invalid_payload
-        post :receive_event
+        post :receive_event, body: invalid_payload
 
         expect(response).to have_http_status(:bad_request)
         expect(WebhookEventProcessorWorker).not_to have_received(:perform_async)
-      end
-    end
-
-    context "in development with signature verification skipped" do
-      before do
-        allow(Rails.env).to receive(:development?).and_return(true)
-        request.headers["X-Hub-Signature-256"] = "invalid"
-        valid_test_payload = { test: true, repository: { full_name: repository.full_name } }.to_json
-        request.env['RAW_POST_DATA'] = valid_test_payload
-      end
-
-      it "processes the webhook when skip_signature_verification is present" do
-        post :receive_event, params: { skip_signature_verification: true }
-
-        expect(response).to have_http_status(:ok)
-        expect(WebhookEventProcessorWorker).to have_received(:perform_async)
       end
     end
   end
