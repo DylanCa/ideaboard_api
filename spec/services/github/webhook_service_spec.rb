@@ -23,12 +23,11 @@ RSpec.describe Github::WebhookService do
       end
 
       it 'returns success and the webhook object' do
-        result = described_class.create_webhook(repository, access_token, webhook_secret)
+        result = described_class.create_webhook(repository, access_token, webhook_secret, callback_url: callback_url)
 
         expect(result[:success]).to be true
         expect(result[:webhook]).to eq(webhook)
 
-        # Verify the correct parameters were passed to GitHub
         expect(@client).to have_received(:create_hook).with(
           repository.full_name,
           'web',
@@ -37,7 +36,7 @@ RSpec.describe Github::WebhookService do
             content_type: 'json',
             secret: webhook_secret
           },
-          { events: [ 'push', 'pull_request', 'issues', 'issue_comment', 'repository' ], active: true }
+          { events: [ 'pull_request', 'issues', 'repository' ], active: true }
         )
       end
     end
