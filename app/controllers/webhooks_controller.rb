@@ -3,25 +3,59 @@ class WebhooksController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :receive_event ]
 
   def create
-    @repository = GithubRepository.find_by(id: params[:repository_id]) ||
+    @repository = find_repository
+    return render_repository_not_found if @repository.nil?
+    return render_unauthorized_webhook_access unless has_permission_for_repository?(@repository)
+    return render_webhook_already_installed if @repository.webhook_installed?
+
+    install_webhook
+  end
+
+  def destroy
+    @repository = find_repository
+    return render_repository_not_found if @repository.nil?
+    return render_unauthorized_webhook_access unless has_permission_for_repository?(@repository)
+    return render_no_webhook_installed unless @repository.webhook_installed?
+
+    remove_webhook
+  end
+
+  def receive_event
+    payload_body = read_and_reset_request_body
+
+    begin
+      payload = parse_payload(payload_body)
+      repository = find_repository_from_payload(payload)
+
+      if repository.nil?
+        LoggerExtension.log(:error, "Webhook received for unknown repository")
+        return head :not_found
+      end
+
+      unless verify_webhook_signature(payload_body, repository.webhook_secret)
+        LoggerExtension.log(:error, "Invalid webhook signature")
+        return head :unauthorized
+      end
+
+      enqueue_webhook_processing(payload, repository)
+      head :ok
+    rescue JSON::ParserError => e
+      LoggerExtension.log(:error, "Invalid JSON in webhook payload", {
+        error: e.message,
+        context: "webhook_payload_parsing"
+      })
+      render json: { error: "Invalid JSON payload" }, status: :bad_request
+    end
+  end
+
+  private
+
+  def find_repository
+    GithubRepository.find_by(id: params[:repository_id]) ||
       GithubRepository.find_by(full_name: params[:repository_full_name])
+  end
 
-    if @repository.nil?
-      return render json: { error: "Repository not found" }, status: :not_found
-    end
-
-    unless has_permission_for_repository?(@repository)
-      return render json: { error: "Unauthorized to add webhooks to this repository" }, status: :unauthorized
-    end
-
-    if @repository.webhook_installed?
-      return render json: {
-        message: "Webhook already installed",
-        repository_id: @repository.id,
-        webhook_installed: true
-      }
-    end
-
+  def install_webhook
     webhook_secret = SecureRandom.hex(20)
     result = Github::WebhookService.create_webhook(
       @repository,
@@ -31,22 +65,10 @@ class WebhooksController < ApplicationController
     )
 
     if result[:success]
-      @repository.update(
-        webhook_secret: webhook_secret,
-        webhook_installed: true,
-        github_webhook_id: result[:webhook].id
-      )
-
-      render json: {
-        message: "Webhook successfully installed",
-        repository_id: @repository.id,
-        webhook_installed: true
-      }, status: :created
+      update_repository_with_webhook(webhook_secret, result[:webhook].id)
+      render_webhook_installed
     else
-      render json: {
-        error: "Failed to install webhook",
-        details: result[:error_message]
-      }, status: :unprocessable_entity
+      render_webhook_installation_failed(result[:error_message])
     end
   rescue => e
     LoggerExtension.log(:error, "Error creating webhook", {
@@ -55,51 +77,20 @@ class WebhooksController < ApplicationController
       error: e.message,
       backtrace: e.backtrace.first(5)
     })
-
-    render json: { error: "An unexpected error occurred" }, status: :internal_server_error
+    render_unexpected_error
   end
 
-  def destroy
-    @repository = GithubRepository.find_by(id: params[:repository_id])
-
-    if @repository.nil?
-      return render json: { error: "Repository not found" }, status: :not_found
-    end
-
-    unless has_permission_for_repository?(@repository)
-      return render json: { error: "Unauthorized to remove webhooks from this repository" }, status: :unauthorized
-    end
-
-    unless @repository.webhook_installed?
-      return render json: {
-        message: "No webhook installed",
-        repository_id: @repository.id,
-        webhook_installed: false
-      }
-    end
-
+  def remove_webhook
     result = Github::WebhookService.delete_webhook(
       @repository,
       @current_user.access_token
     )
 
     if result[:success] || result[:not_found]
-      @repository.update(
-        webhook_secret: nil,
-        webhook_installed: false,
-        github_webhook_id: nil
-      )
-
-      render json: {
-        message: "Webhook successfully removed",
-        repository_id: @repository.id,
-        webhook_installed: false
-      }
+      update_repository_without_webhook
+      render_webhook_removed
     else
-      render json: {
-        error: "Failed to remove webhook",
-        details: result[:error_message]
-      }, status: :unprocessable_entity
+      render_webhook_removal_failed(result[:error_message])
     end
   rescue => e
     LoggerExtension.log(:error, "Error deleting webhook", {
@@ -107,44 +98,47 @@ class WebhooksController < ApplicationController
       error: e.message,
       backtrace: e.backtrace.first(5)
     })
-
-    render json: { error: "An unexpected error occurred" }, status: :internal_server_error
+    render_unexpected_error
   end
 
-  def receive_event
+  def update_repository_with_webhook(webhook_secret, webhook_id)
+    @repository.update(
+      webhook_secret: webhook_secret,
+      webhook_installed: true,
+      github_webhook_id: webhook_id
+    )
+  end
+
+  def update_repository_without_webhook
+    @repository.update(
+      webhook_secret: nil,
+      webhook_installed: false,
+      github_webhook_id: nil
+    )
+  end
+
+  def read_and_reset_request_body
     payload_body = request.body.read
     request.body.rewind
+    payload_body
+  end
 
-    payload = JSON.parse(payload_body)
+  def parse_payload(payload_body)
+    JSON.parse(payload_body)
+  end
 
-    github_event = request.headers["X-GitHub-Event"]
-
+  def find_repository_from_payload(payload)
     repository_name = payload.dig("repository", "full_name")
-    repository = GithubRepository.find_by(full_name: repository_name)
+    GithubRepository.find_by(full_name: repository_name)
+  end
 
-    if repository.nil?
-      LoggerExtension.log(:warn, "Webhook received for unknown repository")
-      return head :not_found
-    end
-
-    unless verify_webhook_signature(payload_body, repository.webhook_secret)
-      LoggerExtension.log(:error, "Invalid webhook signature")
-      return head :unauthorized
-    end
-
+  def enqueue_webhook_processing(payload, repository)
     WebhookEventProcessorWorker.perform_async(
-      github_event,
+      request.headers["X-GitHub-Event"],
       payload,
       repository.id
     )
-
-    head :ok
-  rescue JSON::ParserError => e
-    LoggerExtension.log(:error, "Invalid JSON in webhook payload", { error: e.message })
-    render json: { error: "Invalid JSON payload" }, status: :bad_request
   end
-
-  private
 
   def verify_webhook_signature(payload_body, webhook_secret)
     return false if webhook_secret.blank?
@@ -152,13 +146,75 @@ class WebhooksController < ApplicationController
     signature_header = request.headers["X-Hub-Signature-256"]
     return false unless signature_header.present?
 
-    signature = "sha256=" + OpenSSL::HMAC.hexdigest(
+    signature = generate_signature(webhook_secret, payload_body)
+    ActiveSupport::SecurityUtils.secure_compare(signature, signature_header)
+  end
+
+  def generate_signature(webhook_secret, payload_body)
+    "sha256=" + OpenSSL::HMAC.hexdigest(
       OpenSSL::Digest.new("sha256"),
       webhook_secret,
       payload_body
     )
+  end
 
-    ActiveSupport::SecurityUtils.secure_compare(signature, signature_header)
+  # Rendering methods
+  def render_repository_not_found
+    render json: { error: "Repository not found" }, status: :not_found
+  end
+
+  def render_unauthorized_webhook_access
+    render json: { error: "Unauthorized to manage webhooks for this repository" }, status: :unauthorized
+  end
+
+  def render_webhook_already_installed
+    render json: {
+      message: "Webhook already installed",
+      repository_id: @repository.id,
+      webhook_installed: true
+    }
+  end
+
+  def render_webhook_installed
+    render json: {
+      message: "Webhook successfully installed",
+      repository_id: @repository.id,
+      webhook_installed: true
+    }, status: :created
+  end
+
+  def render_webhook_installation_failed(error_message)
+    render json: {
+      error: "Failed to install webhook",
+      details: error_message
+    }, status: :unprocessable_entity
+  end
+
+  def render_no_webhook_installed
+    render json: {
+      message: "No webhook installed",
+      repository_id: @repository.id,
+      webhook_installed: false
+    }
+  end
+
+  def render_webhook_removed
+    render json: {
+      message: "Webhook successfully removed",
+      repository_id: @repository.id,
+      webhook_installed: false
+    }
+  end
+
+  def render_webhook_removal_failed(error_message)
+    render json: {
+      error: "Failed to remove webhook",
+      details: error_message
+    }, status: :unprocessable_entity
+  end
+
+  def render_unexpected_error
+    render json: { error: "An unexpected error occurred" }, status: :internal_server_error
   end
 
   # TODO: Check for admin/write permissions using Github API
