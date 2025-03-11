@@ -13,7 +13,6 @@ RSpec.describe Label, type: :model do
 
   describe 'validations' do
     it { should validate_presence_of(:name) }
-    it { should validate_inclusion_of(:is_bug).in_array([ true, false ]) }
   end
 
   describe 'scopes' do

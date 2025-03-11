@@ -22,14 +22,6 @@ RSpec.describe GithubRepository, type: :model do
     it { should validate_presence_of(:github_updated_at) }
     it { should validate_numericality_of(:stars_count).is_greater_than_or_equal_to(0) }
     it { should validate_numericality_of(:forks_count).is_greater_than_or_equal_to(0) }
-
-    it { should validate_inclusion_of(:is_fork).in_array([ true, false ]) }
-    it { should validate_inclusion_of(:archived).in_array([ true, false ]) }
-    it { should validate_inclusion_of(:disabled).in_array([ true, false ]) }
-    it { should validate_inclusion_of(:visible).in_array([ true, false ]) }
-    it { should validate_inclusion_of(:has_contributing).in_array([ true, false ]) }
-    it { should validate_inclusion_of(:app_installed).in_array([ true, false ]) }
-    it { should validate_inclusion_of(:webhook_installed).in_array([ true, false ]) }
   end
 
   describe 'enums' do

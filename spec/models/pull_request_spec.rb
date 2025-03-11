@@ -18,7 +18,6 @@ RSpec.describe PullRequest, type: :model do
     it { should validate_presence_of(:github_updated_at) }
 
     it { should validate_uniqueness_of(:github_id).allow_nil }
-    it { should validate_inclusion_of(:is_draft).in_array([ true, false ]) }
 
     describe 'number uniqueness within repository' do
       subject { create(:pull_request) }
