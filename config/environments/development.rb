@@ -69,7 +69,7 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
 
   # Added ngrok tunnel urls to accepted development hosts
-  config.hosts << "dylanca.ngrok.dev"
+  config.hosts << ENV["LOCAL_TUNNEL"]
 
   config.log_level = :debug
 end

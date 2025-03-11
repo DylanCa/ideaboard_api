@@ -23,4 +23,12 @@ Rails.application.routes.draw do
   get "api/data/refresh" => "users#update_repositories_data"
   get "api/data/add" => "users#add_repository"
   get "api/data/updates" => "users#fetch_repo_updates"
+
+
+  # Webhook management
+  post "api/webhooks", to: "webhooks#create"
+  delete "api/webhooks/:repository_id", to: "webhooks#destroy"
+
+  # Webhook event receiver endpoint
+  post "api/webhook", to: "webhooks#receive_event", as: :webhook_events
 end

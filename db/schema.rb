@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_06_225430) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_11_082313) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -51,6 +51,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_06_225430) do
     t.boolean "webhook_installed", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "github_webhook_id"
     t.index ["author_username", "stars_count"], name: "idx_repos_on_author_and_stars"
     t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true

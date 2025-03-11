@@ -78,6 +78,7 @@ module Github
         LoggerExtension.log(:info, "GraphQL Query Completed", {
           user: response.data.viewer.login,
           execution_time: "#{execution_time}ms",
+          cost: rate_limit_info[:cost],
           rate_limit: "#{rate_limit_info[:remaining]}/#{rate_limit_info[:limit]} requests remaining",
           usage_percentage: "#{rate_limit_info[:percentage_used]}%",
           repository: repo&.full_name,
