@@ -158,7 +158,6 @@ class WebhooksController < ApplicationController
     )
   end
 
-  # Rendering methods
   def render_repository_not_found
     render json: { error: "Repository not found" }, status: :not_found
   end
