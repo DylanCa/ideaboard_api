@@ -63,6 +63,8 @@ Rails.application.routes.draw do
         post :update_data
         get :pull_requests, to: "pull_requests#repository_pull_requests"
         get :issues, to: "issues#repository_issues"
+        get :health
+        get :activity
       end
 
       collection do

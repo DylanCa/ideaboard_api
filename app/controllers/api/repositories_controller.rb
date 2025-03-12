@@ -2,7 +2,7 @@ module Api
   class RepositoriesController < ApplicationController
     include Api::Concerns::JwtAuthenticable
     skip_before_action :authenticate_user!, only: [ :index, :show, :trending, :featured ]
-    before_action :set_repository, only: [ :show, :qualification, :visibility, :update_data ]
+    before_action :set_repository, only: [ :show, :qualification, :visibility, :update_data, :health, :activity ]
     before_action :check_repository_ownership, only: [ :visibility ]
 
     # GET /api/repositories
@@ -278,7 +278,156 @@ module Api
       }
     end
 
+    # GET /api/repositories/:id/health
+    def health
+      return render json: { error: "Repository not found" }, status: :not_found unless @repository
+
+      health_metrics = {
+        # Basic repo stats
+        stars_count: @repository.stars_count,
+        forks_count: @repository.forks_count,
+
+        # Qualification metrics
+        has_license: @repository.license.present?,
+        has_contributing: @repository.has_contributing,
+        is_active: @repository.github_updated_at > 3.months.ago,
+        is_not_archived: !@repository.archived,
+        is_not_disabled: !@repository.disabled,
+
+        # Additional health metrics
+        contributor_count: calculate_contributor_count(@repository),
+        pr_velocity: calculate_pr_velocity(@repository),
+        issue_response_time: calculate_issue_response_time(@repository),
+        pr_merge_rate: calculate_pr_merge_rate(@repository),
+
+        # Overall health score
+        health_score: calculate_health_score(@repository)
+      }
+
+      render json: { health: health_metrics }
+    end
+
+    # GET /api/repositories/:id/activity
+    def activity
+      return render json: { error: "Repository not found" }, status: :not_found unless @repository
+
+
+      # Get recent activities (PRs, issues)
+      recent_prs = @repository.pull_requests
+                              .where("github_created_at > ? OR github_updated_at > ?", 30.days.ago, 30.days.ago)
+                              .order(github_updated_at: :desc)
+                              .limit(20)
+
+      recent_issues = @repository.issues
+                                 .where("github_created_at > ? OR github_updated_at > ?", 30.days.ago, 30.days.ago)
+                                 .order(github_updated_at: :desc)
+                                 .limit(20)
+
+      # Combine and format activities
+      activities = format_activities(recent_prs, recent_issues)
+
+      render json: {
+        repository_id: @repository.id,
+        repository_name: @repository.full_name,
+        activities: activities
+      }
+    end
+
     private
+
+    # Helper methods for health metrics
+    def calculate_contributor_count(repository)
+      PullRequest.where(github_repository_id: repository.id)
+                 .select(:author_username)
+                 .distinct
+                 .count
+    end
+
+    def calculate_pr_velocity(repository)
+      prs_last_month = repository.pull_requests
+                                 .where("merged_at > ?", 30.days.ago)
+                                 .count
+
+      (prs_last_month * 7 / 30.0).round(1) # PRs per week
+    end
+
+    def calculate_issue_response_time(repository)
+      recently_closed_issues = repository.issues
+                                         .where("closed_at > ?", 90.days.ago)
+                                         .where.not(closed_at: nil)
+
+      return nil if recently_closed_issues.empty?
+
+      total_days = recently_closed_issues.sum do |issue|
+        (issue.closed_at.to_date - issue.github_created_at.to_date).to_i
+      end
+
+      (total_days.to_f / recently_closed_issues.count).round(1)
+    end
+
+    def calculate_pr_merge_rate(repository)
+      recent_prs = repository.pull_requests
+                             .where("github_created_at > ?", 90.days.ago)
+
+      return nil if recent_prs.empty?
+
+      merged_prs = recent_prs.where.not(merged_at: nil).count
+      ((merged_prs.to_f / recent_prs.count) * 100).round(1)
+    end
+
+    def calculate_health_score(repository)
+      score = 0
+
+      # Basic qualification factors
+      score += 20 if repository.license.present?
+      score += 15 if repository.has_contributing
+      score += 20 if repository.github_updated_at > 3.months.ago
+      score -= 40 if repository.archived
+      score -= 40 if repository.disabled
+
+      # Activity factors
+      open_issues_count = repository.issues.where(closed_at: nil).count
+      score += 15 if open_issues_count > 0
+      score += 10 if calculate_pr_merge_rate(repository).to_f > 50
+
+      # Popularity factors
+      score += [ repository.stars_count / 100, 10 ].min
+      score += [ repository.forks_count / 10, 10 ].min
+
+      [ score, 100 ].min
+    end
+
+    def format_activities(prs, issues)
+      activities = []
+
+      prs.each do |pr|
+        activities << {
+          type: "pull_request",
+          id: pr.id,
+          title: pr.title,
+          url: pr.url,
+          author: pr.author_username,
+          created_at: pr.github_created_at,
+          updated_at: pr.github_updated_at,
+          state: pr.state
+        }
+      end
+
+      issues.each do |issue|
+        activities << {
+          type: "issue",
+          id: issue.id,
+          title: issue.title,
+          url: issue.url,
+          author: issue.author_username,
+          created_at: issue.github_created_at,
+          updated_at: issue.github_updated_at,
+          closed_at: issue.closed_at
+        }
+      end
+
+      activities.sort_by { |activity| activity[:updated_at] }.reverse
+    end
 
     def set_repository
       @repository = GithubRepository.find_by(id: params[:id]) ||
