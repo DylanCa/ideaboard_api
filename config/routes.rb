@@ -54,9 +54,17 @@ Rails.application.routes.draw do
       end
     end
 
+    # Topics
+    resources :topics, only: [ :index, :show ] do
+      member do
+        get :repositories
+      end
+    end
+
     # Repository Management
     resources :repositories, only: [ :index, :show, :create ] do
       member do
+        get :topics
         get :contributions, to: "contributions#repository_contributions"
         get :qualification
         put :visibility

@@ -333,6 +333,21 @@ module Api
       }
     end
 
+    def topics
+      @repository = GithubRepository.find_by(id: params[:id]) ||
+        GithubRepository.find_by(full_name: params[:id])
+
+      if @repository
+        @topics = @repository.topics
+        render json: {
+          repository: { id: @repository.id, full_name: @repository.full_name },
+          topics: @topics
+        }
+      else
+        render json: { error: "Repository not found" }, status: :not_found
+      end
+    end
+
     private
 
     # Helper methods for health metrics
