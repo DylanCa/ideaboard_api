@@ -28,8 +28,27 @@ Rails.application.routes.draw do
       put "settings", to: "tokens#update_settings"
     end
 
+    # User resources with nested contribution endpoints
+    resources :users, only: [] do
+      collection do
+        get :current, to: "users#current_user"
+        get :repos, to: "users#user_repos"
+        get :contribs, to: "users#fetch_user_contributions"
+        get :contributions, to: "contributions#user_contributions"
+        get "contributions/history", to: "contributions#user_history"
+        get :streaks, to: "contributions#user_streaks"
+      end
+    end
+
     # Repository Management
     resources :repositories, only: [ :index, :show, :create ] do
+      member do
+        get :contributions, to: "contributions#repository_contributions"
+        get :qualification
+        put :visibility
+        post :update_data
+      end
+
       collection do
         get :trending
         get :featured
@@ -38,18 +57,15 @@ Rails.application.routes.draw do
         get :recommendations
         get :needs_help
       end
-
-      member do
-        get :qualification
-        put :visibility
-        post :update_data
-      end
     end
 
-    # User-specific endpoints
-    get "user", to: "users#current_user"
-    get "user/repos", to: "users#user_repos"
-    get "user/contribs", to: "users#fetch_user_contributions"
+    # Leaderboards
+    resources :leaderboards, only: [] do
+      collection do
+        get :global
+        get "repository/:id", to: "leaderboards#repository"
+      end
+    end
 
     # Webhook management
     resources :webhooks, only: [ :create, :show, :destroy ], param: :repository_id
