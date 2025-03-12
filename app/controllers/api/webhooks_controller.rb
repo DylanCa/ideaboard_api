@@ -1,3 +1,4 @@
+module Api
 class WebhooksController < ApplicationController
   include JwtAuthenticable
   skip_before_action :authenticate_user!, only: [ :receive_event ]
@@ -48,7 +49,31 @@ class WebhooksController < ApplicationController
     end
   end
 
+  def show
+    @repository = find_repository_by_id
+
+    if @repository.nil?
+      return render json: { error: "Repository not found" }, status: :not_found
+    end
+
+    unless has_permission_for_repository?(@repository)
+      return render json: { error: "Unauthorized to view webhooks for this repository" }, status: :unauthorized
+    end
+
+    render json: {
+      repository_id: @repository.id,
+      repository_name: @repository.full_name,
+      webhook_installed: @repository.webhook_installed,
+      webhook_id: @repository.github_webhook_id,
+      last_updated: @repository.updated_at
+    }
+  end
+
   private
+
+  def find_repository_by_id
+    GithubRepository.find_by(id: params[:repository_id])
+  end
 
   def find_repository
     GithubRepository.find_by(id: params[:repository_id]) ||
@@ -59,7 +84,7 @@ class WebhooksController < ApplicationController
     webhook_secret = SecureRandom.hex(20)
     result = Github::WebhookService.create_webhook(
       @repository,
-      @current_user.access_token,
+      @current_user,
       webhook_secret,
       callback_url: webhook_callback_url
     )
@@ -225,4 +250,5 @@ class WebhooksController < ApplicationController
     host = ENV["APPLICATION_HOST"] || ENV["LOCAL_TUNNEL"]
     "https://#{host}/api/webhook"
   end
+end
 end
