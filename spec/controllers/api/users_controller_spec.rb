@@ -6,7 +6,7 @@ RSpec.describe Api::UsersController, type: :controller do
 
   before do
     allow(controller).to receive(:authenticate_user!).and_return(true)
-    allow_any_instance_of(JwtAuthenticable).to receive(:extract_token).and_return("test-token")
+    allow_any_instance_of(Api::Concerns::JwtAuthenticable).to receive(:extract_token).and_return("test-token")
     allow(JwtService).to receive(:decode).and_return({ "user_id" => user.id, "github_username" => user.github_account.github_username })
     allow(User).to receive(:joins).and_return(User)
     allow(User).to receive(:find_by!).and_return(user)
@@ -175,8 +175,8 @@ RSpec.describe Api::UsersController, type: :controller do
   end
 
   describe "authentication" do
-    it "includes JwtAuthenticable concern" do
-      expect(UsersController.ancestors).to include(JwtAuthenticable)
+    it "includes Api::Concerns::JwtAuthenticable concern" do
+      expect(UsersController.ancestors).to include(Api::Concerns::JwtAuthenticable)
     end
 
     it "calls authenticate_user! before actions" do

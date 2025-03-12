@@ -1,6 +1,6 @@
 module Api
   class RepositoriesController < ApplicationController
-    include JwtAuthenticable
+    include Api::Concerns::JwtAuthenticable
     skip_before_action :authenticate_user!, only: [ :index, :show, :trending, :featured ]
     before_action :set_repository, only: [ :show, :qualification, :visibility, :update_data ]
     before_action :check_repository_ownership, only: [ :visibility ]

@@ -1,7 +1,7 @@
 module Api
   module Auth
     class GithubController < ApplicationController
-      include JwtAuthenticable
+      include Api::Concerns::JwtAuthenticable
       skip_before_action :authenticate_user!
 
       def initiate

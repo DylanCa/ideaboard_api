@@ -1,6 +1,6 @@
 module Api
   class UsersController < ApplicationController
-    include JwtAuthenticable
+    include Api::Concerns::JwtAuthenticable
 
     def current_user
       result = Github::GraphqlService.fetch_current_user_data(@current_user)

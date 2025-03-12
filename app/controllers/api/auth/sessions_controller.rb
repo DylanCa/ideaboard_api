@@ -2,7 +2,7 @@
 module Api
   module Auth
     class SessionsController < ApplicationController
-      include JwtAuthenticable
+      include Api::Concerns::JwtAuthenticable
 
       def destroy
         # Extract the current token

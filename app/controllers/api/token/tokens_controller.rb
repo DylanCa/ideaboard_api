@@ -2,7 +2,7 @@
 module Api
   module Token
     class TokensController < ApplicationController
-      include JwtAuthenticable
+      include Api::Concerns::JwtAuthenticable
 
       def usage
         # Get date range parameters (default to last 30 days)

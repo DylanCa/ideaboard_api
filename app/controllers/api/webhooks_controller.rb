@@ -1,6 +1,6 @@
 module Api
 class WebhooksController < ApplicationController
-  include JwtAuthenticable
+  include Api::Concerns::JwtAuthenticable
   skip_before_action :authenticate_user!, only: [ :receive_event ]
 
   def create
