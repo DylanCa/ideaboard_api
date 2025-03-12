@@ -29,6 +29,10 @@ class User < ApplicationRecord
     user_token&.access_token
   end
 
+  def github_username
+    github_account&.github_username
+  end
+
   def issues
     Issue.where(author_username: github_account.github_username).order(:created_at)
   end
