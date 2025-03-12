@@ -1,34 +1,58 @@
 require "sidekiq/web"
 
 Rails.application.routes.draw do
+  # Admin tools
   mount Sidekiq::Web => "/sidekiq"
-
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
-  resources :users
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # API namespace for all endpoints
+  namespace :api do
+    # Authentication & User Management
+    namespace :auth do
+      # POST /api/auth/github/initiate - Initiates GitHub OAuth flow
+      post "github/initiate", to: "github#initiate"
 
-  get "api/auth/github/callback" => "auth/github#callback"
-  get "api/profile" => "users#profile"
-  get "api/user" => "users#current_user"
-  get "api/user/repos" => "users#user_repos"
-  get "api/user/contribs" => "users#fetch_user_contributions"
-  get "api/data/refresh" => "users#update_repositories_data"
-  get "api/data/add" => "users#add_repository"
-  get "api/data/updates" => "users#fetch_repo_updates"
+      # GET /api/auth/github/callback - OAuth callback handler
+      get "github/callback", to: "github#callback"
 
+      # DELETE /api/auth/logout - Invalidates the current user session
+      delete "logout", to: "sessions#destroy"
+    end
 
-  # Webhook management
-  post "api/webhooks", to: "webhooks#create"
-  delete "api/webhooks/:repository_id", to: "webhooks#destroy"
+    # User Profile & Settings
+    # GET /api/profile - Retrieves user profile
+    get "profile", to: "users#profile"
 
-  # Webhook event receiver endpoint
-  post "api/webhook", to: "webhooks#receive_event", as: :webhook_events
+    # PUT /api/profile - Updates user profile settings
+    put "profile", to: "users#update_profile"
+
+    # Token Management
+    namespace :token do
+      # GET /api/token/usage - Retrieves token usage statistics
+      get "usage", to: "tokens#usage"
+
+      # PUT /api/token/settings - Updates token usage settings
+      put "settings", to: "tokens#update_settings"
+    end
+
+    # User-specific endpoints
+    get "user", to: "users#current_user"
+    get "user/repos", to: "users#user_repos"
+    get "user/contribs", to: "users#fetch_user_contributions"
+
+    # Legacy data endpoints
+    get "data/refresh", to: "users#update_repositories_data"
+    get "data/add", to: "users#add_repository"
+    get "data/updates", to: "users#fetch_repo_updates"
+
+    # Webhook management
+    post "webhooks", to: "webhooks#create"
+    delete "webhooks/:repository_id", to: "webhooks#destroy"
+    get "webhooks/:repository_id", to: "webhooks#show"
+    post "webhook", to: "webhooks#receive_event", as: :webhook_events
+  end
 end
