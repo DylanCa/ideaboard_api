@@ -37,6 +37,8 @@ Rails.application.routes.draw do
         get :contributions, to: "contributions#user_contributions"
         get "contributions/history", to: "contributions#user_history"
         get :streaks, to: "contributions#user_streaks"
+        get :pull_requests, to: "pull_requests#user_pull_requests"
+        get :issues, to: "issues#user_issues"
       end
     end
 
@@ -47,6 +49,8 @@ Rails.application.routes.draw do
         get :qualification
         put :visibility
         post :update_data
+        get :pull_requests, to: "pull_requests#repository_pull_requests"
+        get :issues, to: "issues#repository_issues"
       end
 
       collection do
@@ -58,6 +62,12 @@ Rails.application.routes.draw do
         get :needs_help
       end
     end
+
+    # Pull Requests resource
+    resources :pull_requests, only: [ :show ]
+
+    # Issues resource
+    resources :issues, only: [ :show ]
 
     # Leaderboards
     resources :leaderboards, only: [] do
