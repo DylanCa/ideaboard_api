@@ -1,16 +1,19 @@
 require 'rails_helper'
 
-RSpec.describe Api::JwtAuthenticable, type: :controller do
-  controller do
-    include JwtAuthenticable
+RSpec.describe Api::Concerns::JwtAuthenticable, type: :controller do
+  # Use a proper controller class instead of an anonymous controller
+  class TestController < ActionController::Base
+    include Api::Concerns::JwtAuthenticable
 
     def index
       render json: { status: 'ok' }
     end
   end
 
+  controller(TestController) { }
+
   before do
-    @routes.draw { get "index" => "anonymous#index" }
+    @routes.draw { get "index" => "test#index" }
   end
 
   describe "#authenticate_user!" do
