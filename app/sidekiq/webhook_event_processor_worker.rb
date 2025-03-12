@@ -16,6 +16,11 @@ class WebhookEventProcessorWorker
       process_issue_comment_event(repository, payload)
     when "repository"
       process_repository_event(repository, payload)
+    when "ping"
+      LoggerExtension.log(:info, "Received ping from Webhook ! :)", {
+        repository: repository.full_name,
+        event: github_event
+      })
     else
       LoggerExtension.log(:error, "Unhandled webhook event type", {
         repository: repository.full_name,

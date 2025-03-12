@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe WebhooksController, type: :controller do
+RSpec.describe Api::WebhooksController, type: :controller do
   let(:user) { create(:user, :with_github_account, :with_access_token) }
   let(:repository) { create(:github_repository, author_username: user.github_account.github_username) }
 
@@ -192,7 +192,7 @@ RSpec.describe WebhooksController, type: :controller do
   def setup_authentication
     allow(controller).to receive(:authenticate_user!).and_return(true)
     allow(controller).to receive(:current_user).and_return(user)
-    allow_any_instance_of(JwtAuthenticable).to receive(:extract_token).and_return("test-token")
+    allow_any_instance_of(Api::Concerns::JwtAuthenticable).to receive(:extract_token).and_return("test-token")
     allow(JwtService).to receive(:decode).and_return({ "user_id" => user.id, "github_username" => user.github_account.github_username })
     controller.instance_variable_set(:@current_user, user)
   end
