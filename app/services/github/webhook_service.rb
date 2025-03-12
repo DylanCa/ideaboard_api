@@ -1,8 +1,17 @@
 module Github
   class WebhookService
     class << self
-      def create_webhook(repository, access_token, webhook_secret, options = {})
-        client = Octokit::Client.new(access_token: access_token)
+      def create_webhook(repository, user, webhook_secret, options = {})
+        client = Octokit::Client.new(access_token: user.access_token)
+
+        begin
+          permission_level = client.permission_level(repository.full_name, user.github_username)[:permission]
+          unless permission_level == "admin"
+            return { success: false, error_message: "You need admin permission on this repository to install webhooks" }
+          end
+        rescue Octokit::Error => e
+          return { success: false, error_message: "Failed to verify repository permissions: #{e.message}" }
+        end
 
         config = {
           url: options[:callback_url],
