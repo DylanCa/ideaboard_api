@@ -6,15 +6,22 @@ class JwtService
     JWT.encode(payload, SECRET_KEY, "HS256")
   end
 
-  def self.decode(token)
+  def self.decode(token, verify_expiration: true)
+    if Rails.cache.exist?("blacklisted_token:#{token}")
+      raise AuthenticationError, "Token has been invalidated"
+    end
+
     decoded_token = JWT.decode(
       token,
       SECRET_KEY,
       true,
-      { algorithm: "HS256" }
+      {
+        algorithm: "HS256",
+        verify_expiration: verify_expiration
+      }
     ).first
 
-    validate_token(decoded_token)
+    validate_token(decoded_token) if verify_expiration
 
     decoded_token
   rescue JWT::ExpiredSignature
@@ -33,5 +40,3 @@ class JwtService
     raise AuthenticationError, "Missing user ID" unless decoded_token["user_id"]
   end
 end
-
-class AuthenticationError < StandardError; end
