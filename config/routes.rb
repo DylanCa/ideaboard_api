@@ -34,6 +34,9 @@ Rails.application.routes.draw do
         get :trending
         get :featured
         post :refresh
+        get :search
+        get :recommendations
+        get :needs_help
       end
 
       member do

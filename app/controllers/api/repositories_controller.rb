@@ -148,6 +148,136 @@ module Api
       }, status: :accepted
     end
 
+    # GET /api/repositories/search
+    def search
+      # Get parameters with defaults
+      @query = params[:q] || ""
+      @page = params[:page] || 1
+      @per_page = params[:per_page] || 20
+      @sort = params[:sort] || "stars"
+      @language = params[:language]
+      @topic = params[:topic]
+
+      # Base query
+      @repositories = GithubRepository.visible.where("full_name ILIKE ? OR description ILIKE ?",
+                                                     "%#{@query}%", "%#{@query}%")
+
+      # Apply filters
+      @repositories = @repositories.with_language(@language) if @language.present?
+      @repositories = @repositories.joins(:topics).where(topics: { name: @topic }) if @topic.present?
+
+      # Apply sorting
+      case @sort
+      when "stars"
+        @repositories = @repositories.order(stars_count: :desc)
+      when "forks"
+        @repositories = @repositories.order(forks_count: :desc)
+      when "recent"
+        @repositories = @repositories.order(github_updated_at: :desc)
+      when "created"
+        @repositories = @repositories.order(github_created_at: :desc)
+      end
+
+      # Paginate
+      @repositories = @repositories.page(@page).per(@per_page)
+
+      render json: {
+        repositories: @repositories,
+        meta: {
+          total_count: @repositories.total_count,
+          current_page: @repositories.current_page,
+          total_pages: @repositories.total_pages,
+          query: @query
+        }
+      }
+    end
+
+    def recommendations
+      unless @current_user
+        return render json: { error: "Authentication required for personalized recommendations" },
+                      status: :unauthorized
+      end
+
+      contributed_repo_ids = UserRepositoryStat.where(user_id: @current_user.id)
+                                               .pluck(:github_repository_id)
+
+      contributed_repos = GithubRepository.where(id: contributed_repo_ids)
+
+      # Get languages and topics
+      languages = contributed_repos.pluck(:language).compact.uniq
+
+      topic_ids = GithubRepositoryTopic.where(github_repository_id: contributed_repo_ids)
+                                       .pluck(:topic_id)
+
+      # Find repositories with similar languages or topics using SQL UNION approach
+      language_repos = GithubRepository.visible
+                                       .where.not(id: contributed_repo_ids)
+                                       .where(language: languages)
+                                       .pluck(:id)
+
+      topic_repos = GithubRepository.visible
+                                    .where.not(id: contributed_repo_ids)
+                                    .joins(:github_repository_topics)
+                                    .where(github_repository_topics: { topic_id: topic_ids })
+                                    .pluck(:id)
+
+      # Combine both sets of IDs
+      combined_repo_ids = (language_repos + topic_repos).uniq
+
+      @recommendations = GithubRepository.where(id: combined_repo_ids)
+                                         .order(stars_count: :desc)
+                                         .page(params[:page] || 1)
+                                         .per(params[:per_page] || 20)
+
+      per_page = params[:per_page] ? params[:per_page].to_i : 20
+
+      render json: {
+        repositories: @recommendations,
+        meta: {
+          total_count: @recommendations.count,
+          current_page: params[:page] || 1,
+          total_pages: (@recommendations.count.to_f / per_page).ceil,
+          based_on: {
+            languages: languages,
+            topics: Topic.where(id: topic_ids).pluck(:name)
+          }
+        }
+      }
+    end
+
+    # GET /api/repositories/needs_help
+    def needs_help
+      # TODO: to improve
+      # Find repositories that need help based on:
+      # 1. Open issues to contributor ratio
+      # 2. Not updated recently
+      # 3. Few recent PRs
+
+      @repositories = GithubRepository.visible
+                                      .joins("LEFT JOIN issues ON issues.github_repository_id = github_repositories.id AND issues.closed_at IS NULL")
+                                      .group("github_repositories.id")
+                                      .having("COUNT(issues.id) > 0")  # Has open issues
+                                      .where("github_repositories.github_updated_at < ?", 30.days.ago)  # Not updated recently
+                                      .or(
+                                        GithubRepository.visible
+                                                        .joins("LEFT JOIN issues ON issues.github_repository_id = github_repositories.id AND issues.closed_at IS NULL")
+                                                        .group("github_repositories.id")
+                                                        .having("COUNT(issues.id) / (github_repositories.stars_count + 1) > 0.05")  # High open issue to star ratio
+                                      )
+                                      .order("COUNT(issues.id) DESC")
+                                      .page(params[:page] || 1)
+                                      .per(params[:per_page] || 20)
+
+      render json: {
+        repositories: @repositories,
+        meta: {
+          total_count: @repositories.total_count,
+          current_page: @repositories.current_page,
+          total_pages: @repositories.total_pages
+        }
+      }
+    end
+
     private
 
     def set_repository
