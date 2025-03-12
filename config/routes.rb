@@ -28,25 +28,76 @@ Rails.application.routes.draw do
       put "settings", to: "tokens#update_settings"
     end
 
+    # Repository Statistics
+    resources :repository_stats, only: [ :index, :show ]
+
+    # Analytics using resources
+    resources :analytics, only: [] do
+      collection do
+        get :user
+        get :repositories
+        get "repository/:id", to: "analytics#repository"
+      end
+    end
+
+    # User resources with nested contribution endpoints
+    resources :users, only: [] do
+      collection do
+        get :current, to: "users#current_user"
+        get :repos, to: "users#user_repos"
+        get :contribs, to: "users#fetch_user_contributions"
+        get :contributions, to: "contributions#user_contributions"
+        get "contributions/history", to: "contributions#user_history"
+        get :streaks, to: "contributions#user_streaks"
+        get :pull_requests, to: "pull_requests#user_pull_requests"
+        get :issues, to: "issues#user_issues"
+      end
+    end
+
+    # Topics
+    resources :topics, only: [ :index, :show ] do
+      member do
+        get :repositories
+      end
+    end
+
     # Repository Management
     resources :repositories, only: [ :index, :show, :create ] do
+      member do
+        get :topics
+        get :contributions, to: "contributions#repository_contributions"
+        get :qualification
+        put :visibility
+        post :update_data
+        get :pull_requests, to: "pull_requests#repository_pull_requests"
+        get :issues, to: "issues#repository_issues"
+        get :health
+        get :activity
+      end
+
       collection do
         get :trending
         get :featured
         post :refresh
-      end
-
-      member do
-        get :qualification
-        put :visibility
-        post :update_data
+        get :search
+        get :recommendations
+        get :needs_help
       end
     end
 
-    # User-specific endpoints
-    get "user", to: "users#current_user"
-    get "user/repos", to: "users#user_repos"
-    get "user/contribs", to: "users#fetch_user_contributions"
+    # Pull Requests resource
+    resources :pull_requests, only: [ :show ]
+
+    # Issues resource
+    resources :issues, only: [ :show ]
+
+    # Leaderboards
+    resources :leaderboards, only: [] do
+      collection do
+        get :global
+        get "repository/:id", to: "leaderboards#repository"
+      end
+    end
 
     # Webhook management
     resources :webhooks, only: [ :create, :show, :destroy ], param: :repository_id
