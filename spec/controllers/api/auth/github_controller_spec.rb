@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Auth::GithubController, type: :controller do
+RSpec.describe Api::Auth::GithubController, type: :controller do
   describe "#callback" do
     let(:code) { "test_auth_code" }
     let(:github_user) do

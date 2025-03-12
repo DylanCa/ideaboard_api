@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe UsersController, type: :controller do
+RSpec.describe Api::UsersController, type: :controller do
   let(:user) { create(:user, :with_github_account, :with_user_stat) }
   let(:github_account) { user.github_account }
 

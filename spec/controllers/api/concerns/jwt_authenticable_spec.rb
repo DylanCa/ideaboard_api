@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "JwtAuthenticable", type: :controller do
+RSpec.describe Api::JwtAuthenticable, type: :controller do
   controller do
     include JwtAuthenticable
 

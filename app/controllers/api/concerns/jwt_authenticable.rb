@@ -1,4 +1,5 @@
-module JwtAuthenticable
+module Api
+  module JwtAuthenticable
   extend ActiveSupport::Concern
 
   included do
@@ -50,5 +51,6 @@ module JwtAuthenticable
 
   def profile_params
     params.require(:user).permit(:email, :token_usage_level)
+  end
   end
 end
