@@ -28,6 +28,18 @@ Rails.application.routes.draw do
       put "settings", to: "tokens#update_settings"
     end
 
+    # Repository Statistics
+    resources :repository_stats, only: [ :index, :show ]
+
+    # Analytics using resources
+    resources :analytics, only: [] do
+      collection do
+        get :user
+        get :repositories
+        get "repository/:id", to: "analytics#repository"
+      end
+    end
+
     # User resources with nested contribution endpoints
     resources :users, only: [] do
       collection do
