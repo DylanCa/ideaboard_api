@@ -40,7 +40,7 @@ RSpec.describe Api::Auth::GithubController, type: :controller do
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to include('application/json')
 
-        json = JSON.parse(response.body)
+        json = JSON.parse(response.body)["data"]
         expect(json).to include(
                           "jwt_token" => jwt_token,
                           "user" => kind_of(Hash),
@@ -51,8 +51,9 @@ RSpec.describe Api::Auth::GithubController, type: :controller do
 
       it "includes the correct user data in the response" do
         get :callback, params: { code: code }
+        expect(response).to have_http_status(:ok)
 
-        json = JSON.parse(response.body)
+        json = JSON.parse(response.body)["data"]
         expect(json["user"]["id"]).to eq(user.id)
         expect(json["github_account"]["github_username"]).to eq(user.github_account.github_username)
         expect(json["user_stat"]).to be_present
@@ -66,20 +67,25 @@ RSpec.describe Api::Auth::GithubController, type: :controller do
                                                                                      })
       end
 
-      it "raises an error" do
-        expect {
-          get :callback, params: { code: code }
-        }.to raise_error(RuntimeError)
+      it "returns unauthorized" do
+        get :callback, params: { code: code }
+
+        expect(response).to have_http_status(:unauthorized)
+        json = JSON.parse(response.body)
+
+        expect(json).to eq({ "data" => nil, "error" => { "message" => "Authentication failed", "status" => 401 }, "meta" => {} })
       end
     end
 
     context "with missing code parameter" do
-      it "raises an error" do
+      it "returns unauthorized" do
         allow(controller).to receive(:params).and_return({})
+        get :callback
 
-        expect {
-          get :callback
-        }.to raise_error(RuntimeError)
+        expect(response).to have_http_status(:unauthorized)
+        json = JSON.parse(response.body)
+
+        expect(json).to eq({ "data" => nil, "error" => { "message" => "Authentication failed", "status" => 401 }, "meta" => {} })
       end
     end
 
@@ -143,10 +149,12 @@ RSpec.describe Api::Auth::GithubController, type: :controller do
                                                                                     })
       end
 
-      it "raises an error with pending TODO implementation" do
-        expect {
-          get :callback, params: { code: code }
-        }.to raise_error(RuntimeError)
+      it "returns an error unauthorized" do
+        get :callback, params: { code: code }
+        expect(response).to have_http_status(:unauthorized)
+        json = JSON.parse(response.body)
+
+        expect(json).to eq({ "data" => nil, "error" => { "message" => "Authentication failed", "status" => 401 }, "meta" => {} })
       end
     end
   end
