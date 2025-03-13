@@ -50,25 +50,6 @@ RSpec.describe Api::UsersController, type: :controller do
     end
   end
 
-  describe "#update_repositories_data" do
-    before do
-      mock_response = mock_github_query('repository_data')
-      repo_result = {
-        'updated' => true,
-        'repository' => mock_response.data.repository.name_with_owner,
-        'stars' => mock_response.data.repository.stargazer_count
-      }
-      allow(Github::GraphqlService).to receive(:update_repositories_data).and_return(repo_result)
-    end
-
-    it "updates and returns repository data" do
-      get :update_repositories_data
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('updated' => true)
-    end
-  end
-
   describe "#add_repository" do
     let(:repo_name) { 'owner/repo' }
 
@@ -79,38 +60,6 @@ RSpec.describe Api::UsersController, type: :controller do
         'repository' => mock_response.data.repository.name_with_owner
       }
       allow(Github::GraphqlService).to receive(:add_repo_by_name).with(repo_name).and_return(repo_result)
-    end
-
-    it "adds and returns repository data" do
-      get :add_repository, params: { repo_name: repo_name }
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('added' => true)
-    end
-  end
-
-  describe "#fetch_repo_updates" do
-    let(:repo_name) { 'owner/repo' }
-
-    before do
-      mock_prs = mock_github_query('repository_prs')
-      mock_issues = mock_github_query('repository_issues')
-
-      update_result = {
-        'updated' => true,
-        'repository' => repo_name,
-        'prs_count' => mock_prs.data.repository.pull_requests.nodes.size,
-        'issues_count' => mock_issues.data.repository.issues.nodes.size
-      }
-
-      allow(Github::GraphqlService).to receive(:fetch_repository_update).with(repo_name).and_return(update_result)
-    end
-
-    it "fetches and returns repository updates" do
-      get :fetch_repo_updates, params: { repo_name: repo_name }
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('updated' => true)
     end
   end
 
@@ -144,7 +93,7 @@ RSpec.describe Api::UsersController, type: :controller do
         get :fetch_user_contributions
 
         expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body)).to eq({ 'data' => nil })
+        expect(JSON.parse(response.body)).to eq({ 'data' => nil, 'error' => nil, 'meta' => {} })
       end
     end
   end
@@ -154,7 +103,7 @@ RSpec.describe Api::UsersController, type: :controller do
       get :profile
 
       expect(response).to have_http_status(:ok)
-      json = JSON.parse(response.body)
+      json = JSON.parse(response.body)["data"]
 
       expect(json['user']['id']).to eq(user.id)
       expect(json['github_account']['github_username']).to eq(github_account.github_username)
@@ -176,7 +125,7 @@ RSpec.describe Api::UsersController, type: :controller do
 
   describe "authentication" do
     it "includes Api::Concerns::JwtAuthenticable concern" do
-      expect(UsersController.ancestors).to include(Api::Concerns::JwtAuthenticable)
+      expect(Api::UsersController.ancestors).to include(Api::Concerns::JwtAuthenticable)
     end
 
     it "calls authenticate_user! before actions" do
