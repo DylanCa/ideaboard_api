@@ -7,10 +7,10 @@ module Github
         begin
           permission_level = client.permission_level(repository.full_name, user.github_username)[:permission]
           unless permission_level == "admin"
-            return { success: false, error_message: "You need admin permission on this repository to install webhooks" }
+            return { success: false, message: "You need admin permission on this repository to install webhooks" }
           end
         rescue Octokit::Error => e
-          return { success: false, error_message: "Failed to verify repository permissions: #{e.message}" }
+          return { success: false, message: "Failed to verify repository permissions: #{e.message}" }
         end
 
         config = {

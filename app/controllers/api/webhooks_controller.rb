@@ -93,7 +93,7 @@ class WebhooksController < ApplicationController
       update_repository_with_webhook(webhook_secret, result[:webhook].id)
       render_webhook_installed
     else
-      render_webhook_installation_failed(result[:error_message])
+      render_webhook_installation_failed(result[:message])
     end
   rescue => e
     LoggerExtension.log(:error, "Error creating webhook", {
@@ -115,7 +115,7 @@ class WebhooksController < ApplicationController
       update_repository_without_webhook
       render_webhook_removed
     else
-      render_webhook_removal_failed(result[:error_message])
+      render_webhook_removal_failed(result[:message])
     end
   rescue => e
     LoggerExtension.log(:error, "Error deleting webhook", {
@@ -208,7 +208,7 @@ class WebhooksController < ApplicationController
   end
 
   def render_webhook_installation_failed(error_message)
-    render_error("Failed to install webhook", :unprocessable_entity, { error_message: error_message })
+    render_error("Failed to install webhook", :unprocessable_entity, { message: error_message })
   end
 
   def render_no_webhook_installed
@@ -224,7 +224,7 @@ class WebhooksController < ApplicationController
   end
 
   def render_webhook_removal_failed(error_message)
-    render_error("Failed to remove webhook", :unprocessable_entity, { error_message: error_message })
+    render_error("Failed to remove webhook", :unprocessable_entity, { message: error_message })
   end
 
   def render_unexpected_error
