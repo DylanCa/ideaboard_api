@@ -21,15 +21,17 @@ module Api
         total_repositories: stats.count
       }
 
-      render json: {
-        contributions: stats,
-        totals: totals,
-        meta: {
+      render_success(
+        {
+          contributions: stats,
+          totals: totals
+        },
+        {
           total_count: stats.total_count,
           current_page: stats.current_page,
           total_pages: stats.total_pages
         }
-      }
+      )
     end
 
     # GET /api/users/contributions/history
@@ -50,15 +52,17 @@ module Api
       # Aggregate data by month
       monthly_data = aggregate_monthly_contributions(prs, issues, start_date, end_date)
 
-      render json: {
-        history: monthly_data,
-        meta: {
+      render_success(
+        {
+          history: monthly_data
+        },
+        {
           start_date: start_date,
           end_date: end_date,
           total_prs: prs.count,
           total_issues: issues.count
         }
-      }
+      )
     end
 
     # GET /api/users/streaks
@@ -75,11 +79,10 @@ module Api
       # Calculate contribution calendar data (for GitHub-style heat map)
       calendar_data = calculate_contribution_calendar(@current_user)
 
-      render json: {
+      render_success({
         current_streak: current_streak,
         longest_streak: longest_streak,
-        calendar_data: calendar_data
-      }
+        calendar_data: calendar_data })
     end
 
     # GET /api/repositories/:id/contributions
@@ -99,10 +102,12 @@ module Api
         total_issues: stats.sum(:issues_opened_count)
       }
 
-      render json: {
-        contributions: stats,
-        totals: totals,
-        meta: {
+      render_success(
+        {
+          contributions: stats,
+          totals: totals
+        },
+        {
           repository: @repository.full_name,
           stars: @repository.stars_count,
           forks: @repository.forks_count,
@@ -110,7 +115,7 @@ module Api
           current_page: stats.current_page,
           total_pages: stats.total_pages
         }
-      }
+      )
     end
 
     private
@@ -120,7 +125,7 @@ module Api
         GithubRepository.find_by(full_name: params[:id])
 
       unless @repository
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 

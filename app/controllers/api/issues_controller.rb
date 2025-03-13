@@ -9,7 +9,7 @@ module Api
       @issue = Issue.find(params[:id])
       render_issue_with_related_data(@issue)
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Issue not found" }, status: :not_found
+      render_error("Issue not found", :not_found)
     end
 
     # GET /api/repositories/:repository_id/issues
@@ -23,16 +23,18 @@ module Api
       # Apply filters if provided
       @issues = apply_issue_filters(@issues)
 
-      render json: {
-        issues: @issues,
-        meta: {
+      render_success(
+        {
+          issues: @issues
+        },
+        {
           total_count: @issues.total_count,
           current_page: @issues.current_page,
           total_pages: @issues.total_pages
         }
-      }
+      )
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Repository not found" }, status: :not_found
+      render_error("Repository not found", :not_found)
     end
 
     # GET /api/users/issues
@@ -46,14 +48,16 @@ module Api
       # Apply filters if provided
       @issues = apply_issue_filters(@issues)
 
-      render json: {
-        issues: @issues.as_json(include: [ :github_repository, :labels ]),
-        meta: {
+      render_success(
+        {
+          issues: @issues.as_json(include: [ :github_repository, :labels ])
+        },
+        {
           total_count: @issues.total_count,
           current_page: @issues.current_page,
           total_pages: @issues.total_pages
         }
-      }
+      )
     end
 
     private
@@ -84,10 +88,10 @@ module Api
     end
 
     def render_issue_with_related_data(issue)
-      render json: {
+      render_success({
         issue: issue.as_json(include: [ :labels ]),
         repository: issue.github_repository
-      }
+      })
     end
   end
 end

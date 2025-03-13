@@ -19,14 +19,16 @@ module Api
         @repositories = @repositories.joins(:topics).where(topics: { name: params[:topic] })
       end
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages
         }
-      }
+      )
     end
 
     # GET /api/repositories/:id
@@ -34,11 +36,11 @@ module Api
       # Get all labels for this repository's issues and PRs
       labels = Label.where(github_repository_id: @repository.id).distinct
 
-      render json: {
+      render_success({
         repository: @repository,
         topics: @repository.topics,
         labels: labels
-      }
+      })
     end
 
     # POST /api/repositories
@@ -46,16 +48,16 @@ module Api
       repo_name = params[:repository_full_name]
 
       if GithubRepository.exists?(full_name: repo_name)
-        render json: { message: "Repository already exists", repository: GithubRepository.find_by(full_name: repo_name) }
+        render_success({ message: "Repository already exists", repository: GithubRepository.find_by(full_name: repo_name) }, {}, :ok)
         return
       end
 
       RepositoryDataFetcherWorker.perform_async(repo_name)
 
-      render json: {
+      render_success({
         message: "Repository add job started",
         repository_name: repo_name
-      }, status: :accepted
+      }, {}, :accepted)
     end
 
     # GET /api/repositories/trending
@@ -70,14 +72,16 @@ module Api
                                       .page(params[:page] || 1)
                                       .per(params[:per_page] || 20)
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages
         }
-      }
+      )
     end
 
     # GET /api/repositories/featured
@@ -90,7 +94,7 @@ module Api
                                       .order(stars_count: :desc)
                                       .limit(10)
 
-      render json: { repositories: @repositories }
+      render_success({ repositories: @repositories }, {}, :ok)
     end
 
     # GET /api/repositories/:id/qualification
@@ -115,37 +119,37 @@ module Api
           qualification_result[:is_not_disabled]
       )
 
-      render json: { qualification: qualification_result }
+      render_success({ qualification: qualification_result }, {}, :ok)
     end
 
     # PUT /api/repositories/:id/visibility
     def visibility
       @repository.update(visible: params[:visible])
-      render json: { repository: @repository }
+      render_success({ repository: @repository }, {}, :ok)
     end
 
     # POST /api/repositories/:id/update_data
     def update_data
       RepositoryUpdateWorker.perform_async(@repository.full_name)
 
-      render json: {
+      render_success({
         message: "Repository update job started",
         repository_id: @repository.id
-      }, status: :accepted
+      }, {}, :accepted)
     end
 
     # POST /api/repositories/refresh_all
     def refresh
       # This action requires authentication
-      return render json: { error: "Unauthorized" }, status: :unauthorized unless @current_user
+      return render_error("Unauthorized", :unauthorized) unless @current_user
 
       # Start the background job to refresh all repositories
       Github::GraphqlService.update_repositories_data
 
-      render json: {
+      render_success({
         message: "Repository refresh job started for all repositories",
         status: "processing"
-      }, status: :accepted
+      }, {}, :accepted)
     end
 
     # GET /api/repositories/search
@@ -181,20 +185,22 @@ module Api
       # Paginate
       @repositories = @repositories.page(@page).per(@per_page)
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages,
           query: @query
         }
-      }
+      )
     end
 
     def recommendations
       unless @current_user
-        return render json: { error: "Authentication required for personalized recommendations" },
+        return render_success({ error: "Authentication required for personalized recommendations" }, {}, :ok),
                       status: :unauthorized
       end
 
@@ -231,9 +237,11 @@ module Api
 
       per_page = params[:per_page] ? params[:per_page].to_i : 20
 
-      render json: {
-        repositories: @recommendations,
-        meta: {
+      render_success(
+        {
+          repositories: @recommendations
+        },
+        {
           total_count: @recommendations.count,
           current_page: params[:page] || 1,
           total_pages: (@recommendations.count.to_f / per_page).ceil,
@@ -242,7 +250,7 @@ module Api
             topics: Topic.where(id: topic_ids).pluck(:name)
           }
         }
-      }
+      )
     end
 
     # GET /api/repositories/needs_help
@@ -268,19 +276,21 @@ module Api
                                       .page(params[:page] || 1)
                                       .per(params[:per_page] || 20)
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages
         }
-      }
+      )
     end
 
     # GET /api/repositories/:id/health
     def health
-      return render json: { error: "Repository not found" }, status: :not_found unless @repository
+      return render_error("Repository not found", :not_found) unless @repository
 
       health_metrics = {
         # Basic repo stats
@@ -304,12 +314,12 @@ module Api
         health_score: calculate_health_score(@repository)
       }
 
-      render json: { health: health_metrics }
+      render_success({ health: health_metrics }, {}, :ok)
     end
 
     # GET /api/repositories/:id/activity
     def activity
-      return render json: { error: "Repository not found" }, status: :not_found unless @repository
+      return render_error("Repository not found", :not_found) unless @repository
 
 
       # Get recent activities (PRs, issues)
@@ -326,11 +336,11 @@ module Api
       # Combine and format activities
       activities = format_activities(recent_prs, recent_issues)
 
-      render json: {
+      render_success({
         repository_id: @repository.id,
         repository_name: @repository.full_name,
         activities: activities
-      }
+      })
     end
 
     def topics
@@ -339,12 +349,12 @@ module Api
 
       if @repository
         @topics = @repository.topics
-        render json: {
+        render_success({
           repository: { id: @repository.id, full_name: @repository.full_name },
           topics: @topics
-        }
+        })
       else
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 
@@ -449,14 +459,13 @@ module Api
         GithubRepository.find_by(full_name: params[:id])
 
       unless @repository
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 
     def check_repository_ownership
       unless @current_user.github_account.github_username == @repository.author_username
-        render json: { error: "You don't have permission to modify this repository" },
-               status: :unauthorized
+        render_error("You don't have permission to modify this repositoryd", :unauthorized)
       end
     end
   end

@@ -9,7 +9,7 @@ module Api
       @pull_request = PullRequest.find(params[:id])
       render_pull_request_with_related_data(@pull_request)
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Pull request not found" }, status: :not_found
+      render_error("Pull request not found", :not_found)
     end
 
     # GET /api/repositories/:repository_id/pull_requests
@@ -23,16 +23,20 @@ module Api
       # Apply filters if provided
       @pull_requests = apply_pull_request_filters(@pull_requests)
 
-      render json: {
-        pull_requests: @pull_requests,
-        meta: {
+
+
+      render_success(
+        {
+          pull_requests: @pull_requests
+      },
+        {
           total_count: @pull_requests.total_count,
           current_page: @pull_requests.current_page,
           total_pages: @pull_requests.total_pages
         }
-      }
+      )
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Repository not found" }, status: :not_found
+      render_error("Repository not found", :not_found)
     end
 
     # GET /api/users/pull_requests
@@ -46,14 +50,16 @@ module Api
       # Apply filters if provided
       @pull_requests = apply_pull_request_filters(@pull_requests)
 
-      render json: {
-        pull_requests: @pull_requests.as_json(include: [ :github_repository, :labels ]),
-        meta: {
+      render_success(
+        {
+          pull_requests: @pull_requests.as_json(include: [ :github_repository, :labels ])
+        },
+        {
           total_count: @pull_requests.total_count,
           current_page: @pull_requests.current_page,
           total_pages: @pull_requests.total_pages
         }
-      }
+      )
     end
 
     private
@@ -88,10 +94,10 @@ module Api
     end
 
     def render_pull_request_with_related_data(pull_request)
-      render json: {
+      render_success({
         pull_request: pull_request.as_json(include: [ :labels ]),
         repository: pull_request.github_repository
-      }
+      })
     end
   end
 end

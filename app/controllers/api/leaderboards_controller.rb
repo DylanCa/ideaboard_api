@@ -20,14 +20,17 @@ module Api
         format_user_stat(stat, index + 1)
       end
 
-      render json: {
-        leaderboard: ranked_leaderboard,
-        meta: {
+
+      render_success(
+        {
+          leaderboard: ranked_leaderboard
+        },
+        {
           total_count: leaderboard.total_count,
           current_page: leaderboard.current_page,
           total_pages: leaderboard.total_pages
         }
-      }
+      )
     end
 
     # GET /api/leaderboards/repository/:id
@@ -44,15 +47,17 @@ module Api
         format_repository_stat(stat, index + 1)
       end
 
-      render json: {
-        repository: @repository.full_name,
-        leaderboard: ranked_leaderboard,
-        meta: {
+
+      render_success(
+        {
+          repository: @repository.full_name,
+          leaderboard: ranked_leaderboard        },
+        {
           total_count: leaderboard.total_count,
           current_page: leaderboard.current_page,
           total_pages: leaderboard.total_pages
         }
-      }
+      )
     end
 
     private
@@ -62,7 +67,7 @@ module Api
         GithubRepository.find_by(full_name: params[:id])
 
       unless @repository
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 

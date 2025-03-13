@@ -12,16 +12,18 @@ module Api
         @topics = @topics.page(params[:page] || 1)
                          .per(params[:per_page] || 20)
 
-        render json: {
-          topics: @topics,
-          meta: {
+        render_success(
+          {
+            topics: @topics
+          },
+          {
             total_count: @topics.total_count,
             current_page: @topics.current_page,
             total_pages: @topics.total_pages
           }
-        }
+        )
       else
-        render json: { topics: @topics }
+        render_success({ topics: @topics }, {}, :ok)
       end
     end
 
@@ -30,9 +32,9 @@ module Api
       @topic = Topic.find_by(id: params[:id]) || Topic.find_by(name: params[:id])
 
       if @topic
-        render json: { topic: @topic }
+        render_success({ topic: @topic }, {}, :ok)
       else
-        render json: { error: "Topic not found" }, status: :not_found
+        render_error("Topic not found", :not_found)
       end
     end
 
@@ -46,17 +48,18 @@ module Api
                               .page(params[:page] || 1)
                               .per(params[:per_page] || 20)
 
-        render json: {
-          topic: @topic,
-          repositories: @repositories,
-          meta: {
+        render_success(
+          {
+            topic: @topic,
+            repositories: @repositories          },
+          {
             total_count: @repositories.total_count,
             current_page: @repositories.current_page,
             total_pages: @repositories.total_pages
           }
-        }
+        )
       else
-        render json: { error: "Topic not found" }, status: :not_found
+        render_error("Topic not found", :not_found)
       end
     end
   end
