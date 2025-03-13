@@ -21,15 +21,17 @@ module Api
         total_repositories: stats.count
       }
 
-      render json: {
-        contributions: stats,
-        totals: totals,
-        meta: {
+      render_success(
+        {
+          contributions: stats,
+          totals: totals
+        },
+        {
           total_count: stats.total_count,
           current_page: stats.current_page,
           total_pages: stats.total_pages
         }
-      }
+      )
     end
 
     # GET /api/users/contributions/history
@@ -50,15 +52,17 @@ module Api
       # Aggregate data by month
       monthly_data = aggregate_monthly_contributions(prs, issues, start_date, end_date)
 
-      render json: {
-        history: monthly_data,
-        meta: {
+      render_success(
+        {
+          history: monthly_data
+        },
+        {
           start_date: start_date,
           end_date: end_date,
           total_prs: prs.count,
           total_issues: issues.count
         }
-      }
+      )
     end
 
     # GET /api/users/streaks
@@ -99,10 +103,12 @@ module Api
         total_issues: stats.sum(:issues_opened_count)
       }
 
-      render json: {
-        contributions: stats,
-        totals: totals,
-        meta: {
+      render_success(
+        {
+          contributions: stats,
+          totals: totals
+        },
+        {
           repository: @repository.full_name,
           stars: @repository.stars_count,
           forks: @repository.forks_count,
@@ -110,7 +116,7 @@ module Api
           current_page: stats.current_page,
           total_pages: stats.total_pages
         }
-      }
+      )
     end
 
     private

@@ -23,14 +23,16 @@ module Api
       # Apply filters if provided
       @issues = apply_issue_filters(@issues)
 
-      render json: {
-        issues: @issues,
-        meta: {
+      render_success(
+        {
+          issues: @issues
+        },
+        {
           total_count: @issues.total_count,
           current_page: @issues.current_page,
           total_pages: @issues.total_pages
         }
-      }
+      )
     rescue ActiveRecord::RecordNotFound
       render_error("Repository not found", :not_found)
     end
@@ -46,14 +48,16 @@ module Api
       # Apply filters if provided
       @issues = apply_issue_filters(@issues)
 
-      render json: {
-        issues: @issues.as_json(include: [ :github_repository, :labels ]),
-        meta: {
+      render_success(
+        {
+          issues: @issues.as_json(include: [ :github_repository, :labels ])
+        },
+        {
           total_count: @issues.total_count,
           current_page: @issues.current_page,
           total_pages: @issues.total_pages
         }
-      }
+      )
     end
 
     private

@@ -23,14 +23,18 @@ module Api
       # Apply filters if provided
       @pull_requests = apply_pull_request_filters(@pull_requests)
 
-      render json: {
-        pull_requests: @pull_requests,
-        meta: {
+
+
+      render_success(
+        {
+          pull_requests: @pull_requests
+      },
+        {
           total_count: @pull_requests.total_count,
           current_page: @pull_requests.current_page,
           total_pages: @pull_requests.total_pages
         }
-      }
+      )
     rescue ActiveRecord::RecordNotFound
       render_error("Repository not found", :not_found)
     end
@@ -46,14 +50,16 @@ module Api
       # Apply filters if provided
       @pull_requests = apply_pull_request_filters(@pull_requests)
 
-      render json: {
-        pull_requests: @pull_requests.as_json(include: [ :github_repository, :labels ]),
-        meta: {
+      render_success(
+        {
+          pull_requests: @pull_requests.as_json(include: [ :github_repository, :labels ])
+        },
+        {
           total_count: @pull_requests.total_count,
           current_page: @pull_requests.current_page,
           total_pages: @pull_requests.total_pages
         }
-      }
+      )
     end
 
     private

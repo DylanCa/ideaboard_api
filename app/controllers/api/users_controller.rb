@@ -35,9 +35,13 @@ module Api
     end
 
     def profile
-      render json: { user: @current_user,
-                     github_account: @current_user.github_account,
-                     user_stat: @current_user.user_stat }
+      render_success(
+        {
+          user: @current_user,
+          github_account: @current_user.github_account,
+          user_stat: @current_user.user_stat
+        }
+      )
     end
 
     def update_profile

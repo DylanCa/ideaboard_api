@@ -19,14 +19,16 @@ module Api
         @repositories = @repositories.joins(:topics).where(topics: { name: params[:topic] })
       end
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages
         }
-      }
+      )
     end
 
     # GET /api/repositories/:id
@@ -70,14 +72,16 @@ module Api
                                       .page(params[:page] || 1)
                                       .per(params[:per_page] || 20)
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages
         }
-      }
+      )
     end
 
     # GET /api/repositories/featured
@@ -181,15 +185,17 @@ module Api
       # Paginate
       @repositories = @repositories.page(@page).per(@per_page)
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages,
           query: @query
         }
-      }
+      )
     end
 
     def recommendations
@@ -231,9 +237,11 @@ module Api
 
       per_page = params[:per_page] ? params[:per_page].to_i : 20
 
-      render json: {
-        repositories: @recommendations,
-        meta: {
+      render_success(
+        {
+          repositories: @recommendations
+        },
+        {
           total_count: @recommendations.count,
           current_page: params[:page] || 1,
           total_pages: (@recommendations.count.to_f / per_page).ceil,
@@ -242,7 +250,7 @@ module Api
             topics: Topic.where(id: topic_ids).pluck(:name)
           }
         }
-      }
+      )
     end
 
     # GET /api/repositories/needs_help
@@ -268,14 +276,16 @@ module Api
                                       .page(params[:page] || 1)
                                       .per(params[:per_page] || 20)
 
-      render json: {
-        repositories: @repositories,
-        meta: {
+      render_success(
+        {
+          repositories: @repositories
+        },
+        {
           total_count: @repositories.total_count,
           current_page: @repositories.current_page,
           total_pages: @repositories.total_pages
         }
-      }
+      )
     end
 
     # GET /api/repositories/:id/health

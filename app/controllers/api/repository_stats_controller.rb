@@ -11,14 +11,16 @@ module Api
                                  .page(params[:page] || 1)
                                  .per(params[:per_page] || 20)
 
-      render json: {
-        repository_stats: format_stats(@stats),
-        meta: {
+      render_success(
+        {
+          repository_stats: format_stats(@stats)
+        },
+        {
           total_count: @stats.total_count,
           current_page: @stats.current_page,
           total_pages: @stats.total_pages
         }
-      }
+      )
     end
 
     def show
