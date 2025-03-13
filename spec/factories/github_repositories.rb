@@ -13,7 +13,7 @@ FactoryBot.define do
     license { "mit" }
     visible { true }
     author_username { "test-author" }
-    language { "ruby" }
+    language { %w[javascript python go php rust java swift kotlin c_sharp].sample }
     update_method { 0 }
     last_polled_at { 2.days.ago }
     app_installed { false }
