@@ -43,7 +43,7 @@ module Api
 
         # Validate it's a valid level
         unless User.token_usage_levels.keys.include?(new_level)
-          return render json: { error: "Invalid token usage level" }, status: :unprocessable_entity
+          return render_error("Invalid token usage level", :unprocessable_entity)
         end
 
         # Update the user's token usage level
@@ -53,7 +53,7 @@ module Api
             token_usage_level: @current_user.token_usage_level
           }
         else
-          render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity
+          render_error("Failed", :unprocessable_entity, { errors: @current_user.errors.full_messages })
         end
       end
 

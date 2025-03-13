@@ -26,9 +26,9 @@ module Api
       @stats = UserRepositoryStat.find_by(user_id: @current_user.id, github_repository_id: repository.id)
 
       if @stats
-        render json: { repository_stats: format_stat(@stats, repository) }
+        render_success({ repository_stats: format_stat(@stats, repository) }, {}, :ok)
       else
-        render json: { error: "No contribution statistics found for this repository" }, status: :not_found
+        render_error("No contribution statistics found for this repository", :not_found)
       end
     end
 

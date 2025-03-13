@@ -11,7 +11,7 @@ module Api
         # Add token to blacklist with expiry time
         blacklist_token(token)
 
-        render json: { message: "Successfully logged out" }
+        render_success({ message: "Successfully logged out" }, {}, :ok)
       end
 
       private

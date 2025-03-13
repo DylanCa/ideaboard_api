@@ -21,7 +21,7 @@ module Api
           }
         }
       else
-        render json: { topics: @topics }
+        render_success({ topics: @topics }, {}, :ok)
       end
     end
 
@@ -30,9 +30,9 @@ module Api
       @topic = Topic.find_by(id: params[:id]) || Topic.find_by(name: params[:id])
 
       if @topic
-        render json: { topic: @topic }
+        render_success({ topic: @topic }, {}, :ok)
       else
-        render json: { error: "Topic not found" }, status: :not_found
+        render_error("Topic not found", :not_found)
       end
     end
 
@@ -56,7 +56,7 @@ module Api
           }
         }
       else
-        render json: { error: "Topic not found" }, status: :not_found
+        render_error("Topic not found", :not_found)
       end
     end
   end

@@ -45,7 +45,7 @@ class WebhooksController < ApplicationController
         error: e.message,
         context: "webhook_payload_parsing"
       })
-      render json: { error: "Invalid JSON payload" }, status: :bad_request
+      render_error("Invalid JSON payload", :bad_request)
     end
   end
 
@@ -53,11 +53,11 @@ class WebhooksController < ApplicationController
     @repository = find_repository_by_id
 
     if @repository.nil?
-      return render json: { error: "Repository not found" }, status: :not_found
+      return render_error("Repository not found", :not_found)
     end
 
     unless has_permission_for_repository?(@repository)
-      return render json: { error: "Unauthorized to view webhooks for this repository" }, status: :unauthorized
+      return render_error("Unauthorized to view webhooks for this repository", :unauthorized)
     end
 
     render json: {
@@ -184,11 +184,11 @@ class WebhooksController < ApplicationController
   end
 
   def render_repository_not_found
-    render json: { error: "Repository not found" }, status: :not_found
+    render_error("Repository not found", :not_found)
   end
 
   def render_unauthorized_webhook_access
-    render json: { error: "Unauthorized to manage webhooks for this repository" }, status: :unauthorized
+    render_error("Unauthorized to manage webhooks for this repository", :unauthorized)
   end
 
   def render_webhook_already_installed
@@ -238,7 +238,7 @@ class WebhooksController < ApplicationController
   end
 
   def render_unexpected_error
-    render json: { error: "An unexpected error occurred" }, status: :internal_server_error
+    render_error("An unexpected error occurred", :internal_server_error)
   end
 
   # TODO: Check for admin/write permissions using Github API

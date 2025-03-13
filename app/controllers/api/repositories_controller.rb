@@ -46,7 +46,7 @@ module Api
       repo_name = params[:repository_full_name]
 
       if GithubRepository.exists?(full_name: repo_name)
-        render json: { message: "Repository already exists", repository: GithubRepository.find_by(full_name: repo_name) }
+        render_success({ message: "Repository already exists", repository: GithubRepository.find_by(full_name: repo_name) }, {}, :ok)
         return
       end
 
@@ -90,7 +90,7 @@ module Api
                                       .order(stars_count: :desc)
                                       .limit(10)
 
-      render json: { repositories: @repositories }
+      render_success({ repositories: @repositories }, {}, :ok)
     end
 
     # GET /api/repositories/:id/qualification
@@ -115,13 +115,13 @@ module Api
           qualification_result[:is_not_disabled]
       )
 
-      render json: { qualification: qualification_result }
+      render_success({ qualification: qualification_result }, {}, :ok)
     end
 
     # PUT /api/repositories/:id/visibility
     def visibility
       @repository.update(visible: params[:visible])
-      render json: { repository: @repository }
+      render_success({ repository: @repository }, {}, :ok)
     end
 
     # POST /api/repositories/:id/update_data
@@ -137,7 +137,7 @@ module Api
     # POST /api/repositories/refresh_all
     def refresh
       # This action requires authentication
-      return render json: { error: "Unauthorized" }, status: :unauthorized unless @current_user
+      return render_error("Unauthorized", :unauthorized) unless @current_user
 
       # Start the background job to refresh all repositories
       Github::GraphqlService.update_repositories_data
@@ -194,7 +194,7 @@ module Api
 
     def recommendations
       unless @current_user
-        return render json: { error: "Authentication required for personalized recommendations" },
+        return render_success({ error: "Authentication required for personalized recommendations" }, {}, :ok),
                       status: :unauthorized
       end
 
@@ -280,7 +280,7 @@ module Api
 
     # GET /api/repositories/:id/health
     def health
-      return render json: { error: "Repository not found" }, status: :not_found unless @repository
+      return render_error("Repository not found", :not_found) unless @repository
 
       health_metrics = {
         # Basic repo stats
@@ -304,12 +304,12 @@ module Api
         health_score: calculate_health_score(@repository)
       }
 
-      render json: { health: health_metrics }
+      render_success({ health: health_metrics }, {}, :ok)
     end
 
     # GET /api/repositories/:id/activity
     def activity
-      return render json: { error: "Repository not found" }, status: :not_found unless @repository
+      return render_error("Repository not found", :not_found) unless @repository
 
 
       # Get recent activities (PRs, issues)
@@ -344,7 +344,7 @@ module Api
           topics: @topics
         }
       else
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 
@@ -449,14 +449,13 @@ module Api
         GithubRepository.find_by(full_name: params[:id])
 
       unless @repository
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 
     def check_repository_ownership
       unless @current_user.github_account.github_username == @repository.author_username
-        render json: { error: "You don't have permission to modify this repository" },
-               status: :unauthorized
+        render_error("You don't have permission to modify this repositoryd", :unauthorized)
       end
     end
   end

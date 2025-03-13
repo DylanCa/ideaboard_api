@@ -62,7 +62,7 @@ module Api
         GithubRepository.find_by(full_name: params[:id])
 
       unless @repository
-        render json: { error: "Repository not found" }, status: :not_found
+        render_error("Repository not found", :not_found)
       end
     end
 

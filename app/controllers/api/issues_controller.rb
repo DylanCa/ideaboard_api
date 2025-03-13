@@ -9,7 +9,7 @@ module Api
       @issue = Issue.find(params[:id])
       render_issue_with_related_data(@issue)
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Issue not found" }, status: :not_found
+      render_error("Issue not found", :not_found)
     end
 
     # GET /api/repositories/:repository_id/issues
@@ -32,7 +32,7 @@ module Api
         }
       }
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Repository not found" }, status: :not_found
+      render_error("Repository not found", :not_found)
     end
 
     # GET /api/users/issues

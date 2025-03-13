@@ -9,7 +9,7 @@ module Api
       @pull_request = PullRequest.find(params[:id])
       render_pull_request_with_related_data(@pull_request)
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Pull request not found" }, status: :not_found
+      render_error("Pull request not found", :not_found)
     end
 
     # GET /api/repositories/:repository_id/pull_requests
@@ -32,7 +32,7 @@ module Api
         }
       }
     rescue ActiveRecord::RecordNotFound
-      render json: { error: "Repository not found" }, status: :not_found
+      render_error("Repository not found", :not_found)
     end
 
     # GET /api/users/pull_requests

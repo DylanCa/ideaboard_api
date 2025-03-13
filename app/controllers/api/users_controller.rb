@@ -4,34 +4,34 @@ module Api
 
     def current_user
       result = Github::GraphqlService.fetch_current_user_data(@current_user)
-      render json: { data: result }
+      render_success({ data: result }, {}, :ok)
     end
 
     def user_repos
       result = Github::GraphqlService.fetch_current_user_repositories(@current_user)
-      render json: { data: result }
+      render_success({ data: result }, {}, :ok)
     end
 
     def update_repositories_data
       result = Github::GraphqlService.update_repositories_data
-      render json: { data: result }
+      render_success({ data: result }, {}, :ok)
     end
 
     def add_repository
       repo_name = params[:repo_name]
       result = Github::GraphqlService.add_repo_by_name(repo_name)
-      render json: { data: result }
+      render_success({ data: result }, {}, :ok)
     end
 
     def fetch_repo_updates
       repo_name = params[:repo_name]
       result = Github::GraphqlService.fetch_repository_update(repo_name)
-      render json: { data: result }
+      render_success({ data: result }, {}, :ok)
     end
 
     def fetch_user_contributions
       result = Github::GraphqlService.fetch_user_contributions(@current_user)
-      render json: { data: result }
+      render_success({ data: result }, {}, :ok)
     end
 
     def profile
@@ -54,7 +54,7 @@ module Api
           user_stat: @current_user.user_stat
         }
       else
-        render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity
+        render_error("Failed", :unprocessable_entity, { errors: @current_user.errors.full_messages })
       end
     end
 

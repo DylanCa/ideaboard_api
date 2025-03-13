@@ -21,7 +21,7 @@ module Api
         }
 
         redirect_url = "#{github_url}?#{params.to_query}"
-        render json: { redirect_url: redirect_url }
+        render_success({ redirect_url: redirect_url }, {}, :ok)
       end
 
       def callback
@@ -32,7 +32,7 @@ module Api
         if state.present?
           stored_state = Rails.cache.read("oauth_state:#{state}")
           if stored_state.nil?
-            return render json: { error: "Invalid OAuth state" }, status: :unauthorized
+            return render_error("Invalid OAuth state", :unauthorized)
           end
           Rails.cache.delete("oauth_state:#{state}")
         end
@@ -54,7 +54,7 @@ module Api
                          github_account: user.github_account,
                          user_stat: user.user_stat }
         else
-          render json: { error: "Authentication failed" }, status: :unauthorized
+          render_error("Authentication failed", :unauthorized)
         end
       end
     end
