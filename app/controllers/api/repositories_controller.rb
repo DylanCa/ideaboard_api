@@ -36,11 +36,11 @@ module Api
       # Get all labels for this repository's issues and PRs
       labels = Label.where(github_repository_id: @repository.id).distinct
 
-      render json: {
+      render_success({
         repository: @repository,
         topics: @repository.topics,
         labels: labels
-      }
+      })
     end
 
     # POST /api/repositories
@@ -54,10 +54,10 @@ module Api
 
       RepositoryDataFetcherWorker.perform_async(repo_name)
 
-      render json: {
+      render_success({
         message: "Repository add job started",
         repository_name: repo_name
-      }, status: :accepted
+      }, {}, :accepted)
     end
 
     # GET /api/repositories/trending
@@ -132,10 +132,10 @@ module Api
     def update_data
       RepositoryUpdateWorker.perform_async(@repository.full_name)
 
-      render json: {
+      render_success({
         message: "Repository update job started",
         repository_id: @repository.id
-      }, status: :accepted
+      }, {}, :accepted)
     end
 
     # POST /api/repositories/refresh_all
@@ -146,10 +146,10 @@ module Api
       # Start the background job to refresh all repositories
       Github::GraphqlService.update_repositories_data
 
-      render json: {
+      render_success({
         message: "Repository refresh job started for all repositories",
         status: "processing"
-      }, status: :accepted
+      }, {}, :accepted)
     end
 
     # GET /api/repositories/search
@@ -336,11 +336,11 @@ module Api
       # Combine and format activities
       activities = format_activities(recent_prs, recent_issues)
 
-      render json: {
+      render_success({
         repository_id: @repository.id,
         repository_name: @repository.full_name,
         activities: activities
-      }
+      })
     end
 
     def topics
@@ -349,10 +349,10 @@ module Api
 
       if @repository
         @topics = @repository.topics
-        render json: {
+        render_success({
           repository: { id: @repository.id, full_name: @repository.full_name },
           topics: @topics
-        }
+        })
       else
         render_error("Repository not found", :not_found)
       end

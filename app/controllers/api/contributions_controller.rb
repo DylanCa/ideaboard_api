@@ -79,11 +79,10 @@ module Api
       # Calculate contribution calendar data (for GitHub-style heat map)
       calendar_data = calculate_contribution_calendar(@current_user)
 
-      render json: {
+      render_success({
         current_streak: current_streak,
         longest_streak: longest_streak,
-        calendar_data: calendar_data
-      }
+        calendar_data: calendar_data })
     end
 
     # GET /api/repositories/:id/contributions

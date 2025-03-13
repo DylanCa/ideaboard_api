@@ -88,10 +88,10 @@ module Api
     end
 
     def render_issue_with_related_data(issue)
-      render json: {
+      render_success({
         issue: issue.as_json(include: [ :labels ]),
         repository: issue.github_repository
-      }
+      })
     end
   end
 end

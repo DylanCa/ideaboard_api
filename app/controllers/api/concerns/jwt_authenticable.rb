@@ -23,13 +23,13 @@ module Api
       end
 
       # Return updated profile
-      render json: {
+      render_success({
         user: @current_user,
         github_account: @current_user.github_account,
         user_stat: @current_user.user_stat
-      }
+      })
     else
-      render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity
+      render_error("Unprocessable entity", :unprocessable_entity, { errors: @current_user.errors.full_messages })
     end
   end
 
@@ -42,7 +42,7 @@ module Api
                         .find_by!(id: payload["user_id"],
                                   github_accounts: { github_username: payload["github_username"] })
   rescue StandardError => e
-    render json: { error: "Unauthorized" }, status: :unauthorized
+    render_error("Unauthorized", :unauthorized)
   end
 
   def extract_token

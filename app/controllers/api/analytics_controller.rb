@@ -27,7 +27,7 @@ module Api
       # Get current streak
       current_streak = repository_stats.maximum(:contribution_streak) || 0
 
-      render json: {
+      render_success({
         user_id: @current_user.id,
         username: @current_user.github_account&.github_username,
         reputation_points: user_stats&.reputation_points || 0,
@@ -48,7 +48,7 @@ module Api
           first_contribution: repository_stats.minimum(:first_contribution_at),
           most_recent_contribution: repository_stats.maximum(:last_contribution_at)
         }
-      }
+      })
     end
 
     def repositories
@@ -79,19 +79,19 @@ module Api
         }
       end
 
-      render json: {
-        repository_counts: {
-          total: repo_count,
-          active: active_repos,
-          inactive: repo_count - active_repos
-        },
-        average_metrics: {
-          stars: avg_stars.to_f.round(2),
-          forks: avg_forks.to_f.round(2)
-        },
-        language_distribution: languages,
-        top_repositories: top_repos
-      }
+      render_success({
+                       repository_counts: {
+                         total: repo_count,
+                         active: active_repos,
+                         inactive: repo_count - active_repos
+                       },
+                       average_metrics: {
+                         stars: avg_stars.to_f.round(2),
+                         forks: avg_forks.to_f.round(2)
+                       },
+                       language_distribution: languages,
+                       top_repositories: top_repos
+                     })
     end
 
     def repository
@@ -141,7 +141,7 @@ module Api
         }
       end
 
-      render json: {
+      render_success({
         repository: {
           id: repository.id,
           full_name: repository.full_name,
@@ -165,7 +165,7 @@ module Api
         },
         top_contributors: top_contributors,
         activity_trend: activity_data
-      }
+      })
     end
   end
 end

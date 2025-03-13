@@ -52,11 +52,11 @@ module Api
           @current_user.update(token_usage_level: allowed_params[:token_usage_level])
         end
 
-        render json: {
+        render_success({
           user: @current_user,
           github_account: @current_user.github_account,
           user_stat: @current_user.user_stat
-        }
+        })
       else
         render_error("Failed", :unprocessable_entity, { errors: @current_user.errors.full_messages })
       end

@@ -94,10 +94,10 @@ module Api
     end
 
     def render_pull_request_with_related_data(pull_request)
-      render json: {
+      render_success({
         pull_request: pull_request.as_json(include: [ :labels ]),
         repository: pull_request.github_repository
-      }
+      })
     end
   end
 end

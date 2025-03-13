@@ -49,10 +49,10 @@ module Api
           }
 
           jwt_token = JwtService.encode(payload)
-          render json: { jwt_token: jwt_token,
+          render_success({ jwt_token: jwt_token,
                          user: user,
                          github_account: user.github_account,
-                         user_stat: user.user_stat }
+                         user_stat: user.user_stat })
         else
           render_error("Authentication failed", :unauthorized)
         end

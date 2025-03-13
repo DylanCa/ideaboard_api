@@ -60,13 +60,13 @@ class WebhooksController < ApplicationController
       return render_error("Unauthorized to view webhooks for this repository", :unauthorized)
     end
 
-    render json: {
+    render_success({
       repository_id: @repository.id,
       repository_name: @repository.full_name,
       webhook_installed: @repository.webhook_installed,
       webhook_id: @repository.github_webhook_id,
       last_updated: @repository.updated_at
-    }
+    })
   end
 
   private
@@ -192,49 +192,39 @@ class WebhooksController < ApplicationController
   end
 
   def render_webhook_already_installed
-    render json: {
-      message: "Webhook already installed",
-      repository_id: @repository.id,
-      webhook_installed: true
-    }
+    render_success({
+                     message: "Webhook already installed",
+                     repository_id: @repository.id,
+                     webhook_installed: true
+                   })
   end
 
   def render_webhook_installed
-    render json: {
-      message: "Webhook successfully installed",
-      repository_id: @repository.id,
-      webhook_installed: true
-    }, status: :created
+    render_success({
+                     message: "Webhook successfully installed",
+                     repository_id: @repository.id,
+                     webhook_installed: true
+                   }, {}, :created)
   end
 
   def render_webhook_installation_failed(error_message)
-    render json: {
-      error: "Failed to install webhook",
-      details: error_message
-    }, status: :unprocessable_entity
+    render_error("Failed to install webhook", :unprocessable_entity, { error_message: error_message })
   end
 
   def render_no_webhook_installed
-    render json: {
-      message: "No webhook installed",
-      repository_id: @repository.id,
-      webhook_installed: false
-    }
+    render_error("No webhook installed", :unprocessable_entity, { repository_id: @repository.id, webhook_installed: false })
   end
 
   def render_webhook_removed
-    render json: {
+    render_success({
       message: "Webhook successfully removed",
       repository_id: @repository.id,
       webhook_installed: false
-    }
+    })
   end
 
   def render_webhook_removal_failed(error_message)
-    render json: {
-      error: "Failed to remove webhook",
-      details: error_message
-    }, status: :unprocessable_entity
+    render_error("Failed to remove webhook", :unprocessable_entity, { error_message: error_message })
   end
 
   def render_unexpected_error

@@ -30,11 +30,11 @@ module Api
           current_token: @current_user.user_token&.access_token&.truncate(10, omission: "...")
         }
 
-        render json: {
+        render_success({
           token_settings: token_settings,
           total_stats: total_stats,
           daily_usage: daily_usage
-        }
+        })
       end
 
       def update_settings
@@ -48,10 +48,10 @@ module Api
 
         # Update the user's token usage level
         if @current_user.update(token_usage_level: new_level)
-          render json: {
+          render_success({
             message: "Token usage level updated successfully",
             token_usage_level: @current_user.token_usage_level
-          }
+          })
         else
           render_error("Failed", :unprocessable_entity, { errors: @current_user.errors.full_messages })
         end
