@@ -64,11 +64,11 @@ module Api
     def trending
       # Using metrics like recent stars, PR activity, and issue activity to calculate trending
       @repositories = GithubRepository.visible
-                                      .where("github_updated_at > ?", 7.days.ago)
+                                      .where("github_repositories.github_updated_at > ?", 7.days.ago)
                                       .joins("LEFT JOIN pull_requests ON pull_requests.github_repository_id = github_repositories.id AND pull_requests.github_created_at > '#{30.days.ago.iso8601}'")
                                       .joins("LEFT JOIN issues ON issues.github_repository_id = github_repositories.id AND issues.github_created_at > '#{30.days.ago.iso8601}'")
                                       .group("github_repositories.id")
-                                      .order("COUNT(pull_requests.id) + COUNT(issues.id) DESC, github_repositories.stars_count DESC")
+                                      .order(Arel.sql("COUNT(pull_requests.id) + COUNT(issues.id) DESC, github_repositories.stars_count DESC"))
                                       .page(params[:page] || 1)
                                       .per(params[:per_page] || 20)
 
@@ -200,8 +200,7 @@ module Api
 
     def recommendations
       unless @current_user
-        return render_success({ error: "Authentication required for personalized recommendations" }, {}, :ok),
-                      status: :unauthorized
+        return render_error("Authentication required for personalized recommendations", :unauthorized)
       end
 
       contributed_repo_ids = UserRepositoryStat.where(user_id: @current_user.id)
