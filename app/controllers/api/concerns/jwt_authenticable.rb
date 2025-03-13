@@ -1,7 +1,8 @@
 module Api
   module Concerns
   module JwtAuthenticable
-  extend ActiveSupport::Concern
+    include Api::Concerns::ResponseFormatter
+    extend ActiveSupport::Concern
 
   included do
     before_action :authenticate_user!

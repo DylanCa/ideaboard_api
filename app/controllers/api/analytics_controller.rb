@@ -1,4 +1,3 @@
-# app/controllers/api/analytics_controller.rb
 module Api
   class AnalyticsController < ApplicationController
     include Api::Concerns::JwtAuthenticable
