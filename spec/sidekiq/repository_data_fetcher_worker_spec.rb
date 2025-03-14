@@ -3,19 +3,22 @@ require 'rails_helper'
 RSpec.describe RepositoryDataFetcherWorker do
   describe '#execute' do
     let(:repo_full_name) { 'owner/repo' }
-    let(:repo_id) { 123 }
+    let!(:repository) { create(:github_repository, full_name: repo_full_name) }
 
     before do
-      allow(RepositoryFetcherWorker).to receive_message_chain(:new, :perform).and_return({ 'id' => repo_id })
+      mock_github_query('repository_data')
       allow(ItemsFetcherWorker).to receive(:perform_async)
     end
 
     it 'fetches repository data and schedules item fetching' do
+      fetcher_worker = instance_double(RepositoryFetcherWorker)
+      allow(fetcher_worker).to receive(:perform).with(repo_full_name).and_return({ 'id' => repository.id })
+      allow(RepositoryFetcherWorker).to receive(:new).and_return(fetcher_worker)
+
       result = subject.execute(repo_full_name)
 
-      expect(RepositoryFetcherWorker).to have_received(:new)
-      expect(ItemsFetcherWorker).to have_received(:perform_async).with(repo_id, 'prs')
-      expect(ItemsFetcherWorker).to have_received(:perform_async).with(repo_id, 'issues')
+      expect(ItemsFetcherWorker).to have_received(:perform_async).with(repository.id, 'prs')
+      expect(ItemsFetcherWorker).to have_received(:perform_async).with(repository.id, 'issues')
 
       expect(result).to include(
                           repository: repo_full_name,
@@ -23,30 +26,33 @@ RSpec.describe RepositoryDataFetcherWorker do
                         )
     end
 
-    context 'when repository fetching fails' do
-      before do
-        allow(RepositoryFetcherWorker).to receive_message_chain(:new, :perform).and_return(nil)
-      end
+    it 'returns nil when repository fetching fails' do
+      fetcher_worker = instance_double(RepositoryFetcherWorker)
+      allow(fetcher_worker).to receive(:perform).with(repo_full_name).and_return(nil)
+      allow(RepositoryFetcherWorker).to receive(:new).and_return(fetcher_worker)
 
-      it 'does not schedule item fetching' do
-        result = subject.execute(repo_full_name)
-
-        expect(result).to be_nil
-        expect(ItemsFetcherWorker).not_to have_received(:perform_async)
-      end
+      result = subject.execute(repo_full_name)
+      expect(result).to be_nil
+      expect(ItemsFetcherWorker).not_to have_received(:perform_async)
     end
 
-    context 'when repository id is missing' do
-      before do
-        allow(RepositoryFetcherWorker).to receive_message_chain(:new, :perform).and_return({})
-      end
+    it 'returns nil when repository id is missing from fetcher response' do
+      fetcher_worker = instance_double(RepositoryFetcherWorker)
+      allow(fetcher_worker).to receive(:perform).with(repo_full_name).and_return({})
+      allow(RepositoryFetcherWorker).to receive(:new).and_return(fetcher_worker)
 
-      it 'does not schedule item fetching' do
-        result = subject.execute(repo_full_name)
+      result = subject.execute(repo_full_name)
+      expect(result).to be_nil
+      expect(ItemsFetcherWorker).not_to have_received(:perform_async)
+    end
 
-        expect(result).to be_nil
-        expect(ItemsFetcherWorker).not_to have_received(:perform_async)
-      end
+    it 'handles errors from fetcher worker' do
+      fetcher_worker = instance_double(RepositoryFetcherWorker)
+      allow(fetcher_worker).to receive(:perform).with(repo_full_name).and_raise(StandardError.new("Fetcher error"))
+      allow(RepositoryFetcherWorker).to receive(:new).and_return(fetcher_worker)
+
+      expect { subject.execute(repo_full_name) }.to raise_error(StandardError, "Fetcher error")
+      expect(ItemsFetcherWorker).not_to have_received(:perform_async)
     end
   end
 end

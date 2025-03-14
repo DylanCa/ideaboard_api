@@ -2,94 +2,81 @@ require 'rails_helper'
 
 RSpec.describe UserContributionsFetcherWorker do
   describe '#execute' do
-    let(:user) { create(:user, :with_github_account, :with_access_token) }
-    let(:user_id) { user.id }
+    let!(:user) { create(:user, :with_github_account, :with_access_token) }
     let(:github_username) { user.github_account.github_username }
 
     before do
-      allow(User).to receive(:find_by).with(id: user_id).and_return(user)
-      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos).and_return([ [ double('Repository') ] ])
+      # Mock only the Github API calls
+      mock_repos_response = mock_github_query('user_repositories')
+      mock_prs_response = mock_github_query('search_query_prs')
+      mock_issues_response = mock_github_query('search_query_issues')
+
+      # Allow query service to use our mocked responses
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos)
+                                                         .with(github_username, anything)
+                                                         .and_return([ mock_repos_response.data.viewer.repositories.nodes ])
+
       allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_contributions)
-      allow(Persistence::RepositoryPersistenceService).to receive(:persist_many)
-      allow(GithubRepositoryServices::ProcessingService).to receive(:process_contributions)
-      allow(user.github_account).to receive(:update)
+                                                         .with(github_username, anything, :prs, anything)
+                                                         .and_return(mock_prs_response)
+
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_contributions)
+                                                         .with(github_username, anything, :issues, anything)
+                                                         .and_return(mock_issues_response)
+
       allow(UserRepositoryStatWorker).to receive(:perform_async)
     end
 
-    it 'fetches newly created repos and contributions' do
-      result = subject.execute(user_id)
+    it 'fetches and persists user repositories and contributions' do
+      old_polled_at = user.github_account.last_polled_at
 
-      expect(User).to have_received(:find_by).with(id: user_id)
-      expect(GithubRepositoryServices::QueryService).to have_received(:fetch_user_repos).with(
-        github_username,
-        user.github_account.last_polled_at_date
-      )
-      expect(Persistence::RepositoryPersistenceService).to have_received(:persist_many)
+      expect {
+        result = subject.execute(user.id)
 
-      expect(GithubRepositoryServices::QueryService).to have_received(:fetch_user_contributions).twice
-      expect(GithubRepositoryServices::ProcessingService).to have_received(:process_contributions)
+        expect(result).to include(
+                            username: github_username,
+                            repos_count: kind_of(Integer),
+                            prs_count: kind_of(Integer),
+                            issues_count: kind_of(Integer)
+                          )
 
-      expect(user.github_account).to have_received(:update).with(hash_including(:last_polled_at))
-      expect(UserRepositoryStatWorker).to have_received(:perform_async).with(user_id)
+        user.github_account.reload
+        expect(user.github_account.last_polled_at).to be > old_polled_at if old_polled_at
+      }.to change { GithubRepository.count }
 
-      expect(result).to include(
-                          username: github_username,
-                          repos_count: 0,
-                          prs_count: 0,
-                          issues_count: 0
-                        )
+      expect(UserRepositoryStatWorker).to have_received(:perform_async).with(user.id)
     end
 
-    context 'when user does not exist' do
-      before do
-        allow(User).to receive(:find_by).with(id: user_id).and_return(nil)
-      end
-
-      it 'returns nil without processing' do
-        result = subject.execute(user_id)
-
-        expect(result).to be_nil
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_user_repos)
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_user_contributions)
-        expect(UserRepositoryStatWorker).not_to have_received(:perform_async)
-      end
+    it 'returns nil when user does not exist' do
+      result = subject.execute(999999)
+      expect(result).to be_nil
+      expect(UserRepositoryStatWorker).not_to have_received(:perform_async)
     end
 
-    context 'when user has no github account' do
-      before do
-        user.github_account = nil
-        allow(User).to receive(:find_by).with(id: user_id).and_return(user)
-      end
-
-      it 'returns nil without processing' do
-        result = subject.execute(user_id)
-
-        expect(result).to be_nil
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_user_repos)
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_user_contributions)
-        expect(UserRepositoryStatWorker).not_to have_received(:perform_async)
-      end
+    it 'returns nil when user has no github account' do
+      user_without_github = create(:user)
+      result = subject.execute(user_without_github.id)
+      expect(result).to be_nil
+      expect(UserRepositoryStatWorker).not_to have_received(:perform_async)
     end
 
-    context 'when new repositories are fetched' do
-      it 'persists them correctly' do
-        allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos).and_return([ [ double('Repository') ] ])
+    it 'still processes contributions when no new repositories are found' do
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos)
+                                                         .with(github_username, anything)
+                                                         .and_return(nil)
 
-        subject.execute(user_id)
+      result = subject.execute(user.id)
 
-        expect(Persistence::RepositoryPersistenceService).to have_received(:persist_many)
-      end
+      expect(result).not_to be_nil
+      expect(result[:username]).to eq(github_username)
+      expect(UserRepositoryStatWorker).to have_received(:perform_async).with(user.id)
     end
 
-    context 'when no new repositories are fetched' do
-      it 'still processes contributions' do
-        allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos).and_return(nil)
+    it 'handles errors during repository fetching' do
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos)
+                                                         .and_raise(StandardError.new("API error"))
 
-        subject.execute(user_id)
-
-        expect(Persistence::RepositoryPersistenceService).not_to have_received(:persist_many)
-        expect(GithubRepositoryServices::QueryService).to have_received(:fetch_user_contributions).twice
-      end
+      expect { subject.execute(user.id) }.to raise_error(StandardError, "API error")
     end
   end
 end

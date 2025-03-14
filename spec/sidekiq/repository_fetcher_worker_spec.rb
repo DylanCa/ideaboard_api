@@ -3,45 +3,67 @@ require 'rails_helper'
 RSpec.describe RepositoryFetcherWorker do
   describe '#execute' do
     let(:repo_name) { 'owner/repo' }
-    let(:mock_repository) { double('Repository') }
-    let(:persisted_repo) { { 'id' => 123 } }
 
     before do
-      allow(GithubRepositoryServices::QueryService).to receive(:fetch_repository).with(repo_name).and_return(mock_repository)
-      allow(Persistence::RepositoryPersistenceService).to receive(:persist_many).with([ mock_repository ]).and_return([ persisted_repo ])
+      mock_response = mock_github_query('repository_data')
+
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_repository)
+                                                         .with(repo_name)
+                                                         .and_return(mock_response.data.repository)
     end
 
-    it 'fetches repository data and persists it' do
-      result = subject.execute(repo_name)
+    it 'fetches repository data and persists it to the database' do
+      expect {
+        subject.execute(repo_name)
+      }.to change(GithubRepository, :count).by(1)
 
-      expect(GithubRepositoryServices::QueryService).to have_received(:fetch_repository).with(repo_name)
-      expect(Persistence::RepositoryPersistenceService).to have_received(:persist_many).with([ mock_repository ])
-      expect(result).to eq(persisted_repo)
+      created_repo = GithubRepository.find_by(full_name: repo_name)
+      expect(created_repo).not_to be_nil
     end
 
-    context 'when repository fetching fails' do
-      before do
-        allow(GithubRepositoryServices::QueryService).to receive(:fetch_repository).with(repo_name).and_return(nil)
-      end
+    it 'updates existing repository when it already exists' do
+      existing_repo = create(:github_repository,
+                             full_name: repo_name,
+                             github_id: 'R_kgDOG2TNuA',
+                             stars_count: 100)
 
-      it 'returns nil without persisting' do
+      expect {
         result = subject.execute(repo_name)
+        expect(result['id']).to eq(existing_repo.id)
+      }.not_to change(GithubRepository, :count)
 
-        expect(result).to be_nil
-        expect(Persistence::RepositoryPersistenceService).not_to have_received(:persist_many)
-      end
+      existing_repo.reload
+      expect(existing_repo.stars_count).to eq(750)
     end
 
-    context 'when persistence returns empty array' do
-      before do
-        allow(Persistence::RepositoryPersistenceService).to receive(:persist_many).with([ mock_repository ]).and_return([])
-      end
+    it 'handles repository topics correctly' do
+      expect {
+        subject.execute(repo_name)
+      }.to change(Topic, :count).by(3)
 
-      it 'returns nil' do
+      created_repo = GithubRepository.find_by(full_name: repo_name)
+      expect(created_repo.topics.count).to eq(3)
+      expect(created_repo.topics.pluck(:name)).to include('ruby', 'rails', 'api')
+    end
+
+    it 'returns nil when repository fetching fails' do
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_repository)
+                                                         .with(repo_name)
+                                                         .and_return(nil)
+
+      expect {
         result = subject.execute(repo_name)
-
         expect(result).to be_nil
-      end
+      }.not_to change(GithubRepository, :count)
+    end
+
+    it 'handles errors during repository persistence' do
+      allow(Persistence::RepositoryPersistenceService).to receive(:persist_many)
+                                                            .and_raise(StandardError.new("Persistence error"))
+
+      expect {
+        expect { subject.execute(repo_name) }.to raise_error(StandardError, "Persistence error")
+      }.not_to change(GithubRepository, :count)
     end
   end
 end
