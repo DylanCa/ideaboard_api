@@ -2,8 +2,8 @@ class UserRepositoriesFetcherWorker
   include BaseWorker
 
   def execute(user_id)
-    user = User.find(user_id)
-    return nil if user.nil? || user.github_account.nil?
+    user = User.find_by(id: user_id)
+    return if user.nil? || user.github_account.nil?
 
     response = Github::Helper.query_with_logs(
       Queries::UserQueries.user_repositories,
