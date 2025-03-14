@@ -2,84 +2,67 @@ require 'rails_helper'
 
 RSpec.describe UserRepositoriesFetcherWorker do
   describe '#execute' do
-    let(:user) { create(:user, :with_github_account, :with_access_token) }
-    let(:user_id) { user.id }
-    let(:github_username) { user.github_account.github_username }
-    let(:mock_response) { mock_github_query('user_repositories') }
-
-    before do
-      allow(User).to receive(:find).with(user_id).and_return(user)
-
-      mock_response = mock_github_query('user_repositories')
-
-      allow(Github::Helper).to receive(:query_with_logs).and_return(mock_response)
-      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_repos).and_return([ [ mock_response.data.viewer.repositories.nodes ] ])
-      allow(GithubRepositoryServices::QueryService).to receive(:fetch_user_contributions)
-
-      allow(Persistence::RepositoryPersistenceService).to receive(:persist_many)
-      allow(GithubRepositoryServices::ProcessingService).to receive(:process_contributions)
-    end
+    let!(:user) { create(:user, :with_github_account, :with_access_token) }
 
     it 'fetches and persists user repositories' do
-      result = subject.execute(user_id)
+      # Create a fresh mock for this test
+      response = create_response_from_fixture(Rails.root.join("spec/fixtures/github_api/user_repositories.json"))
 
-      expect(User).to have_received(:find).with(user_id)
-      expect(Github::Helper).to have_received(:query_with_logs).with(
-        Queries::UserQueries.user_repositories,
-        nil,
-        { token: user.access_token }
-      )
-      expect(Persistence::RepositoryPersistenceService).to have_received(:persist_many).with(mock_response.data.viewer.repositories.nodes)
+      allow(Github::Helper).to receive(:query_with_logs)
+                                 .with(anything, nil, { token: user.access_token })
+                                 .and_return(response)
 
-      expect(result).to include(
-                          repos_count: 2,
-                          username: github_username
-                        )
+      expect {
+        result = subject.execute(user.id)
+
+        expect(result).to include(
+                            repos_count: 2,
+                            username: user.github_account.github_username
+                          )
+      }.to change(GithubRepository, :count).by(2)
     end
 
-    context 'when user does not exist' do
-      before do
-        allow(User).to receive(:find).with(user_id).and_return(nil)
-      end
-
-      it 'returns nil without processing' do
-        result = subject.execute(user_id)
-
-        expect(result).to be_nil
-        expect(Github::Helper).not_to have_received(:query_with_logs)
-        expect(Persistence::RepositoryPersistenceService).not_to have_received(:persist_many)
-      end
+    it 'returns nil when user does not exist' do
+      result = subject.execute(999999)
+      expect(result).to be_nil
     end
 
-    context 'when user has no github account' do
-      before do
-        user.github_account = nil
-        allow(User).to receive(:find).with(user_id).and_return(user)
-      end
-
-      it 'returns nil without processing' do
-        result = subject.execute(user_id)
-
-        expect(result).to be_nil
-        expect(Github::Helper).not_to have_received(:query_with_logs)
-        expect(Persistence::RepositoryPersistenceService).not_to have_received(:persist_many)
-      end
+    it 'returns nil when user has no github account' do
+      user_without_github = create(:user)
+      result = subject.execute(user_without_github.id)
+      expect(result).to be_nil
     end
 
-    context 'when API response has no repositories' do
-      before do
-        mock_response = mock_github_query('user_repositories')
-        allow(mock_response.data.viewer.repositories).to receive(:nodes).and_return(nil)
-        allow(Github::Helper).to receive(:query_with_logs).and_return(mock_response)
-      end
+    it 'returns nil when API response has no repositories' do
+      response = create_response_from_fixture(Rails.root.join("spec/fixtures/github_api/user_repositories.json"))
+      allow(response.data.viewer.repositories).to receive(:nodes).and_return(nil)
 
-      it 'returns early without persisting' do
-        result = subject.execute(user_id)
+      allow(Github::Helper).to receive(:query_with_logs)
+                                 .with(anything, nil, { token: user.access_token })
+                                 .and_return(response)
 
-        expect(result).to be_nil
-        expect(Github::Helper).to have_received(:query_with_logs)
-        expect(Persistence::RepositoryPersistenceService).not_to have_received(:persist_many)
-      end
+      result = subject.execute(user.id)
+      expect(result).to be_nil
+    end
+
+    it 'handles GraphQL API errors' do
+      allow(Github::Helper).to receive(:query_with_logs)
+                                 .and_raise(StandardError.new("API error"))
+
+      expect { subject.execute(user.id) }.to raise_error(StandardError, "API error")
+    end
+
+    it 'handles persistence errors' do
+      response = create_response_from_fixture(Rails.root.join("spec/fixtures/github_api/user_repositories.json"))
+
+      allow(Github::Helper).to receive(:query_with_logs)
+                                 .with(anything, nil, { token: user.access_token })
+                                 .and_return(response)
+
+      allow(Persistence::RepositoryPersistenceService).to receive(:persist_many)
+                                                            .and_raise(StandardError.new("Database error"))
+
+      expect { subject.execute(user.id) }.to raise_error(StandardError, "Database error")
     end
   end
 end

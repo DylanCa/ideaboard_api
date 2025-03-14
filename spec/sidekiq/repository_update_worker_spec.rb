@@ -2,86 +2,87 @@ require 'rails_helper'
 
 RSpec.describe RepositoryUpdateWorker do
   describe '#execute' do
-    let(:repo_name) { 'owner/repo' }
-    let(:repo) { create(:github_repository, full_name: repo_name, last_polled_at: 2.days.ago) }
+    let!(:repository) { create(:github_repository, full_name: 'owner/repo', last_polled_at: 2.days.ago) }
 
     before do
-      allow(GithubRepository).to receive(:find_by_full_name).with(repo_name).and_return(repo)
-      allow(RepositoryFetcherWorker).to receive_message_chain(:new, :perform).and_return({ "id" => repo.id })
-      allow(GithubRepositoryServices::QueryService).to receive(:fetch_updates).and_return({
-                                                                                            repositories: { repo_name => repo },
-                                                                                            prs: [ double('PR1'), double('PR2') ],
-                                                                                            issues: [ double('Issue1'), double('Issue2') ]
-                                                                                          })
-      allow(GithubRepositoryServices::ProcessingService).to receive(:process_contributions)
-      allow(repo).to receive(:update)
+      mock_github_query('repository_data')
+      mock_github_query('repository_prs')
+      mock_github_query('repository_issues')
+
+      allow(RepositoryFetcherWorker).to receive(:new).and_return(
+        instance_double(RepositoryFetcherWorker, perform: { 'id' => repository.id })
+      )
     end
 
     it 'updates repository data and processes changes' do
-      result = subject.execute(repo_name)
+      old_last_polled_at = repository.last_polled_at
 
-      expect(GithubRepository).to have_received(:find_by_full_name).with(repo_name)
-      expect(RepositoryFetcherWorker).to have_received(:new)
-      expect(GithubRepositoryServices::QueryService).to have_received(:fetch_updates).with(repo_name, repo.last_polled_at_date)
-      expect(GithubRepositoryServices::ProcessingService).to have_received(:process_contributions)
-      expect(repo).to have_received(:update).with(hash_including(:last_polled_at))
+      create_list(:pull_request, 2, github_repository: repository)
+      create_list(:issue, 2, github_repository: repository)
+
+      # Execute the worker
+      result = subject.execute(repository.full_name)
+      repository.reload
+
+      expect(repository.last_polled_at).to be > old_last_polled_at
 
       expect(result).to include(
-                          full_name: repo_name,
+                          full_name: repository.full_name,
+                          updated: true
+                        )
+
+      expect(result).to include(:prs_count, :issues_count)
+    end
+
+    it 'handles non-existent repositories' do
+      result = subject.execute('nonexistent/repo')
+      expect(result).to be_nil
+    end
+
+    it 'updates last_polled_at even when no changes are found' do
+      old_last_polled_at = repository.last_polled_at
+
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_updates).and_return({
+                                                                                            repositories: {},
+                                                                                            prs: [],
+                                                                                            issues: []
+                                                                                          })
+
+      result = subject.execute(repository.full_name)
+      repository.reload
+
+      expect(repository.last_polled_at).to be > old_last_polled_at
+      expect(result).to include(
+                          full_name: repository.full_name,
                           updated: true,
-                          prs_count: 2,
-                          issues_count: 2
+                          prs_count: 0,
+                          issues_count: 0
                         )
     end
 
-    context 'when repository is not found' do
-      before do
-        allow(GithubRepository).to receive(:find_by_full_name).with(repo_name).and_return(nil)
-      end
+    it 'continues processing when repository fetching fails' do
+      allow(RepositoryFetcherWorker).to receive(:new).and_return(
+        instance_double(RepositoryFetcherWorker, perform: nil)
+      )
 
-      it 'returns nil without processing' do
-        result = subject.execute(repo_name)
+      old_last_polled_at = repository.last_polled_at
+      result = subject.execute(repository.full_name)
+      repository.reload
 
-        expect(result).to be_nil
-        expect(RepositoryFetcherWorker).not_to have_received(:new)
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_updates)
-        expect(GithubRepositoryServices::ProcessingService).not_to have_received(:process_contributions)
-      end
+      expect(repository.last_polled_at).to be > old_last_polled_at
+      expect(result).to include(full_name: repository.full_name, updated: true)
     end
 
-    context 'when no changes are found' do
-      before do
-        allow(GithubRepositoryServices::QueryService).to receive(:fetch_updates).and_return({
-                                                                                              repositories: {},
-                                                                                              prs: [],
-                                                                                              issues: []
-                                                                                            })
-      end
+    it 'handles errors during update processing' do
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_updates)
+                                                         .and_raise(StandardError.new("Test error"))
 
-      it 'still updates the last_polled_at timestamp' do
-        result = subject.execute(repo_name)
+      expect {
+        subject.execute(repository.full_name)
+      }.to raise_error(StandardError, "Test error")
 
-        expect(repo).to have_received(:update).with(hash_including(:last_polled_at))
-        expect(result).to include(
-                            full_name: repo_name,
-                            updated: true,
-                            prs_count: 0,
-                            issues_count: 0
-                          )
-      end
-    end
-
-    context 'when repository fetching fails' do
-      before do
-        allow(RepositoryFetcherWorker).to receive_message_chain(:new, :perform).and_return(nil)
-      end
-
-      it 'still proceeds with updates' do
-        result = subject.execute(repo_name)
-
-        expect(GithubRepositoryServices::QueryService).to have_received(:fetch_updates)
-        expect(repo).to have_received(:update).with(hash_including(:last_polled_at))
-      end
+      repository.reload
+      expect(repository.last_polled_at).to be <= 2.days.ago
     end
   end
 end

@@ -2,116 +2,76 @@ require 'rails_helper'
 
 RSpec.describe ItemsFetcherWorker do
   describe '#execute' do
-    let(:repo) { create(:github_repository, full_name: 'owner/repo') }
-    let(:repo_id) { repo.id }
+    let!(:repository) { create(:github_repository, full_name: 'owner/repo') }
 
     before do
-      allow(GithubRepository).to receive(:find_by).with(id: repo_id).and_return(repo)
-
-      prs_response = mock_github_query('repository_prs')
-      issues_response = mock_github_query('repository_issues')
+      mock_prs_response = mock_github_query('repository_prs')
+      mock_issues_response = mock_github_query('repository_issues')
 
       allow(GithubRepositoryServices::QueryService).to receive(:fetch_items)
-                                                         .with(repo.full_name, item_type: :prs)
-                                                         .and_return(prs_response.data.repository.pull_requests.nodes)
+                                                         .with(repository.full_name, item_type: :prs)
+                                                         .and_return(mock_prs_response.data.repository.pull_requests.nodes)
 
       allow(GithubRepositoryServices::QueryService).to receive(:fetch_items)
-                                                         .with(repo.full_name, item_type: :issues)
-                                                         .and_return(issues_response.data.repository.issues.nodes)
-
-      allow(GithubRepositoryServices::PersistenceService).to receive(:update_repository_items)
+                                                         .with(repository.full_name, item_type: :issues)
+                                                         .and_return(mock_issues_response.data.repository.issues.nodes)
     end
 
-    context 'when fetching both prs and issues' do
-      it 'fetches and updates both types of items' do
-        result = subject.execute(repo_id, 'both')
-
-        expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
-
-        expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
-          repo.full_name, item_type: :prs
-        )
-
-        expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
-          repo.full_name, item_type: :issues
-        )
-
-        expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).twice
+    it 'fetches and persists both PRs and issues when type is both' do
+      expect {
+        result = subject.execute(repository.id, 'both')
 
         expect(result).to include(
-                            repository_id: repo_id,
-                            full_name: 'owner/repo',
+                            repository_id: repository.id,
+                            full_name: repository.full_name,
                             item_type: 'both',
                             prs_count: 2,
                             issues_count: 2
                           )
-      end
+      }.to change { repository.pull_requests.count + repository.issues.count }.by(4)
     end
 
-    context 'when fetching only prs' do
-      it 'only fetches and updates prs' do
-        result = subject.execute(repo_id, 'prs')
-
-        expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
-
-        expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
-          repo.full_name, item_type: :prs
-        )
-
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items).with(
-          repo.full_name, item_type: :issues
-        )
-
-        expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).once
+    it 'fetches and persists only PRs when type is prs' do
+      expect {
+        result = subject.execute(repository.id, 'prs')
 
         expect(result).to include(
-                            repository_id: repo_id,
-                            full_name: 'owner/repo',
+                            repository_id: repository.id,
+                            full_name: repository.full_name,
                             item_type: 'prs',
                             prs_count: 2,
                             issues_count: 0
                           )
-      end
+      }.to change { repository.pull_requests.count }.by(2)
+                                                    .and change { repository.issues.count }.by(0)
     end
 
-    context 'when fetching only issues' do
-      it 'only fetches and updates issues' do
-        result = subject.execute(repo_id, 'issues')
-
-        expect(GithubRepository).to have_received(:find_by).with(id: repo_id)
-
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items).with(
-          repo.full_name, item_type: :prs
-        )
-
-        expect(GithubRepositoryServices::QueryService).to have_received(:fetch_items).with(
-          repo.full_name, item_type: :issues
-        )
-
-        expect(GithubRepositoryServices::PersistenceService).to have_received(:update_repository_items).once
+    it 'fetches and persists only issues when type is issues' do
+      expect {
+        result = subject.execute(repository.id, 'issues')
 
         expect(result).to include(
-                            repository_id: repo_id,
-                            full_name: 'owner/repo',
+                            repository_id: repository.id,
+                            full_name: repository.full_name,
                             item_type: 'issues',
                             prs_count: 0,
                             issues_count: 2
                           )
-      end
+      }.to change { repository.issues.count }.by(2)
+                                             .and change { repository.pull_requests.count }.by(0)
     end
 
-    context 'when repository is not found' do
-      before do
-        allow(GithubRepository).to receive(:find_by).with(id: repo_id).and_return(nil)
-      end
+    it 'returns nil when repository is not found' do
+      result = subject.execute(999999, 'both')
+      expect(result).to be_nil
+    end
 
-      it 'returns nil without processing' do
-        result = subject.execute(repo_id, 'both')
+    it 'handles errors in GitHub API calls' do
+      allow(GithubRepositoryServices::QueryService).to receive(:fetch_items)
+                                                         .with(repository.full_name, item_type: :prs)
+                                                         .and_raise(StandardError.new("API error"))
 
-        expect(result).to be_nil
-        expect(GithubRepositoryServices::QueryService).not_to have_received(:fetch_items)
-        expect(GithubRepositoryServices::PersistenceService).not_to have_received(:update_repository_items)
-      end
+      expect { subject.execute(repository.id, 'prs') }.to raise_error(StandardError, "API error")
     end
   end
 end
