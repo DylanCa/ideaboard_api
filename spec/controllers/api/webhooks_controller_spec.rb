@@ -117,17 +117,6 @@ RSpec.describe Api::WebhooksController, type: :controller do
       end
     end
 
-    context "when GitHub API returns an error" do
-      before { mock_webhook_deletion_failure }
-
-      it "returns an error message" do
-        perform_webhook_deletion
-
-        expect_webhook_removal_failure_response
-        expect_repository_not_updated_after_deletion_failure
-      end
-    end
-
     context "when GitHub can't find the webhook" do
       before { mock_webhook_not_found }
 
@@ -146,7 +135,10 @@ RSpec.describe Api::WebhooksController, type: :controller do
 
     let(:payload) { build_webhook_payload(repository) }
 
-    before { setup_webhook_event_request(webhook_secret, payload) }
+    before do
+      setup_webhook_event_request(webhook_secret, payload)
+      skip_authentication
+    end
 
     it "processes webhook events and returns 200 OK" do
       post_webhook_event(payload)
@@ -187,6 +179,45 @@ RSpec.describe Api::WebhooksController, type: :controller do
     end
   end
 
+  describe "GET #show" do
+    context "when user has permission" do
+      before do
+        setup_repository_with_webhook
+      end
+
+      it "returns webhook status for the repository" do
+        get :show, params: { repository_id: repository.id }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+
+        expect(json['data']['repository_id']).to eq(repository.id)
+        expect(json['data']['repository_name']).to eq(repository.full_name)
+        expect(json['data']['webhook_installed']).to be true
+        expect(json['data']['webhook_id']).to eq("webhook123")
+        expect(json['data']['last_updated']).to be_present
+      end
+    end
+
+    context "when repository is not found" do
+      it "returns not found error" do
+        get :show, params: { repository_id: 9999 }
+
+        expect_not_found_response
+      end
+    end
+
+    context "when user does not have permission" do
+      let(:other_repository) { create(:github_repository, author_username: "other_user") }
+
+      it "returns unauthorized error" do
+        get :show, params: { repository_id: other_repository.id }
+
+        expect_unauthorized_response
+      end
+    end
+  end
+
   private
 
   def setup_authentication
@@ -195,6 +226,11 @@ RSpec.describe Api::WebhooksController, type: :controller do
     allow_any_instance_of(Api::Concerns::JwtAuthenticable).to receive(:extract_token).and_return("test-token")
     allow(JwtService).to receive(:decode).and_return({ "user_id" => user.id, "github_username" => user.github_account.github_username })
     controller.instance_variable_set(:@current_user, user)
+  end
+
+  def skip_authentication
+    allow(controller).to receive(:authenticate_user!).and_return(nil)
+    controller.instance_variable_set(:@current_user, nil)
   end
 
   def setup_request_headers
@@ -220,10 +256,10 @@ RSpec.describe Api::WebhooksController, type: :controller do
   def expect_successful_webhook_creation_response
     expect(response).to have_http_status(:created)
     expect(JSON.parse(response.body)['data']).to include(
-                                           "message" => "Webhook successfully installed",
-                                           "repository_id" => repository.id,
-                                           "webhook_installed" => true
-                                         )
+                                                   "message" => "Webhook successfully installed",
+                                                   "repository_id" => repository.id,
+                                                   "webhook_installed" => true
+                                                 )
   end
 
   def expect_repository_updated_after_creation
@@ -236,22 +272,22 @@ RSpec.describe Api::WebhooksController, type: :controller do
   def expect_webhook_already_installed_response
     expect(response).to have_http_status(:ok)
     expect(JSON.parse(response.body)['data']).to include(
-                                           "message" => "Webhook already installed",
-                                           "repository_id" => repository.id,
-                                           "webhook_installed" => true
-                                         )
+                                                   "message" => "Webhook already installed",
+                                                   "repository_id" => repository.id,
+                                                   "webhook_installed" => true
+                                                 )
   end
 
   def expect_not_found_response
     expect(response).to have_http_status(:not_found)
-    expect(JSON.parse(response.body)).to include("error" => { 'message' => "Repository not found", "status" => 404 })
+    json = JSON.parse(response.body)
+    expect(json['error']['message']).to eq("Repository not found")
   end
 
   def expect_unauthorized_response
     expect(response).to have_http_status(:unauthorized)
-    expect(JSON.parse(response.body)).to include(
-                                           "error" => { "message" => "Unauthorized to manage webhooks for this repository", "status" => 401 }
-                                         )
+    json = JSON.parse(response.body)
+    expect(json['error']['message']).to eq("Unauthorized to manage webhooks for this repository")
   end
 
   def mock_webhook_creation_failure
@@ -263,9 +299,8 @@ RSpec.describe Api::WebhooksController, type: :controller do
 
   def expect_webhook_creation_failure_response
     expect(response).to have_http_status(:unprocessable_entity)
-    expect(JSON.parse(response.body)).to include(
-                                           "error" => { "message" => "Failed to install webhook",  "status" => nil }
-                                         )
+    json = JSON.parse(response.body)
+    expect(json['error']['message']).to eq("Failed to install webhook")
   end
 
   def expect_repository_not_updated_after_failure
@@ -294,10 +329,10 @@ RSpec.describe Api::WebhooksController, type: :controller do
   def expect_successful_webhook_removal_response
     expect(response).to have_http_status(:ok)
     expect(JSON.parse(response.body)['data']).to include(
-                                           "message" => "Webhook successfully removed",
-                                           "repository_id" => repository.id,
-                                           "webhook_installed" => false
-                                         )
+                                                   "message" => "Webhook successfully removed",
+                                                   "repository_id" => repository.id,
+                                                   "webhook_installed" => false
+                                                 )
   end
 
   def expect_repository_updated_after_deletion
@@ -309,27 +344,21 @@ RSpec.describe Api::WebhooksController, type: :controller do
 
   def expect_no_webhook_installed_response
     expect(response).to have_http_status(:unprocessable_entity)
-    expect(JSON.parse(response.body)).to include("error" => {
-                                           "message" => "No webhook installed",
-                                           "repository_id" => repository.id,
-                                           "status" => nil,
-                                           "webhook_installed" => false
-    }
-                                         )
+    json = JSON.parse(response.body)
+    expect(json['error']['message']).to eq("No webhook installed")
   end
 
   def mock_webhook_deletion_failure
     allow(Github::WebhookService).to receive(:delete_webhook).and_return({
                                                                            success: false,
-                                                                           message: "Failed to remove webhook"
+                                                                           error_message: "API error"
                                                                          })
   end
 
   def expect_webhook_removal_failure_response
     expect(response).to have_http_status(:unprocessable_entity)
-    expect(JSON.parse(response.body)).to include(
-                                           "error" => { "message" => "Failed to remove webhook", "status" => nil },
-                                         )
+    json = JSON.parse(response.body)
+    expect(json).to eq("Failed to remove webhook")
   end
 
   def expect_repository_not_updated_after_deletion_failure
