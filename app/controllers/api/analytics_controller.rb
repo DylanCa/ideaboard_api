@@ -1,4 +1,3 @@
-# app/controllers/api/analytics_controller.rb
 module Api
   class AnalyticsController < ApplicationController
     include Api::Concerns::JwtAuthenticable
@@ -95,7 +94,11 @@ module Api
     end
 
     def repository
-      repository = GithubRepository.find(params[:id])
+      repository = GithubRepository.find_by(id: params[:id])
+
+      unless repository
+        return render_error("Repository not found", :not_found)
+      end
 
       # Get pull request statistics
       prs = repository.pull_requests

@@ -48,7 +48,9 @@ RSpec.describe Api::Concerns::JwtAuthenticable, type: :controller do
       it "returns unauthorized" do
         get :index
         expect(response).to have_http_status(:unauthorized)
-        expect(JSON.parse(response.body)).to eq({ "error" => "Unauthorized" })
+
+        json = JSON.parse(response.body)
+        expect(json).to eq({ "data" => nil, "error" => { "message" => "Unauthorized", "status" => 401 }, "meta" => {} })
       end
     end
 
@@ -61,7 +63,9 @@ RSpec.describe Api::Concerns::JwtAuthenticable, type: :controller do
       it "returns unauthorized" do
         get :index
         expect(response).to have_http_status(:unauthorized)
-        expect(JSON.parse(response.body)).to eq({ "error" => "Unauthorized" })
+
+        json = JSON.parse(response.body)
+        expect(json).to eq({ "data" => nil, "error" => { "message" => "Unauthorized", "status" => 401 }, "meta" => {} })
       end
     end
 
@@ -75,7 +79,9 @@ RSpec.describe Api::Concerns::JwtAuthenticable, type: :controller do
       it "returns unauthorized" do
         get :index
         expect(response).to have_http_status(:unauthorized)
-        expect(JSON.parse(response.body)).to eq({ "error" => "Unauthorized" })
+
+        json = JSON.parse(response.body)
+        expect(json).to eq({ "data" => nil, "error" => { "message" => "Unauthorized", "status" => 401 }, "meta" => {} })
       end
     end
 

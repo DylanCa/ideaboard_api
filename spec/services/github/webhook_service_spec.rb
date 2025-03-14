@@ -3,16 +3,19 @@ require 'rails_helper'
 
 RSpec.describe Github::WebhookService do
   let(:repository) { create(:github_repository, full_name: "owner/repo") }
-  let(:access_token) { "fake_access_token" }
+  let(:user) { create(:user, :with_github_account, :with_access_token) }
   let(:webhook_secret) { "fake_webhook_secret" }
   let(:callback_url) { "https://example.com/api/webhook" }
 
   describe '.create_webhook' do
     before do
-      allow(Rails.application.routes.url_helpers).to receive(:webhook_events_url).and_return(callback_url)
+      allow(Rails.application.routes.url_helpers).to receive(:api_webhook_events_url).and_return(callback_url)
 
       @client = instance_double(Octokit::Client)
-      allow(Octokit::Client).to receive(:new).with(access_token: access_token).and_return(@client)
+      allow(Octokit::Client).to receive(:new).with(access_token: user.access_token).and_return(@client)
+      allow(@client).to receive(:permission_level)
+                          .with(repository.full_name, user.github_account.github_username)
+                          .and_return({ permission: "admin" })
     end
 
     context 'when webhook creation is successful' do
@@ -23,7 +26,7 @@ RSpec.describe Github::WebhookService do
       end
 
       it 'returns success and the webhook object' do
-        result = described_class.create_webhook(repository, access_token, webhook_secret, callback_url: callback_url)
+        result = described_class.create_webhook(repository, user, webhook_secret, callback_url: callback_url)
 
         expect(result[:success]).to be true
         expect(result[:webhook]).to eq(webhook)
@@ -48,10 +51,10 @@ RSpec.describe Github::WebhookService do
       end
 
       it 'returns failure with error message' do
-        result = described_class.create_webhook(repository, access_token, webhook_secret)
+        result = described_class.create_webhook(repository, user, webhook_secret)
 
         expect(result[:success]).to be false
-        expect(result[:error_message]).to be_present
+        expect(result[:message]).to be_present
         expect(LoggerExtension).to have_received(:log)
       end
     end
@@ -60,7 +63,7 @@ RSpec.describe Github::WebhookService do
   describe '.delete_webhook' do
     before do
       @client = instance_double(Octokit::Client)
-      allow(Octokit::Client).to receive(:new).with(access_token: access_token).and_return(@client)
+      allow(Octokit::Client).to receive(:new).with(access_token: user.access_token).and_return(@client)
     end
 
     context 'when repository has a known webhook ID' do
@@ -70,7 +73,7 @@ RSpec.describe Github::WebhookService do
       end
 
       it 'removes the webhook using the ID' do
-        result = described_class.delete_webhook(repository, access_token)
+        result = described_class.delete_webhook(repository, user.access_token)
 
         expect(result[:success]).to be true
         expect(@client).to have_received(:remove_hook).with(
@@ -90,13 +93,13 @@ RSpec.describe Github::WebhookService do
 
       before do
         repository.update(github_webhook_id: nil)
-        allow(Rails.application.routes.url_helpers).to receive(:webhook_events_url).and_return(callback_url)
+        allow(Rails.application.routes.url_helpers).to receive(:api_webhook_events_url).and_return(callback_url)
         allow(@client).to receive(:hooks).and_return(hooks)
         allow(@client).to receive(:remove_hook)
       end
 
       it 'finds and removes the matching webhook' do
-        result = described_class.delete_webhook(repository, access_token)
+        result = described_class.delete_webhook(repository, user.access_token)
 
         expect(result[:success]).to be true
         expect(@client).to have_received(:remove_hook).with(
@@ -113,7 +116,7 @@ RSpec.describe Github::WebhookService do
         end
 
         it 'returns not_found status' do
-          result = described_class.delete_webhook(repository, access_token)
+          result = described_class.delete_webhook(repository, user.access_token)
 
           expect(result[:not_found]).to be true
           expect(@client).not_to have_received(:remove_hook)
@@ -128,7 +131,7 @@ RSpec.describe Github::WebhookService do
       end
 
       it 'returns not_found status' do
-        result = described_class.delete_webhook(repository, access_token)
+        result = described_class.delete_webhook(repository, user.access_token)
 
         expect(result[:not_found]).to be true
       end
@@ -142,10 +145,10 @@ RSpec.describe Github::WebhookService do
       end
 
       it 'returns failure with error message' do
-        result = described_class.delete_webhook(repository, access_token)
+        result = described_class.delete_webhook(repository, user.access_token)
 
         expect(result[:success]).to be false
-        expect(result[:error_message]).to be_present
+        expect(result[:message]).to be_present
         expect(LoggerExtension).to have_received(:log)
       end
     end

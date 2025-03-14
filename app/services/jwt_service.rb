@@ -1,3 +1,6 @@
+class AuthenticationError < StandardError
+end
+
 class JwtService
   SECRET_KEY = ENV["JWT_SECRET_KEY"] || raise("JWT Secret not configured")
 

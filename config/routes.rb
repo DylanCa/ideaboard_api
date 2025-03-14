@@ -1,6 +1,8 @@
 require "sidekiq/web"
 
 Rails.application.routes.draw do
+  default_url_options host: ENV["APPLICATION_HOST"] || "localhost:3000"
+
   # Admin tools
   mount Sidekiq::Web => "/sidekiq"
   mount Rswag::Ui::Engine => "/api-docs"
@@ -101,6 +103,6 @@ Rails.application.routes.draw do
 
     # Webhook management
     resources :webhooks, only: [ :create, :show, :destroy ], param: :repository_id
-    post "webhook", to: "webhooks#receive_event", as: :webhook_events
+    post :webhook, to: "webhooks#receive_event", as: :webhook_events
   end
 end

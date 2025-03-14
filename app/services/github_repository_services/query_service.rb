@@ -33,7 +33,7 @@ module GithubRepositoryServices
         items
       rescue StandardError => e
         LoggerExtension.log(:error, "Fetch #{item_type} error", {
-          error_message: e.message,
+          message: e.message,
           repository: repo_full_name
         })
         []

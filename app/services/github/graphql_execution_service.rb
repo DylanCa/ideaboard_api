@@ -39,8 +39,8 @@ module Github
         end
       rescue StandardError => e
         LoggerExtension.log(:error, "Unhandled GraphQL Error", {
-          error_class: e.class.name,
-          error_message: e.message,
+          class: e.class.name,
+          message: e.message,
           backtrace: e.backtrace.first(10),
           query: query.to_s
         })

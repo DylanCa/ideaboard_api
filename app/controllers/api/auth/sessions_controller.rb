@@ -12,6 +12,9 @@ module Api
         blacklist_token(token)
 
         render_success({ message: "Successfully logged out" }, {}, :ok)
+      rescue => e
+        LoggerExtension.log(:error, "Failed token blacklisting", { error: e })
+        render_error("Unauthorized", :unauthorized)
       end
 
       private

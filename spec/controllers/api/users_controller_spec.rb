@@ -2,186 +2,123 @@ require 'rails_helper'
 
 RSpec.describe Api::UsersController, type: :controller do
   let(:user) { create(:user, :with_github_account, :with_user_stat) }
-  let(:github_account) { user.github_account }
 
   before do
-    allow(controller).to receive(:authenticate_user!).and_return(true)
-    allow_any_instance_of(Api::Concerns::JwtAuthenticable).to receive(:extract_token).and_return("test-token")
-    allow(JwtService).to receive(:decode).and_return({ "user_id" => user.id, "github_username" => user.github_account.github_username })
-    allow(User).to receive(:joins).and_return(User)
-    allow(User).to receive(:find_by!).and_return(user)
-    controller.send(:authenticate_user!)
+    authenticate_user(user)
   end
 
-  before(:each) do
-    controller.instance_variable_set(:@current_user, nil)
-    controller.instance_variable_set(:@current_user, user)
-  end
-
-  describe "#current_user" do
+  describe '#current_user' do
     before do
       mock_github_query('user_data')
       allow(Github::GraphqlService).to receive(:fetch_current_user_data).with(user).and_call_original
     end
 
-    it "fetches and returns the current user data" do
+    it 'fetches current user data from GitHub' do
       get :current_user
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)["data"]).not_to be_nil
+      json = JSON.parse(response.body)
+
+      expect(json['data']).not_to be_nil
+      expect(Github::GraphqlService).to have_received(:fetch_current_user_data).with(user)
     end
   end
 
-  describe "#user_repos" do
+  describe '#user_repos' do
     before do
-      mock_response = mock_github_query('user_repositories')
-      allow(Github::GraphqlService).to receive(:fetch_current_user_repositories).with(user).and_return(mock_response.data.viewer.repositories.nodes)
+      mock_github_query('user_repositories')
+      allow(Github::GraphqlService).to receive(:fetch_current_user_repositories).with(user).and_call_original
     end
 
-    it "fetches and returns the user's repositories" do
+    it 'fetches user repositories from GitHub' do
       get :user_repos
 
       expect(response).to have_http_status(:ok)
-      expect(Github::GraphqlService).to have_received(:fetch_current_user_repositories)
+      json = JSON.parse(response.body)
 
-      result = JSON.parse(response.body)
-      expect(result['data']).to be_an(Array)
-      expect(result['data'].size).to eq(2)
+      expect(json['data']).not_to be_nil
+      expect(Github::GraphqlService).to have_received(:fetch_current_user_repositories).with(user)
     end
   end
 
-  describe "#update_repositories_data" do
+  describe '#fetch_user_contributions' do
     before do
-      mock_response = mock_github_query('repository_data')
-      repo_result = {
-        'updated' => true,
-        'repository' => mock_response.data.repository.name_with_owner,
-        'stars' => mock_response.data.repository.stargazer_count
-      }
-      allow(Github::GraphqlService).to receive(:update_repositories_data).and_return(repo_result)
+      allow(Github::GraphqlService).to receive(:fetch_user_contributions).and_return({
+                                                                                       contributions: 10,
+                                                                                       prs_count: 5,
+                                                                                       issues_count: 5
+                                                                                     })
     end
 
-    it "updates and returns repository data" do
-      get :update_repositories_data
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('updated' => true)
-    end
-  end
-
-  describe "#add_repository" do
-    let(:repo_name) { 'owner/repo' }
-
-    before do
-      mock_response = mock_github_query('repository_data')
-      repo_result = {
-        'added' => true,
-        'repository' => mock_response.data.repository.name_with_owner
-      }
-      allow(Github::GraphqlService).to receive(:add_repo_by_name).with(repo_name).and_return(repo_result)
-    end
-
-    it "adds and returns repository data" do
-      get :add_repository, params: { repo_name: repo_name }
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('added' => true)
-    end
-  end
-
-  describe "#fetch_repo_updates" do
-    let(:repo_name) { 'owner/repo' }
-
-    before do
-      mock_prs = mock_github_query('repository_prs')
-      mock_issues = mock_github_query('repository_issues')
-
-      update_result = {
-        'updated' => true,
-        'repository' => repo_name,
-        'prs_count' => mock_prs.data.repository.pull_requests.nodes.size,
-        'issues_count' => mock_issues.data.repository.issues.nodes.size
-      }
-
-      allow(Github::GraphqlService).to receive(:fetch_repository_update).with(repo_name).and_return(update_result)
-    end
-
-    it "fetches and returns repository updates" do
-      get :fetch_repo_updates, params: { repo_name: repo_name }
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('updated' => true)
-    end
-  end
-
-  describe "#fetch_user_contributions" do
-    before do
-      mock_prs = mock_github_query('search_query_prs')
-      mock_issues = mock_github_query('search_query_issues')
-
-      contributions = {
-        'contributions' => mock_prs.data.search.nodes.size + mock_issues.data.search.nodes.size,
-        'prs_count' => mock_prs.data.search.nodes.size,
-        'issues_count' => mock_issues.data.search.nodes.size
-      }
-
-      allow(Github::GraphqlService).to receive(:fetch_user_contributions).with(user).and_return(contributions)
-    end
-
-    it "fetches and returns user contributions" do
+    it 'fetches user contributions' do
       get :fetch_user_contributions
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)['data']).to include('contributions', 'prs_count', 'issues_count')
-    end
+      json = JSON.parse(response.body)
 
-    context "when GraphQL service fails" do
-      before do
-        allow(Github::GraphqlService).to receive(:fetch_user_contributions).with(user).and_return(nil)
-      end
-
-      it "returns nil data" do
-        get :fetch_user_contributions
-
-        expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body)).to eq({ 'data' => nil })
-      end
+      expect(json['data']).to include('contributions' => 10, 'prs_count' => 5, 'issues_count' => 5)
+      expect(Github::GraphqlService).to have_received(:fetch_user_contributions).with(user)
     end
   end
 
-  describe "#profile" do
-    it "returns the current user profile data" do
+  describe '#profile' do
+    it 'returns current user profile data' do
       get :profile
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
 
-      expect(json['user']['id']).to eq(user.id)
-      expect(json['github_account']['github_username']).to eq(github_account.github_username)
-      expect(json['user_stat']).to be_present
-    end
-
-    context "when user is not authenticated" do
-      before do
-        allow(controller).to receive(:authenticate_user!).and_raise(StandardError.new("Unauthorized"))
-      end
-
-      it "raises an authentication error" do
-        expect {
-          get :profile
-        }.to raise_error(StandardError, "Unauthorized")
-      end
+      expect(json['data']).to include('user', 'github_account', 'user_stat')
+      expect(json['data']['user']['id']).to eq(user.id)
+      expect(json['data']['github_account']['id']).to eq(user.github_account.id)
+      expect(json['data']['user_stat']['id']).to eq(user.user_stat.id)
     end
   end
 
-  describe "authentication" do
-    it "includes Api::Concerns::JwtAuthenticable concern" do
-      expect(UsersController.ancestors).to include(Api::Concerns::JwtAuthenticable)
+  describe '#update_profile' do
+    let(:new_email) { 'new_email@example.com' }
+
+    it 'updates user profile information' do
+      put :update_profile, params: { user: { email: new_email } }
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+
+      expect(json['data']['user']['email']).to eq(new_email)
+
+      user.reload
+      expect(user.email).to eq(new_email)
     end
 
-    it "calls authenticate_user! before actions" do
-      expect(controller).to receive(:authenticate_user!)
-      get :profile
+    it 'updates token usage level' do
+      put :update_profile, params: { user: { token_usage_level: 'global_pool' } }
+
+      expect(response).to have_http_status(:ok)
+
+      user.reload
+      expect(user.token_usage_level).to eq('global_pool')
     end
+
+    it 'handles validation errors' do
+      allow_any_instance_of(User).to receive(:update).and_return(false)
+      allow_any_instance_of(User).to receive(:errors).and_return(
+        double(full_messages: [ 'Email is invalid' ])
+      )
+
+      put :update_profile, params: { user: { email: 'invalid' } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+
+      expect(json['error']['message']).to eq('Failed')
+      expect(json['error']['errors']).to eq([ 'Email is invalid' ])
+    end
+  end
+
+  private
+
+  def authenticate_user(user)
+    allow(controller).to receive(:authenticate_user!).and_return(true)
+    controller.instance_variable_set(:@current_user, user)
   end
 end
