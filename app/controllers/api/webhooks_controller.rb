@@ -57,7 +57,7 @@ class WebhooksController < ApplicationController
     end
 
     unless has_permission_for_repository?(@repository)
-      return render_error("Unauthorized to view webhooks for this repository", :unauthorized)
+      return render_error("Unauthorized to manage webhooks for this repository", :unauthorized)
     end
 
     render_success({
@@ -207,8 +207,8 @@ class WebhooksController < ApplicationController
                    }, {}, :created)
   end
 
-  def render_webhook_installation_failed(error_message)
-    render_error("Failed to install webhook", :unprocessable_entity, { message: error_message })
+  def render_webhook_installation_failed(message)
+    render_error("Failed to install webhook", :unprocessable_entity, { message: message })
   end
 
   def render_no_webhook_installed
@@ -223,8 +223,8 @@ class WebhooksController < ApplicationController
     })
   end
 
-  def render_webhook_removal_failed(error_message)
-    render_error("Failed to remove webhook", :unprocessable_entity, { message: error_message })
+  def render_webhook_removal_failed(message)
+    render_error("Failed to remove webhook", :unprocessable_entity, { message: message })
   end
 
   def render_unexpected_error

@@ -70,7 +70,7 @@ module Github
           error: e.message
         })
 
-        { success: false, error_message: e.message }
+        { success: false, message: e.message }
       end
     end
   end

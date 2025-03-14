@@ -53,8 +53,8 @@ module BaseWorker
     LoggerExtension.log(:error, "Job failed", {
       worker: worker_name,
       arguments: args_for_logging(args),
-      error_class: error.class.name,
-      error_message: error.message,
+      class: error.class.name,
+      message: error.message,
       backtrace: error.backtrace&.first(10),
       job_id: jid
     })

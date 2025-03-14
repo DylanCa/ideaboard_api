@@ -49,7 +49,7 @@ module Github
         user
       rescue ActiveRecord::RecordNotUnique => e
         LoggerExtension.log(:error, "User Creation Conflict", {
-          error_message: e.message,
+          message: e.message,
           github_id: github_user.id
         })
         raise e
