@@ -4,21 +4,21 @@ Sidekiq.configure_server do |config|
 
   Sidekiq::Cron::Job.create(
     name: "Owner token repositories - tier 1",
-    cron: "Every 30 seconds",
+    cron: "Every 1 hour",
     class: "RepositoryTierUpdateWorker",
     args: [ "owner_token" ]
   )
 
   Sidekiq::Cron::Job.create(
     name: "Contributor token repositories - tier 2",
-    cron: "Every minute",
+    cron: "Every 6 hours",
     class: "RepositoryTierUpdateWorker",
     args: [ "contributor_token" ]
   )
 
   Sidekiq::Cron::Job.create(
     name: "Global pool repositories - tier 3",
-    cron: "Every 2 minutes",
+    cron: "Every 12 hours",
     class: "RepositoryTierUpdateWorker",
     args: [ "global_pool" ]
   )
