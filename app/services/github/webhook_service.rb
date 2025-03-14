@@ -44,7 +44,7 @@ module Github
             { success: true }
           else
             webhooks = client.hooks(repository.full_name)
-            callback_url = Rails.application.routes.url_helpers.webhook_events_url
+            callback_url = Rails.application.routes.url_helpers.api_webhook_events_url
 
             webhook = webhooks.find { |hook| hook.config.url == callback_url }
 
