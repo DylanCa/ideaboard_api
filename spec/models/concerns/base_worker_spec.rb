@@ -79,8 +79,8 @@ RSpec.describe BaseWorker do
           hash_including(
             worker: "TestWorker",
             arguments: kind_of(Array),
-            error_class: "StandardError",
-            error_message: "Test error",
+            class: "StandardError",
+            message: "Test error",
             backtrace: array_including("backtrace line 0"),
             job_id: 'test-jid-123'
           )

@@ -75,7 +75,7 @@ RSpec.describe GithubRepositoryServices::QueryService do
         expect(LoggerExtension).to receive(:log).with(
           :error,
           "Fetch prs error",
-          { error_message: "Test error", repository: repo_full_name }
+          { message: "Test error", repository: repo_full_name }
         )
 
         result = described_class.fetch_items(repo_full_name, item_type: :prs)
