@@ -32,6 +32,8 @@ module Api
       else
         render_error("No contribution statistics found for this repository", :not_found)
       end
+    rescue ActiveRecord::RecordNotFound => e
+      render_error("No contribution statistics found for this repository", :not_found)
     end
 
     private
