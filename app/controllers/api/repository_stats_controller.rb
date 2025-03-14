@@ -5,7 +5,7 @@ module Api
 
     def index
       # Get all repository stats for the current user
-      @stats = UserRepositoryStat.where(user_id: @current_user.id)
+      stats = UserRepositoryStat.where(user_id: @current_user.id)
                                  .includes(:github_repository)
                                  .order(last_contribution_at: :desc)
                                  .page(params[:page] || 1)
@@ -13,27 +13,26 @@ module Api
 
       render_success(
         {
-          repository_stats: format_stats(@stats)
+          repository_stats: format_stats(stats)
         },
         {
-          total_count: @stats.total_count,
-          current_page: @stats.current_page,
-          total_pages: @stats.total_pages
+          total_count: stats.total_count,
+          current_page: stats.current_page,
+          total_pages: stats.total_pages
         }
       )
     end
 
     def show
-      repository = GithubRepository.find(params[:id])
-      @stats = UserRepositoryStat.find_by(user_id: @current_user.id, github_repository_id: repository.id)
+      repository = GithubRepository.find_by(id: params[:id])
+      return render_error("No contribution statistics found for this repository", :not_found) if repository.nil?
 
-      if @stats
-        render_success({ repository_stats: format_stat(@stats, repository) }, {}, :ok)
+      stats = UserRepositoryStat.find_by(user_id: @current_user.id, github_repository_id: repository.id)
+      if stats
+        render_success({ repository_stats: format_stat(stats, repository) }, {}, :ok)
       else
         render_error("No contribution statistics found for this repository", :not_found)
       end
-    rescue ActiveRecord::RecordNotFound => e
-      render_error("No contribution statistics found for this repository", :not_found)
     end
 
     private

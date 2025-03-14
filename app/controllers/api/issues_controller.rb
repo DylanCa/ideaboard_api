@@ -6,56 +6,55 @@ module Api
 
     # GET /api/issues/:id
     def show
-      @issue = Issue.find(params[:id])
-      render_issue_with_related_data(@issue)
-    rescue ActiveRecord::RecordNotFound
-      render_error("Issue not found", :not_found)
+      issue = Issue.find_by(id: params[:id])
+      return render_error("Issue not found", :not_found) if issue.nil?
+
+      render_issue_with_related_data(issue)
     end
 
     # GET /api/repositories/:repository_id/issues
     def repository_issues
-      repository = GithubRepository.find(params[:id])
-      @issues = repository.issues
+      repository = GithubRepository.find_by(id: params[:id])
+      return render_error("Repository not found", :not_found) if repository.nil?
+
+      issues = repository.issues
                           .order(github_created_at: :desc)
                           .page(params[:page] || 1)
                           .per(params[:per_page] || 20)
 
-      # Apply filters if provided
-      @issues = apply_issue_filters(@issues)
+      issues = apply_issue_filters(issues)
 
       render_success(
         {
-          issues: @issues
+          issues: issues
         },
         {
-          total_count: @issues.total_count,
-          current_page: @issues.current_page,
-          total_pages: @issues.total_pages
+          total_count: issues.total_count,
+          current_page: issues.current_page,
+          total_pages: issues.total_pages
         }
       )
-    rescue ActiveRecord::RecordNotFound
-      render_error("Repository not found", :not_found)
     end
 
     # GET /api/users/issues
     def user_issues
-      @issues = Issue.where(author_username: @current_user.github_username)
+      issues = Issue.where(author_username: current_user.github_username)
                      .includes(:github_repository, :labels)
                      .order(github_created_at: :desc)
                      .page(params[:page] || 1)
                      .per(params[:per_page] || 20)
 
       # Apply filters if provided
-      @issues = apply_issue_filters(@issues)
+      issues = apply_issue_filters(issues)
 
       render_success(
         {
-          issues: @issues.as_json(include: [ :github_repository, :labels ])
+          issues: issues.as_json(include: [ :github_repository, :labels ])
         },
         {
-          total_count: @issues.total_count,
-          current_page: @issues.current_page,
-          total_pages: @issues.total_pages
+          total_count: issues.total_count,
+          current_page: issues.current_page,
+          total_pages: issues.total_pages
         }
       )
     end
