@@ -1,21 +1,8 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/users', type: :request do
-  path '/api/profile' do
-    get('profile user') do
-      response(200, 'successful') do
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-        run_test!
-      end
-    end
-
-    put('update_profile user') do
+RSpec.describe 'api/analytics', type: :request do
+  path '/api/analytics/user' do
+    get('user analytic') do
       response(200, 'successful') do
         after do |example|
           example.metadata[:response][:content] = {
@@ -29,8 +16,8 @@ RSpec.describe 'api/users', type: :request do
     end
   end
 
-  path '/api/users/current' do
-    get('current_user user') do
+  path '/api/analytics/repositories' do
+    get('repositories analytic') do
       response(200, 'successful') do
         after do |example|
           example.metadata[:response][:content] = {
@@ -44,24 +31,14 @@ RSpec.describe 'api/users', type: :request do
     end
   end
 
-  path '/api/users/repos' do
-    get('user_repos user') do
-      response(200, 'successful') do
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-        run_test!
-      end
-    end
-  end
+  path '/api/analytics/repository/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :string, description: 'id'
 
-  path '/api/users/contribs' do
-    get('fetch_user_contributions user') do
+    get('repository analytic') do
       response(200, 'successful') do
+        let(:id) { '123' }
+
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {

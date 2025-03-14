@@ -3,7 +3,424 @@ openapi: 3.0.1
 info:
   title: API V1
   version: v1
-paths: {}
+paths:
+  "/api/analytics/user":
+    get:
+      summary: user analytic
+      responses:
+        '200':
+          description: successful
+  "/api/analytics/repositories":
+    get:
+      summary: repositories analytic
+      responses:
+        '200':
+          description: successful
+  "/api/analytics/repository/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: repository analytic
+      responses:
+        '200':
+          description: successful
+  "/api/auth/github/initiate":
+    post:
+      summary: initiate github
+      responses:
+        '200':
+          description: successful
+  "/api/auth/github/callback":
+    get:
+      summary: callback github
+      responses:
+        '200':
+          description: successful
+  "/api/auth/logout":
+    delete:
+      summary: delete session
+      responses:
+        '200':
+          description: successful
+  "/api/users/contributions":
+    get:
+      summary: user_contributions contribution
+      responses:
+        '200':
+          description: successful
+  "/api/users/contributions/history":
+    get:
+      summary: user_history contribution
+      responses:
+        '200':
+          description: successful
+  "/api/users/streaks":
+    get:
+      summary: user_streaks contribution
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/contributions":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: repository_contributions contribution
+      responses:
+        '200':
+          description: successful
+  "/api/users/issues":
+    get:
+      summary: user_issues issue
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/issues":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: repository_issues issue
+      responses:
+        '200':
+          description: successful
+  "/api/issues/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show issue
+      responses:
+        '200':
+          description: successful
+  "/api/leaderboards/global":
+    get:
+      summary: global leaderboard
+      responses:
+        '200':
+          description: successful
+  "/api/leaderboards/repository/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: repository leaderboard
+      responses:
+        '200':
+          description: successful
+  "/api/users/pull_requests":
+    get:
+      summary: user_pull_requests pull_request
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/pull_requests":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: repository_pull_requests pull_request
+      responses:
+        '200':
+          description: successful
+  "/api/pull_requests/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show pull_request
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/topics":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: topics repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/qualification":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: qualification repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/visibility":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    put:
+      summary: visibility repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/update_data":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    post:
+      summary: update_data repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/health":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: health repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}/activity":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: activity repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/trending":
+    get:
+      summary: trending repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/featured":
+    get:
+      summary: featured repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/refresh":
+    post:
+      summary: refresh repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/search":
+    get:
+      summary: search repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/recommendations":
+    get:
+      summary: recommendations repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/needs_help":
+    get:
+      summary: needs_help repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories":
+    get:
+      summary: list repositories
+      responses:
+        '200':
+          description: successful
+    post:
+      summary: create repository
+      responses:
+        '200':
+          description: successful
+  "/api/repositories/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show repository
+      responses:
+        '200':
+          description: successful
+  "/api/repository_stats":
+    get:
+      summary: list repository_stats
+      responses:
+        '200':
+          description: successful
+  "/api/repository_stats/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show repository_stat
+      responses:
+        '200':
+          description: successful
+  "/api/token/usage":
+    get:
+      summary: usage token
+      responses:
+        '200':
+          description: successful
+  "/api/token/settings":
+    put:
+      summary: update_settings token
+      responses:
+        '200':
+          description: successful
+  "/api/topics/{id}/repositories":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: repositories topic
+      responses:
+        '200':
+          description: successful
+  "/api/topics":
+    get:
+      summary: list topics
+      responses:
+        '200':
+          description: successful
+  "/api/topics/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show topic
+      responses:
+        '200':
+          description: successful
+  "/api/profile":
+    get:
+      summary: profile user
+      responses:
+        '200':
+          description: successful
+    put:
+      summary: update_profile user
+      responses:
+        '200':
+          description: successful
+  "/api/users/current":
+    get:
+      summary: current_user user
+      responses:
+        '200':
+          description: successful
+  "/api/users/repos":
+    get:
+      summary: user_repos user
+      responses:
+        '200':
+          description: successful
+  "/api/users/contribs":
+    get:
+      summary: fetch_user_contributions user
+      responses:
+        '200':
+          description: successful
+  "/api/webhooks":
+    post:
+      summary: create webhook
+      responses:
+        '200':
+          description: successful
+  "/api/webhooks/{repository_id}":
+    parameters:
+    - name: repository_id
+      in: path
+      description: repository_id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show webhook
+      responses:
+        '200':
+          description: successful
+    delete:
+      summary: delete webhook
+      responses:
+        '200':
+          description: successful
+  "/api/webhook":
+    post:
+      summary: receive_event webhook
+      responses:
+        '200':
+          description: successful
 servers:
 - url: https://{defaultHost}
   variables:

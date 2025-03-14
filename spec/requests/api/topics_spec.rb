@@ -1,9 +1,14 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/users', type: :request do
-  path '/api/profile' do
-    get('profile user') do
+RSpec.describe 'api/topics', type: :request do
+  path '/api/topics/{id}/repositories' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :string, description: 'id'
+
+    get('repositories topic') do
       response(200, 'successful') do
+        let(:id) { '123' }
+
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
@@ -14,8 +19,10 @@ RSpec.describe 'api/users', type: :request do
         run_test!
       end
     end
+  end
 
-    put('update_profile user') do
+  path '/api/topics' do
+    get('list topics') do
       response(200, 'successful') do
         after do |example|
           example.metadata[:response][:content] = {
@@ -29,39 +36,14 @@ RSpec.describe 'api/users', type: :request do
     end
   end
 
-  path '/api/users/current' do
-    get('current_user user') do
-      response(200, 'successful') do
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-        run_test!
-      end
-    end
-  end
+  path '/api/topics/{id}' do
+    # You'll want to customize the parameter types...
+    parameter name: 'id', in: :path, type: :string, description: 'id'
 
-  path '/api/users/repos' do
-    get('user_repos user') do
+    get('show topic') do
       response(200, 'successful') do
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-        run_test!
-      end
-    end
-  end
+        let(:id) { '123' }
 
-  path '/api/users/contribs' do
-    get('fetch_user_contributions user') do
-      response(200, 'successful') do
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
