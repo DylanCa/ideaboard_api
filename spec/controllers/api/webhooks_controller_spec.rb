@@ -351,7 +351,7 @@ RSpec.describe Api::WebhooksController, type: :controller do
   def mock_webhook_deletion_failure
     allow(Github::WebhookService).to receive(:delete_webhook).and_return({
                                                                            success: false,
-                                                                           error_message: "API error"
+                                                                           message: "API error"
                                                                          })
   end
 
