@@ -1,428 +1,3262 @@
----
 openapi: 3.0.1
 info:
-  title: API V1
-  version: v1
-paths:
-  "/api/analytics/user":
-    get:
-      summary: user analytic
-      responses:
-        '200':
-          description: successful
-  "/api/analytics/repositories":
-    get:
-      summary: repositories analytic
-      responses:
-        '200':
-          description: successful
-  "/api/analytics/repository/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: repository analytic
-      responses:
-        '200':
-          description: successful
-  "/api/auth/github/initiate":
-    post:
-      summary: initiate github
-      responses:
-        '200':
-          description: successful
-  "/api/auth/github/callback":
-    get:
-      summary: callback github
-      responses:
-        '200':
-          description: successful
-  "/api/auth/logout":
-    delete:
-      summary: delete session
-      responses:
-        '200':
-          description: successful
-  "/api/users/contributions":
-    get:
-      summary: user_contributions contribution
-      responses:
-        '200':
-          description: successful
-  "/api/users/contributions/history":
-    get:
-      summary: user_history contribution
-      responses:
-        '200':
-          description: successful
-  "/api/users/streaks":
-    get:
-      summary: user_streaks contribution
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/contributions":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: repository_contributions contribution
-      responses:
-        '200':
-          description: successful
-  "/api/users/issues":
-    get:
-      summary: user_issues issue
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/issues":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: repository_issues issue
-      responses:
-        '200':
-          description: successful
-  "/api/issues/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: show issue
-      responses:
-        '200':
-          description: successful
-  "/api/leaderboards/global":
-    get:
-      summary: global leaderboard
-      responses:
-        '200':
-          description: successful
-  "/api/leaderboards/repository/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: repository leaderboard
-      responses:
-        '200':
-          description: successful
-  "/api/users/pull_requests":
-    get:
-      summary: user_pull_requests pull_request
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/pull_requests":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: repository_pull_requests pull_request
-      responses:
-        '200':
-          description: successful
-  "/api/pull_requests/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: show pull_request
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/topics":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: topics repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/qualification":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: qualification repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/visibility":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    put:
-      summary: visibility repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/update_data":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    post:
-      summary: update_data repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/health":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: health repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}/activity":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: activity repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/trending":
-    get:
-      summary: trending repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/featured":
-    get:
-      summary: featured repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/refresh":
-    post:
-      summary: refresh repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/search":
-    get:
-      summary: search repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/recommendations":
-    get:
-      summary: recommendations repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/needs_help":
-    get:
-      summary: needs_help repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories":
-    get:
-      summary: list repositories
-      responses:
-        '200':
-          description: successful
-    post:
-      summary: create repository
-      responses:
-        '200':
-          description: successful
-  "/api/repositories/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: show repository
-      responses:
-        '200':
-          description: successful
-  "/api/repository_stats":
-    get:
-      summary: list repository_stats
-      responses:
-        '200':
-          description: successful
-  "/api/repository_stats/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: show repository_stat
-      responses:
-        '200':
-          description: successful
-  "/api/token/usage":
-    get:
-      summary: usage token
-      responses:
-        '200':
-          description: successful
-  "/api/token/settings":
-    put:
-      summary: update_settings token
-      responses:
-        '200':
-          description: successful
-  "/api/topics/{id}/repositories":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: repositories topic
-      responses:
-        '200':
-          description: successful
-  "/api/topics":
-    get:
-      summary: list topics
-      responses:
-        '200':
-          description: successful
-  "/api/topics/{id}":
-    parameters:
-    - name: id
-      in: path
-      description: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: show topic
-      responses:
-        '200':
-          description: successful
-  "/api/profile":
-    get:
-      summary: profile user
-      responses:
-        '200':
-          description: successful
-    put:
-      summary: update_profile user
-      responses:
-        '200':
-          description: successful
-  "/api/users/current":
-    get:
-      summary: current_user user
-      responses:
-        '200':
-          description: successful
-  "/api/users/repos":
-    get:
-      summary: user_repos user
-      responses:
-        '200':
-          description: successful
-  "/api/users/contribs":
-    get:
-      summary: fetch_user_contributions user
-      responses:
-        '200':
-          description: successful
-  "/api/webhooks":
-    post:
-      summary: create webhook
-      responses:
-        '200':
-          description: successful
-  "/api/webhooks/{repository_id}":
-    parameters:
-    - name: repository_id
-      in: path
-      description: repository_id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: show webhook
-      responses:
-        '200':
-          description: successful
-    delete:
-      summary: delete webhook
-      responses:
-        '200':
-          description: successful
-  "/api/webhook":
-    post:
-      summary: receive_event webhook
-      responses:
-        '200':
-          description: successful
+  title: IdeaBoard API
+  description: |
+    API for the IdeaBoard platform - a dual-purpose application that bridges the gap between 
+    idea creators and developers seeking projects to contribute to.
+    
+    The API provides endpoints for GitHub repository discovery, contribution tracking,
+    user management, analytics, and webhook integration.
+  version: v1.0.0
+  contact:
+    name: IdeaBoard Support
+  license:
+    name: MIT License
+
+# Server URLs
 servers:
-- url: https://{defaultHost}
-  variables:
-    defaultHost:
-      default: www.example.com
+  - url: /api
+    description: IdeaBoard API Server
+    variables:
+      environment:
+        default: dev
+        enum:
+          - dev
+          - staging
+          - prod
+        description: The environment (development, staging, or production)
+
+# Tags for organizing endpoints into categories
+tags:
+  - name: Authentication
+    description: GitHub OAuth authentication endpoints
+  - name: User
+    description: User profile and personal data management
+  - name: Repository
+    description: Repository listing, discovery, and management
+  - name: Topic
+    description: Repository topics/tags management
+  - name: PullRequest
+    description: Pull request retrieval and filtering
+  - name: Issue
+    description: Issues retrieval and filtering
+  - name: Contribution
+    description: User contribution tracking and statistics
+  - name: Leaderboard
+    description: User and repository rankings
+  - name: Analytics
+    description: User and repository analytics and statistics
+  - name: Webhook
+    description: GitHub webhook integration
+  - name: Token
+    description: Token usage management
+
+# Security schemes
+components:
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from the GitHub OAuth authentication process
+  
+  # Shared schemas for requests and responses
+  schemas:
+    Error:
+      type: object
+      properties:
+        meta:
+          type: object
+        data:
+          type: object
+          nullable: true
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              description: Error message
+            status:
+              type: integer
+              description: HTTP status code
+      required:
+        - meta
+        - data
+        - error
+    
+    Repository:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Repository ID
+        full_name:
+          type: string
+          description: Repository full name (owner/repo)
+        description:
+          type: string
+          description: Repository description
+          nullable: true
+        stars_count:
+          type: integer
+          description: Number of GitHub stars
+        forks_count:
+          type: integer
+          description: Number of forks
+        language:
+          type: string
+          description: Primary programming language
+          nullable: true
+        has_contributing:
+          type: boolean
+          description: Whether the repository has a CONTRIBUTING.md file
+        github_created_at:
+          type: string
+          format: date-time
+          description: When the repository was created on GitHub
+        github_updated_at:
+          type: string
+          format: date-time
+          description: When the repository was last updated on GitHub
+        is_fork:
+          type: boolean
+          description: Whether the repository is a fork
+        archived:
+          type: boolean
+          description: Whether the repository is archived
+        disabled:
+          type: boolean
+          description: Whether the repository is disabled
+        license:
+          type: string
+          description: Repository license key (e.g., mit, apache-2.0)
+          nullable: true
+        visible:
+          type: boolean
+          description: Whether the repository is visible in IdeaBoard
+        author_username:
+          type: string
+          description: Repository owner's username
+      required:
+        - id
+        - full_name
+        - stars_count
+        - forks_count
+        - github_created_at
+        - github_updated_at
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: User ID
+        email:
+          type: string
+          format: email
+          description: User email
+        account_status:
+          type: string
+          enum: [enabled, disabled, banned]
+          description: Account status
+        token_usage_level:
+          type: string
+          enum: [personal, contributed, global_pool]
+          description: Token usage permission level
+        github_account:
+          type: object
+          properties:
+            github_id:
+              type: integer
+              description: GitHub user ID
+            github_username:
+              type: string
+              description: GitHub username
+            avatar_url:
+              type: string
+              description: GitHub avatar URL
+              nullable: true
+        user_stat:
+          type: object
+          properties:
+            reputation_points:
+              type: integer
+              description: User reputation points
+      required:
+        - id
+        - email
+        - account_status
+    
+    Topic:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Topic ID
+        name:
+          type: string
+          description: Topic name
+        created_at:
+          type: string
+          format: date-time
+          description: When the topic was created
+        updated_at:
+          type: string
+          format: date-time
+          description: When the topic was last updated
+      required:
+        - id
+        - name
+    
+    PullRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Pull request ID
+        github_id:
+          type: string
+          description: GitHub node ID
+        title:
+          type: string
+          description: Pull request title
+        number:
+          type: integer
+          description: Pull request number
+        url:
+          type: string
+          description: Pull request URL
+        author_username:
+          type: string
+          description: Author's GitHub username
+        is_draft:
+          type: boolean
+          description: Whether the PR is a draft
+        github_created_at:
+          type: string
+          format: date-time
+          description: When the PR was created on GitHub
+        github_updated_at:
+          type: string
+          format: date-time
+          description: When the PR was last updated on GitHub
+        merged_at:
+          type: string
+          format: date-time
+          description: When the PR was merged
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          description: When the PR was closed
+          nullable: true
+        commits:
+          type: integer
+          description: Number of commits
+        total_comments_count:
+          type: integer
+          description: Number of comments
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+      required:
+        - id
+        - title
+        - number
+        - url
+        - github_created_at
+        - github_updated_at
+    
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Issue ID
+        github_id:
+          type: string
+          description: GitHub node ID
+        title:
+          type: string
+          description: Issue title
+        number:
+          type: integer
+          description: Issue number
+        url:
+          type: string
+          description: Issue URL
+        author_username:
+          type: string
+          description: Author's GitHub username
+        github_created_at:
+          type: string
+          format: date-time
+          description: When the issue was created on GitHub
+        github_updated_at:
+          type: string
+          format: date-time
+          description: When the issue was last updated on GitHub
+        closed_at:
+          type: string
+          format: date-time
+          description: When the issue was closed
+          nullable: true
+        comments_count:
+          type: integer
+          description: Number of comments
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+      required:
+        - id
+        - title
+        - number
+        - url
+        - github_created_at
+        - github_updated_at
+    
+    Label:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Label ID
+        name:
+          type: string
+          description: Label name
+        color:
+          type: string
+          description: Label color (hex code without #)
+        description:
+          type: string
+          description: Label description
+          nullable: true
+        is_bug:
+          type: boolean
+          description: Whether this label indicates a bug
+      required:
+        - id
+        - name
+    
+    Contribution:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: User ID
+        github_repository_id:
+          type: integer
+          description: Repository ID
+        opened_prs_count:
+          type: integer
+          description: Number of opened PRs
+        merged_prs_count:
+          type: integer
+          description: Number of merged PRs
+        closed_prs_count:
+          type: integer
+          description: Number of closed (not merged) PRs
+        issues_opened_count:
+          type: integer
+          description: Number of opened issues
+        issues_closed_count:
+          type: integer
+          description: Number of closed issues
+        issues_with_pr_count:
+          type: integer
+          description: Number of issues with associated PRs
+        first_contribution_at:
+          type: string
+          format: date-time
+          description: Date of first contribution
+          nullable: true
+        last_contribution_at:
+          type: string
+          format: date-time
+          description: Date of most recent contribution
+          nullable: true
+        contribution_streak:
+          type: integer
+          description: Current contribution streak (days)
+      required:
+        - user_id
+        - github_repository_id
+        - opened_prs_count
+        - merged_prs_count
+        - issues_opened_count
+
+    SuccessResponse:
+      type: object
+      properties:
+        meta:
+          type: object
+          description: Metadata about the response (pagination, etc.)
+        data:
+          type: object
+          description: Response data
+        error:
+          type: object
+          nullable: true
+          description: Error information (null for successful responses)
+      required:
+        - meta
+        - data
+        - error
+
+    PaginationMeta:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of items
+        current_page:
+          type: integer
+          description: Current page number
+        total_pages:
+          type: integer
+          description: Total number of pages
+      required:
+        - total_count
+        - current_page
+        - total_pages
+
+# API Paths grouped by functionality
+paths:
+  #
+  # Authentication endpoints
+  #
+  /auth/github/initiate:
+    post:
+      tags:
+        - Authentication
+      summary: Initiate GitHub OAuth flow
+      description: |
+        Initiates the GitHub OAuth authentication flow by generating a state
+        parameter and returning the GitHub authorization URL.
+      operationId: initiateGithubAuth
+      responses:
+        '200':
+          description: Successfully initiated GitHub OAuth flow
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          redirect_url:
+                            type: string
+                            description: URL to redirect the user to for GitHub authorization
+
+  /auth/github/callback:
+    get:
+      tags:
+        - Authentication
+      summary: GitHub OAuth callback
+      description: |
+        Callback endpoint for GitHub OAuth flow. Exchanges the code for an access token,
+        creates or updates the user account, and returns a JWT token for API authentication.
+      operationId: githubCallback
+      parameters:
+        - name: code
+          in: query
+          description: Authorization code from GitHub
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: State parameter for CSRF protection
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully authenticated with GitHub
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          jwt_token:
+                            type: string
+                            description: JWT token for API authentication
+                          user:
+                            $ref: '#/components/schemas/User'
+                          github_account:
+                            type: object
+                            description: GitHub account details
+                          user_stat:
+                            type: object
+                            description: User statistics
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    delete:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: |
+        Invalidates the current JWT token by adding it to a blacklist.
+      operationId: logout
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Successfully logged out"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # User endpoints
+  #
+  /profile:
+    get:
+      tags:
+        - User
+      summary: Get current user profile
+      description: |
+        Retrieves the profile information for the authenticated user,
+        including GitHub account details and user statistics.
+      operationId: getUserProfile
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          github_account:
+                            type: object
+                            description: GitHub account details
+                          user_stat:
+                            type: object
+                            description: User statistics
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - User
+      summary: Update user profile
+      description: |
+        Updates the profile information for the authenticated user.
+        Currently supports updating email and token usage level.
+      operationId: updateUserProfile
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                    token_usage_level:
+                      type: string
+                      enum: [personal, contributed, global_pool]
+              required:
+                - user
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          github_account:
+                            type: object
+                            description: GitHub account details
+                          user_stat:
+                            type: object
+                            description: User statistics
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/current:
+    get:
+      tags:
+        - User
+      summary: Get current user from GitHub
+      description: |
+        Retrieves the current user's information from GitHub via GraphQL.
+      operationId: getCurrentUser
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user info from GitHub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/repos:
+    get:
+      tags:
+        - User
+        - Repository
+      summary: Fetch user's GitHub repositories
+      description: |
+        Initiates a background job to fetch the authenticated user's
+        public GitHub repositories.
+      operationId: fetchUserRepos
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully started repository fetching job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/contribs:
+    get:
+      tags:
+        - User
+        - Contribution
+      summary: Fetch user's contributions
+      description: |
+        Initiates a background job to fetch the authenticated user's
+        GitHub contributions (PRs and issues).
+      operationId: fetchUserContributions
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully started contribution fetching job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Repository endpoints
+  #
+  /repositories:
+    get:
+      tags:
+        - Repository
+      summary: List repositories
+      description: |
+        Returns a paginated list of visible repositories, with optional filtering
+        by language and topic.
+      operationId: listRepositories
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: language
+          in: query
+          description: Filter by programming language
+          schema:
+            type: string
+        - name: topic
+          in: query
+          description: Filter by topic name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved repositories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+
+    post:
+      tags:
+        - Repository
+      summary: Add a new repository
+      description: |
+        Initiates a background job to fetch and add a GitHub repository
+        by its full name (owner/repo).
+      operationId: addRepository
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repository_full_name:
+                  type: string
+                  description: Full name of the repository (owner/repo)
+                  example: "rails/rails"
+              required:
+                - repository_full_name
+      responses:
+        '202':
+          description: Repository add job started
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Repository add job started"
+                          repository_name:
+                            type: string
+        '200':
+          description: Repository already exists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Repository already exists"
+                          repository:
+                            $ref: '#/components/schemas/Repository'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Repository
+      summary: Get repository details
+      description: |
+        Returns detailed information about a specific repository,
+        including its topics and labels.
+      operationId: getRepository
+      responses:
+        '200':
+          description: Successfully retrieved repository
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository:
+                            $ref: '#/components/schemas/Repository'
+                          topics:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Topic'
+                          labels:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Label'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/topics:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Repository
+        - Topic
+      summary: Get repository topics
+      description: |
+        Returns the topics/tags associated with a repository.
+      operationId: getRepositoryTopics
+      responses:
+        '200':
+          description: Successfully retrieved repository topics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              full_name:
+                                type: string
+                          topics:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Topic'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/qualification:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Repository
+      summary: Check repository qualification
+      description: |
+        Evaluates whether a repository qualifies for the platform
+        based on criteria like having a license, CONTRIBUTING.md file,
+        open issues, and not being archived or disabled.
+      operationId: checkRepositoryQualification
+      responses:
+        '200':
+          description: Successfully evaluated repository qualification
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          qualification:
+                            type: object
+                            properties:
+                              has_license:
+                                type: boolean
+                              has_contributing:
+                                type: boolean
+                              is_active:
+                                type: boolean
+                              has_open_issues:
+                                type: boolean
+                              is_not_archived:
+                                type: boolean
+                              is_not_disabled:
+                                type: boolean
+                              qualifies:
+                                type: boolean
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/visibility:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Repository
+      summary: Update repository visibility
+      description: |
+        Updates the visibility of a repository in the platform.
+        Only the repository owner can change this setting.
+      operationId: updateRepositoryVisibility
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visible:
+                  type: boolean
+                  description: Whether the repository should be visible
+              required:
+                - visible
+      responses:
+        '200':
+          description: Successfully updated repository visibility
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository:
+                            $ref: '#/components/schemas/Repository'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/update_data:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Repository
+      summary: Update repository data
+      description: |
+        Initiates a background job to update the repository's data
+        from GitHub (PRs, issues, etc.).
+      operationId: updateRepositoryData
+      security:
+        - jwtAuth: []
+      responses:
+        '202':
+          description: Repository update job started
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Repository update job started"
+                          repository_id:
+                            type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/health:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Repository
+        - Analytics
+      summary: Get repository health metrics
+      description: |
+        Returns health metrics for a repository, including qualification status,
+        contributor count, PR velocity, and overall health score.
+      operationId: getRepositoryHealth
+      responses:
+        '200':
+          description: Successfully retrieved repository health metrics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          health:
+                            type: object
+                            properties:
+                              stars_count:
+                                type: integer
+                              forks_count:
+                                type: integer
+                              has_license:
+                                type: boolean
+                              has_contributing:
+                                type: boolean
+                              is_active:
+                                type: boolean
+                              is_not_archived:
+                                type: boolean
+                              is_not_disabled:
+                                type: boolean
+                              contributor_count:
+                                type: integer
+                              pr_velocity:
+                                type: number
+                                format: float
+                              issue_response_time:
+                                type: number
+                                format: float
+                                nullable: true
+                              pr_merge_rate:
+                                type: number
+                                format: float
+                                nullable: true
+                              health_score:
+                                type: integer
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/activity:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Repository
+        - Analytics
+      summary: Get repository activity
+      description: |
+        Returns recent activity (PRs, issues) for a repository.
+      operationId: getRepositoryActivity
+      responses:
+        '200':
+          description: Successfully retrieved repository activity
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository_id:
+                            type: integer
+                          repository_name:
+                            type: string
+                          activities:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [pull_request, issue]
+                                id:
+                                  type: integer
+                                title:
+                                  type: string
+                                url:
+                                  type: string
+                                author:
+                                  type: string
+                                created_at:
+                                  type: string
+                                  format: date-time
+                                updated_at:
+                                  type: string
+                                  format: date-time
+                                state:
+                                  type: string
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/trending:
+    get:
+      tags:
+        - Repository
+      summary: Get trending repositories
+      description: |
+        Returns a paginated list of trending repositories based on
+        recent activity (PRs, issues) and stars.
+      operationId: getTrendingRepositories
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved trending repositories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+
+  /repositories/featured:
+    get:
+      tags:
+        - Repository
+      summary: Get featured repositories
+      description: |
+        Returns a list of curated, high-quality repositories with
+        CONTRIBUTING.md files and at least 100 stars.
+      operationId: getFeaturedRepositories
+      responses:
+        '200':
+          description: Successfully retrieved featured repositories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+
+  /repositories/refresh:
+    post:
+      tags:
+        - Repository
+      summary: Refresh all repositories
+      description: |
+        Initiates a background job to refresh data for all repositories.
+        Requires authentication.
+      operationId: refreshAllRepositories
+      security:
+        - jwtAuth: []
+      responses:
+        '202':
+          description: Repository refresh job started
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Repository refresh job started for all repositories"
+                          status:
+                            type: string
+                            example: "processing"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/search:
+    get:
+      tags:
+        - Repository
+      summary: Search repositories
+      description: |
+        Searches for repositories by name or description, with optional
+        filtering by language and topic, and various sorting options.
+      operationId: searchRepositories
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [stars, forks, recent, created]
+            default: stars
+        - name: language
+          in: query
+          description: Filter by programming language
+          schema:
+            type: string
+        - name: topic
+          in: query
+          description: Filter by topic name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully searched repositories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/PaginationMeta'
+                          - type: object
+                            properties:
+                              query:
+                                type: string
+
+  /repositories/recommendations:
+    get:
+      tags:
+        - Repository
+      summary: Get repository recommendations
+      description: |
+        Returns personalized repository recommendations based on the
+        authenticated user's contributions, preferred languages, and topics.
+      operationId: getRepositoryRecommendations
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved repository recommendations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/PaginationMeta'
+                          - type: object
+                            properties:
+                              based_on:
+                                type: object
+                                properties:
+                                  languages:
+                                    type: array
+                                    items:
+                                      type: string
+                                  topics:
+                                    type: array
+                                    items:
+                                      type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/needs_help:
+    get:
+      tags:
+        - Repository
+      summary: Get repositories that need help
+      description: |
+        Returns repositories that need help based on criteria such as
+        open issues count, time since last update, and open issue to star ratio.
+      operationId: getRepositoriesNeedingHelp
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved repositories needing help
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+
+  #
+  # Pull Request endpoints
+  #
+  /pull_requests/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Pull request ID
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - PullRequest
+      summary: Get pull request details
+      description: |
+        Returns detailed information about a specific pull request,
+        including its labels and repository.
+      operationId: getPullRequest
+      responses:
+        '200':
+          description: Successfully retrieved pull request
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          pull_request:
+                            allOf:
+                              - $ref: '#/components/schemas/PullRequest'
+                              - type: object
+                                properties:
+                                  labels:
+                                    type: array
+                                    items:
+                                      $ref: '#/components/schemas/Label'
+                          repository:
+                            $ref: '#/components/schemas/Repository'
+        '404':
+          description: Pull request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/pull_requests:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - PullRequest
+        - Repository
+      summary: Get repository pull requests
+      description: |
+        Returns a paginated list of pull requests for a specific repository,
+        with optional filtering by state, labels, and date.
+      operationId: getRepositoryPullRequests
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: state
+          in: query
+          description: Filter by pull request state
+          schema:
+            type: string
+            enum: [open, closed, merged, draft]
+        - name: labels
+          in: query
+          description: Filter by labels (comma-separated)
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Filter by creation date (ISO 8601 format)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successfully retrieved repository pull requests
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          pull_requests:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PullRequest'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/pull_requests:
+    get:
+      tags:
+        - PullRequest
+        - User
+      summary: Get user's pull requests
+      description: |
+        Returns a paginated list of pull requests created by the authenticated user,
+        with optional filtering by state, labels, and date.
+      operationId: getUserPullRequests
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: state
+          in: query
+          description: Filter by pull request state
+          schema:
+            type: string
+            enum: [open, closed, merged, draft]
+        - name: labels
+          in: query
+          description: Filter by labels (comma-separated)
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Filter by creation date (ISO 8601 format)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successfully retrieved user's pull requests
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          pull_requests:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/PullRequest'
+                                - type: object
+                                  properties:
+                                    github_repository:
+                                      $ref: '#/components/schemas/Repository'
+                                    labels:
+                                      type: array
+                                      items:
+                                        $ref: '#/components/schemas/Label'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Issue endpoints
+  #
+  /issues/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Issue ID
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Issue
+      summary: Get issue details
+      description: |
+        Returns detailed information about a specific issue,
+        including its labels and repository.
+      operationId: getIssue
+      responses:
+        '200':
+          description: Successfully retrieved issue
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          issue:
+                            allOf:
+                              - $ref: '#/components/schemas/Issue'
+                              - type: object
+                                properties:
+                                  labels:
+                                    type: array
+                                    items:
+                                      $ref: '#/components/schemas/Label'
+                          repository:
+                            $ref: '#/components/schemas/Repository'
+        '404':
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/issues:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Issue
+        - Repository
+      summary: Get repository issues
+      description: |
+        Returns a paginated list of issues for a specific repository,
+        with optional filtering by state, labels, and date.
+      operationId: getRepositoryIssues
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: state
+          in: query
+          description: Filter by issue state
+          schema:
+            type: string
+            enum: [open, closed]
+        - name: labels
+          in: query
+          description: Filter by labels (comma-separated)
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Filter by creation date (ISO 8601 format)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successfully retrieved repository issues
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          issues:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Issue'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/issues:
+    get:
+      tags:
+        - Issue
+        - User
+      summary: Get user's issues
+      description: |
+        Returns a paginated list of issues created by the authenticated user,
+        with optional filtering by state, labels, and date.
+      operationId: getUserIssues
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: state
+          in: query
+          description: Filter by issue state
+          schema:
+            type: string
+            enum: [open, closed]
+        - name: labels
+          in: query
+          description: Filter by labels (comma-separated)
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Filter by creation date (ISO 8601 format)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successfully retrieved user's issues
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          issues:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/Issue'
+                                - type: object
+                                  properties:
+                                    github_repository:
+                                      $ref: '#/components/schemas/Repository'
+                                    labels:
+                                      type: array
+                                      items:
+                                        $ref: '#/components/schemas/Label'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Contribution endpoints
+  #
+  /users/contributions:
+    get:
+      tags:
+        - Contribution
+        - User
+      summary: Get user's contributions
+      description: |
+        Returns the authenticated user's contributions across all repositories.
+      operationId: getUserContributions
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved user's contributions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          contributions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Contribution'
+                          totals:
+                            type: object
+                            properties:
+                              total_prs:
+                                type: integer
+                              total_merged_prs:
+                                type: integer
+                              total_issues:
+                                type: integer
+                              total_closed_issues:
+                                type: integer
+                              total_repositories:
+                                type: integer
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/contributions/history:
+    get:
+      tags:
+        - Contribution
+        - User
+      summary: Get user's contribution history
+      description: |
+        Returns the authenticated user's contribution history aggregated by month.
+      operationId: getUserContributionHistory
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          description: Start date for history (defaults to 6 months ago)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date for history (defaults to today)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Successfully retrieved user's contribution history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          history:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                year:
+                                  type: integer
+                                month:
+                                  type: integer
+                                month_name:
+                                  type: string
+                                opened_prs:
+                                  type: integer
+                                merged_prs:
+                                  type: integer
+                                closed_prs:
+                                  type: integer
+                                opened_issues:
+                                  type: integer
+                                closed_issues:
+                                  type: integer
+                                total_contributions:
+                                  type: integer
+                      meta:
+                        type: object
+                        properties:
+                          start_date:
+                            type: string
+                            format: date
+                          end_date:
+                            type: string
+                            format: date
+                          total_prs:
+                            type: integer
+                          total_issues:
+                            type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/streaks:
+    get:
+      tags:
+        - Contribution
+        - User
+      summary: Get user's contribution streaks
+      description: |
+        Returns the authenticated user's contribution streak information.
+      operationId: getUserStreaks
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user's contribution streaks
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          current_streak:
+                            type: integer
+                            description: Current contribution streak (days)
+                          longest_streak:
+                            type: integer
+                            description: Longest contribution streak (days)
+                          calendar_data:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                date:
+                                  type: string
+                                  format: date
+                                count:
+                                  type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repositories/{id}/contributions:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Contribution
+        - Repository
+      summary: Get repository contributions
+      description: |
+        Returns contribution statistics for a repository.
+      operationId: getRepositoryContributions
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved repository contributions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          contributions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Contribution'
+                          totals:
+                            type: object
+                            properties:
+                              total_contributors:
+                                type: integer
+                              total_prs:
+                                type: integer
+                              total_merged_prs:
+                                type: integer
+                              total_issues:
+                                type: integer
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/PaginationMeta'
+                          - type: object
+                            properties:
+                              repository:
+                                type: string
+                              stars:
+                                type: integer
+                              forks:
+                                type: integer
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Repository stats endpoints
+  #
+  /repository_stats:
+    get:
+      tags:
+        - Contribution
+        - User
+      summary: Get user's repository statistics
+      description: |
+        Returns the authenticated user's contribution statistics for all repositories.
+      operationId: getUserRepositoryStats
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved user's repository statistics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository_stats:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                repository:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    full_name:
+                                      type: string
+                                    description:
+                                      type: string
+                                stats:
+                                  type: object
+                                  properties:
+                                    opened_prs_count:
+                                      type: integer
+                                    merged_prs_count:
+                                      type: integer
+                                    closed_prs_count:
+                                      type: integer
+                                    issues_opened_count:
+                                      type: integer
+                                    issues_closed_count:
+                                      type: integer
+                                    issues_with_pr_count:
+                                      type: integer
+                                    contribution_streak:
+                                      type: integer
+                                    first_contribution_at:
+                                      type: string
+                                      format: date-time
+                                      nullable: true
+                                    last_contribution_at:
+                                      type: string
+                                      format: date-time
+                                      nullable: true
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /repository_stats/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Contribution
+        - User
+      summary: Get user's statistics for a specific repository
+      description: |
+        Returns the authenticated user's contribution statistics for a specific repository.
+      operationId: getUserRepositoryStat
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user's repository statistics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository_stats:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              repository:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  full_name:
+                                    type: string
+                                  description:
+                                    type: string
+                              stats:
+                                type: object
+                                properties:
+                                  opened_prs_count:
+                                    type: integer
+                                  merged_prs_count:
+                                    type: integer
+                                  closed_prs_count:
+                                    type: integer
+                                  issues_opened_count:
+                                    type: integer
+                                  issues_closed_count:
+                                    type: integer
+                                  issues_with_pr_count:
+                                    type: integer
+                                  contribution_streak:
+                                    type: integer
+                                  first_contribution_at:
+                                    type: string
+                                    format: date-time
+                                    nullable: true
+                                  last_contribution_at:
+                                    type: string
+                                    format: date-time
+                                    nullable: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository statistics not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Leaderboard endpoints
+  #
+  /leaderboards/global:
+    get:
+      tags:
+        - Leaderboard
+      summary: Get global leaderboard
+      description: |
+        Returns a global leaderboard of users ranked by reputation points.
+      operationId: getGlobalLeaderboard
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: limit
+          in: query
+          description: Maximum number of users to consider
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Successfully retrieved global leaderboard
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          leaderboard:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                user_id:
+                                  type: integer
+                                username:
+                                  type: string
+                                avatar_url:
+                                  type: string
+                                  nullable: true
+                                reputation_points:
+                                  type: integer
+                                rank:
+                                  type: integer
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+
+  /leaderboards/repository/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Leaderboard
+        - Repository
+      summary: Get repository leaderboard
+      description: |
+        Returns a leaderboard of users for a specific repository,
+        ranked by contribution metrics.
+      operationId: getRepositoryLeaderboard
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved repository leaderboard
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository:
+                            type: string
+                          leaderboard:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                user_id:
+                                  type: integer
+                                username:
+                                  type: string
+                                avatar_url:
+                                  type: string
+                                  nullable: true
+                                opened_prs_count:
+                                  type: integer
+                                merged_prs_count:
+                                  type: integer
+                                issues_opened_count:
+                                  type: integer
+                                issues_closed_count:
+                                  type: integer
+                                first_contribution_at:
+                                  type: string
+                                  format: date-time
+                                  nullable: true
+                                last_contribution_at:
+                                  type: string
+                                  format: date-time
+                                  nullable: true
+                                reputation_points:
+                                  type: integer
+                                rank:
+                                  type: integer
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Analytics endpoints
+  #
+  /analytics/user:
+    get:
+      tags:
+        - Analytics
+        - User
+      summary: Get user analytics
+      description: |
+        Returns comprehensive analytics for the authenticated user.
+      operationId: getUserAnalytics
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user analytics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user_id:
+                            type: integer
+                          username:
+                            type: string
+                          reputation_points:
+                            type: integer
+                          contribution_stats:
+                            type: object
+                            properties:
+                              total_prs:
+                                type: integer
+                              merged_prs:
+                                type: integer
+                              closed_prs:
+                                type: integer
+                              pr_success_rate:
+                                type: number
+                                format: float
+                              total_issues:
+                                type: integer
+                              closed_issues:
+                                type: integer
+                              issue_closure_rate:
+                                type: number
+                                format: float
+                          repository_stats:
+                            type: object
+                            properties:
+                              active_repositories:
+                                type: integer
+                              current_streak:
+                                type: integer
+                          time_analytics:
+                            type: object
+                            properties:
+                              first_contribution:
+                                type: string
+                                format: date-time
+                                nullable: true
+                              most_recent_contribution:
+                                type: string
+                                format: date-time
+                                nullable: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /analytics/repositories:
+    get:
+      tags:
+        - Analytics
+        - Repository
+      summary: Get repository analytics
+      description: |
+        Returns analytics for all repositories in the platform.
+      operationId: getRepositoriesAnalytics
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved repository analytics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository_counts:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              active:
+                                type: integer
+                              inactive:
+                                type: integer
+                          average_metrics:
+                            type: object
+                            properties:
+                              stars:
+                                type: number
+                                format: float
+                              forks:
+                                type: number
+                                format: float
+                          language_distribution:
+                            type: object
+                            additionalProperties:
+                              type: integer
+                          top_repositories:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                full_name:
+                                  type: string
+                                stars:
+                                  type: integer
+                                forks:
+                                  type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /analytics/repository/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Repository ID or full name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Analytics
+        - Repository
+      summary: Get repository analytics
+      description: |
+        Returns detailed analytics for a specific repository.
+      operationId: getRepositoryAnalytics
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved repository analytics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              full_name:
+                                type: string
+                              description:
+                                type: string
+                                nullable: true
+                              stars:
+                                type: integer
+                              forks:
+                                type: integer
+                              language:
+                                type: string
+                                nullable: true
+                              created_at:
+                                type: string
+                                format: date-time
+                              updated_at:
+                                type: string
+                                format: date-time
+                          pull_request_stats:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              open:
+                                type: integer
+                              merged:
+                                type: integer
+                              closed:
+                                type: integer
+                          issue_stats:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              open:
+                                type: integer
+                              closed:
+                                type: integer
+                          top_contributors:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                user_id:
+                                  type: integer
+                                username:
+                                  type: string
+                                contributions:
+                                  type: integer
+                                merged_prs:
+                                  type: integer
+                          activity_trend:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                month:
+                                  type: string
+                                prs:
+                                  type: integer
+                                issues:
+                                  type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Topic endpoints
+  #
+  /topics:
+    get:
+      tags:
+        - Topic
+      summary: List topics
+      description: |
+        Returns a list of all topics/tags in the platform, optionally paginated.
+      operationId: listTopics
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved topics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          topics:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Topic'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+
+  /topics/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Topic ID or name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Topic
+      summary: Get topic details
+      description: |
+        Returns information about a specific topic.
+      operationId: getTopic
+      responses:
+        '200':
+          description: Successfully retrieved topic
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          topic:
+                            $ref: '#/components/schemas/Topic'
+        '404':
+          description: Topic not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /topics/{id}/repositories:
+    parameters:
+      - name: id
+        in: path
+        description: Topic ID or name
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Topic
+        - Repository
+      summary: Get topic repositories
+      description: |
+        Returns a paginated list of repositories associated with a specific topic.
+      operationId: getTopicRepositories
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved topic repositories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          topic:
+                            $ref: '#/components/schemas/Topic'
+                          repositories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Repository'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '404':
+          description: Topic not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Token management endpoints
+  #
+  /token/usage:
+    get:
+      tags:
+        - Token
+        - User
+      summary: Get token usage statistics
+      description: |
+        Returns usage statistics for the authenticated user's GitHub API token.
+      operationId: getTokenUsage
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          description: Start date for usage statistics (defaults to 30 days ago)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date for usage statistics (defaults to today)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Successfully retrieved token usage statistics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          token_settings:
+                            type: object
+                            properties:
+                              token_usage_level:
+                                type: string
+                                enum: [personal, contributed, global_pool]
+                              current_token:
+                                type: string
+                          total_stats:
+                            type: object
+                            properties:
+                              total_queries:
+                                type: integer
+                              total_points_used:
+                                type: integer
+                              average_cost_per_query:
+                                type: number
+                                format: float
+                              usage_by_type:
+                                type: object
+                                additionalProperties:
+                                  type: integer
+                          daily_usage:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                date:
+                                  type: string
+                                  format: date
+                                total_queries:
+                                  type: integer
+                                total_points:
+                                  type: integer
+                                by_type:
+                                  type: object
+                                  properties:
+                                    personal:
+                                      type: integer
+                                    contributed:
+                                      type: integer
+                                    global_pool:
+                                      type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /token/settings:
+    put:
+      tags:
+        - Token
+        - User
+      summary: Update token usage settings
+      description: |
+        Updates the token usage level for the authenticated user.
+      operationId: updateTokenSettings
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token_usage_level:
+                  type: string
+                  enum: [personal, contributed, global_pool]
+                  description: Token usage permission level
+              required:
+                - token_usage_level
+      responses:
+        '200':
+          description: Successfully updated token usage settings
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Token usage level updated successfully"
+                          token_usage_level:
+                            type: string
+                            enum: [personal, contributed, global_pool]
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid token usage level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # Webhook endpoints
+  #
+  /webhooks:
+    post:
+      tags:
+        - Webhook
+        - Repository
+      summary: Create repository webhook
+      description: |
+        Creates a GitHub webhook for a repository to receive real-time updates.
+      operationId: createWebhook
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repository_id:
+                  type: integer
+                  description: Repository ID
+                repository_full_name:
+                  type: string
+                  description: Repository full name (owner/repo)
+              anyOf:
+                - required: [repository_id]
+                - required: [repository_full_name]
+      responses:
+        '201':
+          description: Webhook successfully installed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Webhook successfully installed"
+                          repository_id:
+                            type: integer
+                          webhook_installed:
+                            type: boolean
+        '200':
+          description: Webhook already installed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Webhook already installed"
+                          repository_id:
+                            type: integer
+                          webhook_installed:
+                            type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Failed to install webhook
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /webhooks/{repository_id}:
+    parameters:
+      - name: repository_id
+        in: path
+        description: Repository ID
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Webhook
+        - Repository
+      summary: Get repository webhook status
+      description: |
+        Returns the webhook status for a repository.
+      operationId: getWebhookStatus
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved webhook status
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          repository_id:
+                            type: integer
+                          repository_name:
+                            type: string
+                          webhook_installed:
+                            type: boolean
+                          webhook_id:
+                            type: string
+                            nullable: true
+                          last_updated:
+                            type: string
+                            format: date-time
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Webhook
+        - Repository
+      summary: Delete repository webhook
+      description: |
+        Removes the GitHub webhook for a repository.
+      operationId: deleteWebhook
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Webhook successfully removed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Webhook successfully removed"
+                          repository_id:
+                            type: integer
+                          webhook_installed:
+                            type: boolean
+                            example: false
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Failed to remove webhook
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /webhook:
+    post:
+      tags:
+        - Webhook
+      summary: Receive GitHub webhook event
+      description: |
+        Endpoint for GitHub to send webhook events. This handles
+        events like pull request updates, issue changes, and repository updates.
+      operationId: receiveWebhookEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Successfully processed webhook event
+        '400':
+          description: Invalid JSON payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid webhook signature
+        '404':
+          description: Repository not found
+
+# Global security requirement
+security:
+  - jwtAuth: []
