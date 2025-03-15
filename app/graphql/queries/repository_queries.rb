@@ -31,6 +31,10 @@ module Queries
                     licenseInfo {
                       key
                     }
+                    contributingGuidelines {
+                      body
+                      url
+                    }
                     repositoryTopics(first: 100) {
                       nodes {
                         topic {
@@ -87,6 +91,14 @@ module Queries
                             color
                           }
                         }
+                        closingIssuesReferences(first: 100) {
+                          nodes {
+                            number
+                            repository {
+                              nameWithOwner
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -131,6 +143,14 @@ module Queries
                           nodes {
                             name
                             color
+                          }
+                        }
+                        closedByPullRequestsReferences(first: 100) {
+                          nodes {
+                            number
+                            repository {
+                              nameWithOwner
+                            }
                           }
                         }
                       }

@@ -53,6 +53,14 @@ module Queries
                     color
                   }
                 }
+                closingIssuesReferences(first: 100) {
+                  nodes {
+                    number
+                    repository {
+                      nameWithOwner
+                    }
+                  }
+                }
               }
               ... on Issue {
                 id
@@ -79,6 +87,14 @@ module Queries
                     color
                   }
                 }
+                closedByPullRequestsReferences(first: 100) {
+                  nodes {
+                    number
+                    repository {
+                      nameWithOwner
+                    }
+                  }
+                }
               }
               ... on Repository  {
                 id
@@ -97,6 +113,10 @@ module Queries
                 isDisabled
                 licenseInfo {
                   key
+                }
+                contributingGuidelines {
+                  body
+                  url
                 }
                 repositoryTopics(first: 100) {
                   nodes {

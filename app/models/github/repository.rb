@@ -14,6 +14,9 @@ module Github
     const :license, T.nilable(String)
     const :github_created_at, String
     const :github_updated_at, String
+    const :has_contributing, T::Boolean
+    const :contributing_guidelines, T.nilable(String)
+    const :contributing_url, T.nilable(String)
 
     def self.from_github(data)
       new(
@@ -31,7 +34,10 @@ module Github
         license: data.license_info&.key,
         github_created_at: data.created_at,
         github_updated_at: data.updated_at,
-      )
+        has_contributing: !data.contributing_guidelines.nil?,
+        contributing_guidelines: data.contributing_guidelines&.body,
+        contributing_url: data.contributing_guidelines&.url,
+        )
     end
 
     def stringify_keys
@@ -49,7 +55,10 @@ module Github
         license: license,
         visible: visible,
         github_created_at: github_created_at,
-        github_updated_at: github_updated_at
+        github_updated_at: github_updated_at,
+        has_contributing: has_contributing,
+        contributing_guidelines: contributing_guidelines,
+        contributing_url: contributing_url
       }
     end
   end

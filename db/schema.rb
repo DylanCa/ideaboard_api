@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_11_082313) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_15_093606) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -52,6 +52,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_11_082313) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "github_webhook_id"
+    t.text "contributing_guidelines"
+    t.string "contributing_url"
     t.index ["author_username", "stars_count"], name: "idx_repos_on_author_and_stars"
     t.index ["author_username"], name: "index_github_repositories_on_author_username"
     t.index ["full_name"], name: "index_github_repositories_on_full_name", unique: true
@@ -116,6 +118,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_11_082313) do
     t.integer "github_repository_id", null: false
     t.index ["github_repository_id"], name: "index_labels_on_github_repository_id"
     t.index ["name", "github_repository_id"], name: "idx_labels_on_name_and_repo_id"
+  end
+
+  create_table "pull_request_issues", force: :cascade do |t|
+    t.string "pr_repository", null: false
+    t.integer "pr_number", null: false
+    t.string "issue_repository", null: false
+    t.integer "issue_number", null: false
+    t.boolean "closes_issue", default: true, null: false
+    t.datetime "processed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["issue_repository", "issue_number"], name: "idx_on_issue_repo_and_number"
+    t.index ["pr_repository", "pr_number", "issue_repository", "issue_number"], name: "idx_on_pr_issue_unique", unique: true
+    t.index ["pr_repository", "pr_number"], name: "idx_on_pr_repo_and_number"
+    t.index ["processed_at"], name: "index_pull_request_issues_on_processed_at"
   end
 
   create_table "pull_request_labels", force: :cascade do |t|

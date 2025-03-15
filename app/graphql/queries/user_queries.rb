@@ -58,6 +58,10 @@ module Queries
                         licenseInfo {
                           key
                         }
+                        contributingGuidelines {
+                          body
+                          url
+                        }
                         repositoryTopics(first: 100) {
                           nodes {
                             topic {

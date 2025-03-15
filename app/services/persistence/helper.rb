@@ -115,17 +115,20 @@ module Persistence
           repo_id = first_item[:github_repository_id] if first_item&.key?(:github_repository_id)
         end
 
+        db_items = {}
+
         if model_class == Label
           preload_labels(metadata_names, repo_id)
           db_items = metadata_names.each_with_object({}) do |name, hash|
-            hash[name] = get_label_by_name(name, repo_id)
+            label = get_label_by_name(name, repo_id)
+            hash[name] = label if label
           end
         else
           existing_items = model_class.where(name: metadata_names).index_by(&:name)
           missing_names = metadata_names - existing_items.keys
 
           if missing_names.any?
-            new_items = missing_names.map { |name| { name: name } }
+            new_items = missing_names.map { |name| { name: name, created_at: Time.current, updated_at: Time.current } }
             created_items = model_class.insert_all(new_items, returning: %w[id name])
 
             if created_items.rows.any?
@@ -147,16 +150,28 @@ module Persistence
           next unless items_data[github_id]
 
           items_data[github_id].each do |metadata_item|
-            next unless metadata_item && metadata_item[:name] && db_items[metadata_item[:name]]
-            metadata_id = db_items[metadata_item[:name]].id
-            join_records << { item_key => item["id"], metadata_key => metadata_id }
+            next unless metadata_item && metadata_item[:name]
+
+            db_item = db_items[metadata_item[:name]]
+            # Skip if item doesn't exist in DB
+            next unless db_item
+
+            join_records << { item_key => item["id"], metadata_key => db_item.id }
           end
         end
 
         return if join_records.empty?
 
-        join_records.each_slice(1000) do |batch|
-          join_class.upsert_all(batch, unique_by: [ item_key, metadata_key ], returning: false)
+        # Use transaction and smaller batch sizes for reliability
+        ActiveRecord::Base.transaction do
+          join_records.each_slice(100) do |batch|
+            begin
+              join_class.upsert_all(batch, unique_by: [ item_key, metadata_key ], returning: false)
+            rescue ActiveRecord::InvalidForeignKey => e
+              # Log error but continue with other batches
+              Rails.logger.error "Foreign key error in batch: #{e.message}"
+            end
+          end
         end
       end
     end

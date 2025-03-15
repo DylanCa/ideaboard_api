@@ -22,4 +22,10 @@ Sidekiq.configure_server do |config|
     class: "RepositoryTierUpdateWorker",
     args: [ "global_pool" ]
   )
+
+  Sidekiq::Cron::Job.create(
+    name: "Process PR-Issue References",
+    cron: "Every 1 hour",
+    class: "ReferenceProcessorWorker"
+  )
 end
