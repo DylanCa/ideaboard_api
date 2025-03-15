@@ -37,10 +37,16 @@ module Api
       labels = Label.where(github_repository_id: @repository.id).distinct
 
       render_success({
-        repository: @repository,
-        topics: @repository.topics,
-        labels: labels
-      })
+                       repository: @repository.as_json(
+                         include: [],
+                         methods: [ :last_polled_at_date ],
+                         except: [ :webhook_secret ]
+                       ),
+                       contributing_guidelines: @repository.contributing_guidelines,
+                       contributing_url: @repository.contributing_url,
+                       topics: @repository.topics,
+                       labels: labels
+                     })
     end
 
     # POST /api/repositories
@@ -102,6 +108,7 @@ module Api
       qualification_result = {
         has_license: @repository.license.present?,
         has_contributing: @repository.has_contributing,
+        contributing_url: @repository.contributing_url,
         is_active: @repository.github_updated_at > 3.months.ago,
         has_open_issues: @repository.issues.open.exists?,
         is_not_archived: !@repository.archived,
