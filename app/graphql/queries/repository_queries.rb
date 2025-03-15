@@ -91,6 +91,14 @@ module Queries
                             color
                           }
                         }
+                        closingIssuesReferences(first: 100) {
+                          nodes {
+                            number
+                            repository {
+                              nameWithOwner
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -135,6 +143,14 @@ module Queries
                           nodes {
                             name
                             color
+                          }
+                        }
+                        closedByPullRequestsReferences(first: 100) {
+                          nodes {
+                            number
+                            repository {
+                              nameWithOwner
+                            }
                           }
                         }
                       }
