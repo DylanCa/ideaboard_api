@@ -36,6 +36,15 @@ module Persistence
       end
 
       Persistence::Helper.insert_items_labels_if_any(labels_for_item, inserted_items, type)
+
+      # Store references
+      if type == :prs
+        Persistence::ReferencePersistenceService.store_pr_issue_references(items)
+      else
+        Persistence::ReferencePersistenceService.store_issue_pr_references(items)
+      end
+
+      inserted_items
     end
 
     private
