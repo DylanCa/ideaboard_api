@@ -23,6 +23,7 @@ Rails.application.routes.draw do
     # User Profile & Settings
     get "profile", to: "users#profile"
     put "profile", to: "users#update_profile"
+    get :reputation_timeline, to: "users#reputation_timeline"
 
     # Token Management
     namespace :token do
