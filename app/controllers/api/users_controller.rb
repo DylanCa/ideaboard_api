@@ -45,6 +45,41 @@ module Api
       end
     end
 
+    def reputation_timeline
+      page = params[:page] || 1
+      per_page = params[:per_page] || 20
+
+      @events = @current_user.reputation_events
+                             .includes(:github_repository, :pull_request, :issue)
+                             .order(occurred_at: :desc)
+                             .page(page)
+                             .per(per_page)
+
+      render_success(
+        {
+          reputation_total: @current_user.user_stat&.reputation_points || 0,
+          events: @events.map do |event|
+            {
+              id: event.id,
+              description: event.description || event.generate_description,
+              points_change: event.points_change,
+              event_type: event.event_type,
+              occurred_at: event.occurred_at,
+              breakdown: event.points_breakdown,
+              repository: event.github_repository&.full_name,
+              pull_request_number: event.pull_request&.number,
+              issue_number: event.issue&.number
+            }
+          end
+        },
+        {
+          total_count: @events.total_count,
+          current_page: @events.current_page,
+          total_pages: @events.total_pages
+        }
+      )
+    end
+
     private
 
     def profile_params
