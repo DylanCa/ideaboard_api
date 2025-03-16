@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_one :user_stat, dependent: :destroy
   has_one :user_token, dependent: :destroy
   has_many :user_repository_stats, dependent: :destroy
+  has_many :reputation_events, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true
