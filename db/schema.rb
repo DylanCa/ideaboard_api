@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_15_093606) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_16_001502) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -172,6 +172,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_15_093606) do
     t.index ["merged_at"], name: "index_pull_requests_on_merged_at"
   end
 
+  create_table "reputation_events", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "github_repository_id"
+    t.bigint "pull_request_id"
+    t.bigint "issue_id"
+    t.integer "points_change", null: false
+    t.jsonb "points_breakdown", null: false
+    t.string "event_type", null: false
+    t.string "description"
+    t.datetime "occurred_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_type"], name: "index_reputation_events_on_event_type"
+    t.index ["github_repository_id"], name: "index_reputation_events_on_github_repository_id"
+    t.index ["issue_id"], name: "index_reputation_events_on_issue_id"
+    t.index ["occurred_at"], name: "index_reputation_events_on_occurred_at"
+    t.index ["pull_request_id"], name: "index_reputation_events_on_pull_request_id"
+    t.index ["user_id", "occurred_at"], name: "index_reputation_events_on_user_id_and_occurred_at"
+    t.index ["user_id"], name: "index_reputation_events_on_user_id"
+  end
+
   create_table "token_usage_logs", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "github_repository_id"
@@ -255,6 +276,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_15_093606) do
   add_foreign_key "pull_request_labels", "labels"
   add_foreign_key "pull_request_labels", "pull_requests"
   add_foreign_key "pull_requests", "github_repositories"
+  add_foreign_key "reputation_events", "github_repositories"
+  add_foreign_key "reputation_events", "issues"
+  add_foreign_key "reputation_events", "pull_requests"
+  add_foreign_key "reputation_events", "users"
   add_foreign_key "token_usage_logs", "github_repositories"
   add_foreign_key "token_usage_logs", "users"
   add_foreign_key "user_repository_stats", "github_repositories"
