@@ -4,9 +4,9 @@ IdeaBoard is a platform for discovering and contributing to open-source projects
 
 ## Overview
 
-IdeaBoard serves as a gamified service where developers can find meaningful open-source projects aligned with their skills and interests, and score points for each opensource contribution they have made. The platform features a ranking and recommendation system that highlight projects needing attention or matching a developer's needs.
+IdeaBoard serves as a gamified service where developers can find open-source projects aligned with their skills and interests, and score points for each opensource contribution they have made. The platform features a ranking and recommendation system that highlight projects needing attention or matching a developer's needs.
 
-The core mission is to create an ecosystem that lowers the barrier to open-source contribution by connecting developers with projects where they can make meaningful impacts.
+The core mission is to create an ecosystem that lowers the barrier to open-source contribution by connecting developers with projects.
 
 ## Architecture
 
