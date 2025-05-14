@@ -5,7 +5,7 @@
 The thoughest challenge for a developer willing to contribute to open-source projects is to find ones that are interesting to them. The second toughest challenge is to find something worth contributing in those projects. The third one is to actually make contributions.
 
 From that, I decided to write a little something to help me find projects I'd love contributing to, and iteration after iteration I've added multiple features just for fun and to explore technologies.
-Through the whole project, I have faced multiple issues and problematics I had to resolve, for instant Github GraphQL API request limitations, easy-to-use authentication, streamlined logging through the project, or even how to track contributions effectively.
+Through the whole project, I have faced multiple issues and problematics I had to resolve, for instance Github GraphQL API request limitations, easy-to-use authentication, streamlined logging through the project, or even how to track contributions effectively.
 
 I have done my best to describe the project in this Readme, and state as much as I can the problematics I've faced during development.
 I am definitely willing to talk about the project in depth, so do not hesitate to contact me directly!
