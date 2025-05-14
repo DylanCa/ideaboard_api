@@ -5,6 +5,10 @@
 The thoughest challenge for a developer willing to contribute to open-source projects is to find ones that are interesting to them. The second toughest challenge is to find something worth contributing in those projects. The third one is to actually make contributions.
 
 From that, I decided to write a little something to help me find projects I'd love contributing to, and iteration after iteration I've added multiple features just for fun and to explore technologies.
+Through the whole project, I have faced multiple issues and problematics I had to resolve, for instant Github GraphQL API request limitations, easy-to-use authentication, streamlined logging through the project, or even how to track contributions effectively.
+
+I have done my best to describe the project in this Readme, and state as much as I can the problematics I've faced during development.
+I am definitely willing to talk about the project in depth, so do not hesitate to contact me directly!
 
 ## Overview
 
@@ -61,10 +65,12 @@ IdeaBoard is built on the technology stack:
 - Detailed analytics for both users and repositories
 
 ### Sidekiq Workers and Webhooks Integration
-*Repos are fetched depending on the owner's contribution type. TLDR, if the owner gives the appropriate rights, the data fetched from the repo is almost real-time through webhooks calls. Otherwise, it's based on Sidekiq workers which are being run multiple times a day, and update data accordingly. Also, there's a "Contribution" mode where users can opt-in to help updating others' repos by automatically authorizing us to use their Github token to fetch their data.*
+*Repos are fetched depending on the owner's contribution type. TLDR, if the owner gives the appropriate rights, the data fetched from the repo is almost real-time through webhooks calls. Otherwise, it's based on Sidekiq workers which are being run multiple times a day, and update data accordingly.*
+
+*However, I faced an issue here: Github GraphQL API is limited to 5000 requests per hour per token, so we are quickly rate-limited since we need to make way, way more than 5000 requests per hour. To resolve this problematic, I wrote a solution where I borrow user's tokens and use them depending on their choice (owner = only their repos, contributor = repos where they contributed to, global pool = every repo where a token is needed) so that we are not rate limited anymore.*
 
 - Sidekiq Workers ran periodically to fetch data
-- Three-tier repository update strategy (owner, contributor, global pools) to fetch Repository Data
+- Three-tier repository update strategy (owner, contributor, global pools) to fetch Github data without being rate-limited.
 - Webhook integration for real-time updates
 
 ### Comprehensive REST API + Swagger doc
@@ -75,3 +81,10 @@ IdeaBoard is built on the technology stack:
 - Repository endpoints for discovery and management
 - User endpoints for profile and contribution tracking
 - Analytics endpoints for user and repository statistics
+
+### Extensive Logging system
+*To track the behaviour of the project, the issues I was facing and the current state of the used tokens / contribution ranking, I have implemented a logging system with params data where the logs are properly formatted and streamlined through the whole project, so that the returned data is easy to read and understand, no matter where it comes from*
+
+- Homemade Logger logic
+- Logs fired from everywhere in the project to properly track the behaviours
+- Logs with params data to have clear and available information for later use
